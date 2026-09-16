@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -34,6 +34,8 @@ import { QrImport } from './QrImport';
 
 interface Props {
   visible: boolean;
+  /** 메인에서 고른 카테고리로 열기 */
+  initialKind?: RecordKind;
   onClose: () => void;
   onSubmit: (record: RecoRecord) => void;
 }
@@ -123,8 +125,12 @@ interface ItemDraft {
   price: string;
 }
 
-export function RecordForm({ visible, onClose, onSubmit }: Props) {
-  const [kind, setKind] = useState<RecordKind>('reading');
+export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
+  const [kind, setKind] = useState<RecordKind>(initialKind ?? 'reading');
+
+  useEffect(() => {
+    if (visible && initialKind) setKind(initialKind);
+  }, [visible, initialKind]);
   const [reading, setReading] = useState(emptyReading);
   const [movie, setMovie] = useState(emptyMovie);
   const [spending, setSpending] = useState({ date: today(), store: '', category: '', address: '', memo: '' });

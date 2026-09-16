@@ -1,46 +1,41 @@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Coco } from './components/Coco';
-import { FlipCard } from './components/FlipCard';
-import { FoldableReceipt } from './components/FoldableReceipt';
+import { CATEGORIES, CategoryPicker } from './components/CategoryPicker';
+import { COCO_RATIO, Coco } from './components/Coco';
 import { PrintJob } from './components/Printer';
 import { RecordForm } from './components/RecordForm';
+import { RollScreen } from './components/RollScreen';
 import { WeekStamps, dateKey } from './components/WeekStamps';
 import { loadRecords, saveRecords } from './lib/storage';
-import { KIND_LABEL } from './templates';
 import { BRAND, COLORS, FONTS } from './theme';
-import { RecoRecord } from './types';
+import { RecoRecord, RecordKind } from './types';
 
 // 코코를 누를 때마다 바뀌는 한마디
-const POKES = ['간지러워!', '말랑말랑~', '오늘은 뭘 남길까?', '영수증 뽑아줄까?', '헤헤 또 눌러봐', '기록은 내가 챙길게'];
+const POKES = ['간지러워!', '말랑말랑~', '헤헤 또 눌러봐', '영수증 뽑아줄까?', '기록은 내가 챙길게', '만두 아니고 코코야!'];
 
+/** 메인: 한 화면에 코코 + 주간 도장 + 기록 버튼. 영수증 목록은 따로 올라오는 화면 */
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { width: screenW } = useWindowDimensions();
   const [records, setRecords] = useState<RecoRecord[]>([]);
-  const [loaded, setLoaded] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [formKind, setFormKind] = useState<RecordKind>('reading');
+  const [picking, setPicking] = useState(false);
+  const [focusKind, setFocusKind] = useState<RecordKind | null>(null);
   const [printing, setPrinting] = useState<RecoRecord | null>(null);
-  const [freshId, setFreshId] = useState<string | null>(null);
+  const [rollOpen, setRollOpen] = useState(false);
+  const [rollDate, setRollDate] = useState<string | null>(null);
   const [cheer, setCheer] = useState(false);
   const [poke, setPoke] = useState<string | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const scrollRef = useRef<ScrollView>(null);
+  const [stage, setStage] = useState({ width: 0, height: 0 });
   const pokeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const paperW = Math.min(screenW - 44, 440);
-  const printW = Math.min(screenW * 0.72, 360);
-  const cocoSize = Math.min(screenW * 0.56, 240);
-
   useEffect(() => {
-    loadRecords()
-      .then(setRecords)
-      .finally(() => setLoaded(true));
+    loadRecords().then(setRecords);
   }, []);
 
   const update = useCallback((next: RecoRecord[]) => {
@@ -54,7 +49,17 @@ export function HomeScreen() {
     return map;
   }, [records]);
 
-  const visible = selectedDate ? records.filter((r) => r.date === selectedDate) : records;
+  const openPicker = () => {
+    setFocusKind(null);
+    setPicking(true);
+  };
+
+  const pickCategory = (kind: RecordKind) => {
+    setFormKind(kind);
+    setPicking(false);
+    setFocusKind(null);
+    setFormOpen(true);
+  };
 
   const handleSubmit = (record: RecoRecord) => {
     setFormOpen(false);
@@ -64,20 +69,17 @@ export function HomeScreen() {
 
   const handleTorn = (record: RecoRecord) => {
     setPrinting(null);
-    setFreshId(record.id);
-    setSelectedDate(null);
     // 기록한 날짜가 있는 주로 이동해서 도장이 찍히는 걸 보여준다
     const today = new Date();
     const d = new Date(`${record.date}T00:00:00`);
-    const sundayToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
-    const sundayRecord = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
-    if (!Number.isNaN(sundayRecord.getTime())) {
+    if (!Number.isNaN(d.getTime())) {
+      const sundayToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+      const sundayRecord = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
       setWeekOffset(Math.min(0, Math.round((sundayRecord.getTime() - sundayToday.getTime()) / (7 * 86400000))));
     }
     setCheer(true);
     setTimeout(() => setCheer(false), 3500);
     update([record, ...records]);
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   const handleLongPress = useCallback(
@@ -103,107 +105,99 @@ export function HomeScreen() {
   };
 
   const todayCount = counts[dateKey(new Date())] ?? 0;
+  const focusHint = CATEGORIES.find((c) => c.kind === focusKind)?.hint;
   const headline = cheer
     ? '영수증 나왔다!\n도장 쾅 찍어줄게'
-    : poke
-      ? poke
-      : todayCount > 0
-        ? `오늘 벌써 ${todayCount}장이나\n남겼어!`
-        : '오늘 하루도\n영수증으로 남겨볼까?';
+    : picking
+      ? (focusHint ?? '오늘은\n뭘 기록할까?')
+      : poke
+        ? poke
+        : todayCount > 0
+          ? `오늘 벌써\n${todayCount}장이나 남겼어!`
+          : '오늘 하루도\n영수증으로 남겨볼까?';
+
+  // 코코는 남는 공간을 꽉 채울 만큼 크게 (화면 폭보다 살짝 넓게)
+  const cocoSize = stage.width ? Math.min(stage.width * 1.06, stage.height / COCO_RATIO) : 0;
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom + 8 }]}>
       <StatusBar style="light" />
-      <ScrollView
-        ref={scrollRef}
-        style={styles.scroll}
-        contentContainerStyle={{ paddingTop: insets.top }}
-        showsVerticalScrollIndicator={false}>
-        {/* ── 주황 영역: 코코 + 주간 도장 ── */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.logo}>{BRAND.ko}</Text>
-            <Text style={styles.count}>모은 영수증 {records.length}장</Text>
-          </View>
-          <Pressable
-            onPress={() => setFormOpen(true)}
-            disabled={!!printing}
-            accessibilityLabel="기록 추가"
-            style={({ pressed }) => [styles.addBtn, pressed && { transform: [{ scale: 0.94 }] }]}>
-            <Text style={styles.addBtnText}>＋</Text>
-          </Pressable>
+
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.logo}>{BRAND.ko}</Text>
+          <Text style={styles.count}>모은 영수증 {records.length}장</Text>
         </View>
+        <Pressable
+          onPress={picking ? () => setPicking(false) : openPicker}
+          disabled={!!printing}
+          accessibilityLabel={picking ? '카테고리 닫기' : '기록 추가'}
+          style={({ pressed }) => [styles.addBtn, pressed && { transform: [{ scale: 0.92 }] }]}>
+          <Text style={[styles.addBtnText, picking && { transform: [{ rotate: '45deg' }] }]}>＋</Text>
+        </Pressable>
+      </View>
 
-        <View style={styles.hero}>
-          <Text style={styles.headline}>{headline}</Text>
-          <Coco size={cocoSize} tone="white" mood={cheer ? 'happy' : 'idle'} interactive onPress={pokeCoco} id="coco-home" />
-        </View>
+      <Text style={styles.headline}>{headline}</Text>
 
-        <WeekStamps
-          offset={weekOffset}
-          onOffset={(o) => {
-            setWeekOffset(o);
-            setSelectedDate(null);
-          }}
-          counts={counts}
-          selected={selectedDate}
-          onSelect={setSelectedDate}
-        />
+      <View style={styles.stage} onLayout={(e) => setStage(e.nativeEvent.layout)}>
+        {cocoSize > 0 && (
+          <Coco
+            size={cocoSize}
+            tone="white"
+            mood={cheer || focusKind ? 'happy' : picking ? 'wow' : 'idle'}
+            interactive
+            onPress={picking ? undefined : pokeCoco}
+            id="coco-home"
+          />
+        )}
+      </View>
 
-        {/* ── 흰 시트: 영수증 롤 ── */}
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 40 }]}>
-          <View style={styles.sheetHead}>
-            <Text style={styles.sheetTitle}>{selectedDate ? `${Number(selectedDate.slice(5, 7))}월 ${Number(selectedDate.slice(8))}일의 기록` : '나의 영수증'}</Text>
-            {selectedDate && (
-              <Pressable onPress={() => setSelectedDate(null)} hitSlop={8} style={styles.chip}>
-                <Text style={styles.chipText}>전체 보기</Text>
-              </Pressable>
-            )}
-          </View>
+      <WeekStamps
+        offset={weekOffset}
+        onOffset={setWeekOffset}
+        counts={counts}
+        selected={null}
+        onSelect={(date) => {
+          setRollDate(date);
+          setRollOpen(true);
+        }}
+      />
 
-          {loaded && records.length === 0 && (
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>읽은 책, 본 영화, 쓴 돈, 떠난 여행,{'\n'}함께 찍은 네컷을 영수증으로 남겨보세요.</Text>
-              <Pressable style={styles.emptyBtn} onPress={() => setFormOpen(true)}>
-                <Text style={styles.emptyBtnText}>첫 영수증 뽑기</Text>
-              </Pressable>
-            </View>
-          )}
+      <View style={styles.bottom}>
+        {picking ? (
+          <CategoryPicker focused={focusKind} onFocus={setFocusKind} onPick={pickCategory} onClose={() => setPicking(false)} />
+        ) : (
+          <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(80)} style={styles.bottomRow}>
+            <Pressable
+              style={({ pressed }) => [styles.rollBtn, pressed && { opacity: 0.85 }]}
+              onPress={() => {
+                setRollDate(null);
+                setRollOpen(true);
+              }}>
+              <Text style={styles.rollBtnText}>나의 영수증 {records.length}장 보기</Text>
+              <Text style={styles.rollBtnArrow}>›</Text>
+            </Pressable>
+          </Animated.View>
+        )}
+      </View>
 
-          {visible.map((record) => (
-            <Animated.View
-              key={record.id}
-              entering={record.id === freshId ? FadeInDown.duration(420) : undefined}
-              layout={LinearTransition.springify().damping(18)}
-              style={styles.item}>
-              <Text style={styles.itemLabel}>
-                {record.date.replace(/-/g, '.')} · {KIND_LABEL[record.kind]}
-              </Text>
-              {record.kind === 'fourcut' ? (
-                <FlipCard record={record} rollWidth={paperW} onLongPress={handleLongPress} />
-              ) : (
-                <FoldableReceipt
-                  record={record}
-                  rollWidth={paperW}
-                  initiallyOpen={record.id === freshId}
-                  onLongPress={handleLongPress}
-                />
-              )}
-            </Animated.View>
-          ))}
-        </View>
-      </ScrollView>
+      {printing && <PrintJob record={printing} rollWidth={Math.min(stage.width * 0.72, 360) || 280} onDone={handleTorn} onCancel={() => setPrinting(null)} />}
 
-      {printing && <PrintJob record={printing} rollWidth={printW} onDone={handleTorn} onCancel={() => setPrinting(null)} />}
-
-      <RecordForm visible={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
+      <RollScreen
+        visible={rollOpen}
+        records={records}
+        date={rollDate}
+        onClearDate={() => setRollDate(null)}
+        onClose={() => setRollOpen(false)}
+        onLongPress={handleLongPress}
+      />
+      <RecordForm visible={formOpen} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.orange },
-  scroll: { flex: 1 },
+  root: { flex: 1, backgroundColor: COLORS.orange, overflow: 'hidden' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -215,31 +209,28 @@ const styles = StyleSheet.create({
   count: { fontSize: 13, color: 'rgba(255,255,255,0.85)', fontFamily: FONTS.sans, marginTop: 2 },
   addBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   addBtnText: { color: COLORS.orange, fontSize: 28, lineHeight: 32, fontFamily: FONTS.sansBold },
-  hero: { alignItems: 'center', paddingTop: 18, paddingBottom: 22, gap: 18 },
-  headline: { color: '#fff', fontSize: 26, lineHeight: 36, textAlign: 'center', fontFamily: FONTS.sansHeavy, minHeight: 72 },
-  sheet: {
-    marginTop: 22,
-    backgroundColor: COLORS.bg,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    minHeight: 500,
-    alignItems: 'center',
+  headline: {
+    color: '#fff',
+    fontSize: 27,
+    lineHeight: 37,
+    textAlign: 'center',
+    fontFamily: FONTS.sansHeavy,
+    marginTop: 14,
+    minHeight: 74,
   },
-  sheetHead: {
-    width: '100%',
+  // 코코가 남는 세로 공간을 전부 차지한다
+  stage: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 14 },
+  bottom: { minHeight: 104, justifyContent: 'center', marginTop: 14 },
+  bottomRow: { paddingHorizontal: 18 },
+  rollBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 999,
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingVertical: 17,
   },
-  sheetTitle: { fontSize: 18, color: COLORS.ink, fontFamily: FONTS.sansHeavy },
-  chip: { backgroundColor: COLORS.orangeSoft, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
-  chipText: { color: COLORS.orange, fontSize: 13, fontFamily: FONTS.sansBold },
-  item: { alignItems: 'center', width: '100%', paddingHorizontal: 22 },
-  itemLabel: { fontSize: 12, color: COLORS.sub, fontFamily: FONTS.sans, paddingTop: 18, paddingBottom: 10 },
-  empty: { alignItems: 'center', paddingTop: 28, gap: 18 },
-  emptyText: { fontSize: 15, color: COLORS.sub, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 23 },
-  emptyBtn: { backgroundColor: COLORS.orange, paddingHorizontal: 22, paddingVertical: 13, borderRadius: 999 },
-  emptyBtnText: { color: '#fff', fontSize: 15, fontFamily: FONTS.sansBold },
+  rollBtnText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
+  rollBtnArrow: { color: '#fff', fontSize: 26, lineHeight: 26, fontFamily: FONTS.sansBold },
 });
