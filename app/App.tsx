@@ -27,8 +27,8 @@ export default function App() {
 
   if (!fontsLoaded && !fontError) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.desk }}>
-        <ActivityIndicator color={COLORS.printer} />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg }}>
+        <ActivityIndicator color={COLORS.orange} />
       </View>
     );
   }

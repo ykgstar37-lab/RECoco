@@ -39,11 +39,11 @@ interface Props {
 }
 
 const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
-  { kind: 'reading', label: '📖 독서', ready: true },
-  { kind: 'movie', label: '🎬 영화', ready: true },
-  { kind: 'spending', label: '🧾 소비', ready: true },
-  { kind: 'travel', label: '✈️ 여행', ready: true },
-  { kind: 'fourcut', label: '📸 인생네컷', ready: true },
+  { kind: 'reading', label: '독서', ready: true },
+  { kind: 'movie', label: '영화', ready: true },
+  { kind: 'spending', label: '소비', ready: true },
+  { kind: 'travel', label: '여행', ready: true },
+  { kind: 'fourcut', label: '인생네컷', ready: true },
 ];
 
 const FRAMES: { key: FourcutFrame; label: string; color: string }[] = [
@@ -284,7 +284,7 @@ export function RecordForm({ visible, onClose, onSubmit }: Props) {
                       style={[styles.input, { flex: 3 }]}
                       value={it.name}
                       placeholder="아이스 아메리카노"
-                      placeholderTextColor="#b3ada3"
+                      placeholderTextColor={COLORS.placeholder}
                       onChangeText={(v) => setItems(items.map((x, j) => (j === i ? { ...x, name: v } : x)))}
                     />
                     <TextInput
@@ -297,7 +297,7 @@ export function RecordForm({ visible, onClose, onSubmit }: Props) {
                       style={[styles.input, { flex: 2, textAlign: 'right' }]}
                       value={it.price}
                       placeholder="단가"
-                      placeholderTextColor="#b3ada3"
+                      placeholderTextColor={COLORS.placeholder}
                       keyboardType="number-pad"
                       onChangeText={(v) => setItems(items.map((x, j) => (j === i ? { ...x, price: v } : x)))}
                     />
@@ -356,7 +356,7 @@ export function RecordForm({ visible, onClose, onSubmit }: Props) {
                       </Text>
                     )}
                     <Pressable onPress={() => setQrOpen(true)} style={styles.qrBtn}>
-                      <Text style={styles.qrBtnText}>{fourcut.frameImage ? '다른 사진으로 바꾸기' : '📷  QR 스캔하기'}</Text>
+                      <Text style={styles.qrBtnText}>{fourcut.frameImage ? '다른 사진으로 바꾸기' : 'QR 스캔하기'}</Text>
                     </Pressable>
                   </View>
                 ) : (
@@ -431,7 +431,7 @@ export function RecordForm({ visible, onClose, onSubmit }: Props) {
         </KeyboardAvoidingView>
 
         <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && { opacity: 0.85 }]}>
-          <Text style={styles.submitText}>🖨  영수증 출력하기</Text>
+          <Text style={styles.submitText}>코코에게 영수증 뽑기</Text>
         </Pressable>
       </SafeAreaView>
     </Modal>
@@ -506,7 +506,7 @@ function Field({
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor="#b3ada3"
+        placeholderTextColor={COLORS.placeholder}
         multiline={multiline}
         keyboardType={keyboardType}
       />
@@ -515,65 +515,61 @@ function Field({
 }
 
 const styles = StyleSheet.create({
-  sheet: { flex: 1, backgroundColor: '#f6f3ed' },
+  sheet: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 14 },
-  close: { color: COLORS.sub, fontSize: 15, fontFamily: FONTS.mono },
-  title: { color: COLORS.ink, fontSize: 17, fontFamily: FONTS.monoBold },
+  close: { color: COLORS.sub, fontSize: 15, fontFamily: FONTS.sans },
+  title: { color: COLORS.ink, fontSize: 17, fontFamily: FONTS.sansHeavy },
   kindsScroll: { flexGrow: 0 },
   kinds: { paddingHorizontal: 16, gap: 8, paddingBottom: 12 },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e3ddd2',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
   },
-  chipOn: { backgroundColor: COLORS.printer, borderColor: COLORS.printer },
+  chipOn: { backgroundColor: COLORS.orange, borderColor: COLORS.orange },
   chipOff: { opacity: 0.45 },
-  chipText: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.monoBold },
-  chipTextOn: { color: '#f3efe7' },
-  soon: { fontSize: 9, color: COLORS.sub, fontFamily: FONTS.mono, marginTop: 1 },
+  chipText: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.sansBold },
+  chipTextOn: { color: '#fff' },
+  soon: { fontSize: 9, color: COLORS.sub, fontFamily: FONTS.sans, marginTop: 1 },
   body: { paddingHorizontal: 18, paddingBottom: 30, gap: 12 },
   row: { flexDirection: 'row', gap: 10 },
   field: { flex: 1, gap: 6 },
-  label: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.monoBold },
+  label: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e3ddd2',
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: Platform.OS === 'ios' ? 11 : 8,
     fontSize: 15,
     color: COLORS.ink,
-    fontFamily: FONTS.mono,
+    fontFamily: FONTS.sans,
   },
   multiline: { minHeight: 84, textAlignVertical: 'top' },
-  segment: { flexDirection: 'row', backgroundColor: '#ebe6dd', borderRadius: 10, padding: 3 },
+  segment: { flexDirection: 'row', backgroundColor: COLORS.surface, borderRadius: 10, padding: 3 },
   seg: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
   segOn: { backgroundColor: '#fff' },
-  segText: { color: COLORS.sub, fontSize: 14, fontFamily: FONTS.mono },
-  segTextOn: { color: COLORS.ink, fontFamily: FONTS.monoBold },
+  segText: { color: COLORS.sub, fontSize: 14, fontFamily: FONTS.sans },
+  segTextOn: { color: COLORS.orange, fontFamily: FONTS.sansBold },
   stars: { flexDirection: 'row', gap: 6 },
-  star: { fontSize: 32, color: '#c9c2b6' },
-  starOn: { color: '#c0392b' },
+  star: { fontSize: 32, color: COLORS.line },
+  starOn: { color: COLORS.orange },
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   remove: { fontSize: 22, color: COLORS.sub, paddingHorizontal: 4 },
   addItem: { alignSelf: 'flex-start', paddingVertical: 6 },
-  addItemText: { color: '#5a7ea6', fontSize: 14, fontFamily: FONTS.monoBold },
-  total: { textAlign: 'right', color: COLORS.ink, fontSize: 16, fontFamily: FONTS.monoBold },
-  error: { color: COLORS.accent, fontSize: 14, fontFamily: FONTS.monoBold },
+  addItemText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
+  total: { textAlign: 'right', color: COLORS.ink, fontSize: 16, fontFamily: FONTS.sansBold },
+  error: { color: COLORS.danger, fontSize: 14, fontFamily: FONTS.sansBold },
   slots: { flexDirection: 'row', gap: 8 },
   slot: {
     flex: 1,
     aspectRatio: 1,
     borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: '#ebe6dd',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#d9d1c3',
+    borderColor: COLORS.line,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
@@ -586,14 +582,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e3ddd2',
+    borderColor: COLORS.line,
   },
-  layoutChipOn: { borderColor: COLORS.printer, borderWidth: 2 },
-  layoutCard: { backgroundColor: '#f1ede5', borderRadius: 3, borderWidth: 1, borderColor: '#ddd5c8' },
-  layoutCell: { position: 'absolute', backgroundColor: '#cfc7b9', borderRadius: 1.5 },
-  layoutCellOn: { backgroundColor: COLORS.printer },
-  layoutText: { fontSize: 10, color: COLORS.sub, fontFamily: FONTS.monoBold },
-  slotText: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.monoBold, textAlign: 'center' },
+  layoutChipOn: { borderColor: COLORS.orange, borderWidth: 2 },
+  layoutCard: { backgroundColor: COLORS.surface, borderRadius: 3, borderWidth: 1, borderColor: COLORS.line },
+  layoutCell: { position: 'absolute', backgroundColor: '#dedee3', borderRadius: 1.5 },
+  layoutCellOn: { backgroundColor: COLORS.orange },
+  layoutText: { fontSize: 10, color: COLORS.sub, fontFamily: FONTS.sansBold },
+  slotText: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sansBold, textAlign: 'center' },
   slotRemove: {
     position: 'absolute',
     top: 4,
@@ -615,23 +611,23 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e3ddd2',
+    borderColor: COLORS.line,
   },
-  frameChipOn: { borderColor: COLORS.printer, borderWidth: 2 },
-  frameDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 1, borderColor: '#d0c9bd' },
-  qrBox: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#e3ddd2', padding: 14, gap: 12, alignItems: 'center' },
-  qrHint: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.mono, textAlign: 'center', lineHeight: 20 },
+  frameChipOn: { borderColor: COLORS.orange, borderWidth: 2 },
+  frameDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 1, borderColor: COLORS.line },
+  qrBox: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 14, gap: 12, alignItems: 'center' },
+  qrHint: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 20 },
   qrPreview: { width: '100%', height: 220 },
-  qrBtn: { backgroundColor: COLORS.printer, paddingHorizontal: 18, paddingVertical: 11, borderRadius: 999 },
-  qrBtnText: { color: '#f3efe7', fontSize: 14, fontFamily: FONTS.monoBold },
+  qrBtn: { backgroundColor: COLORS.orange, paddingHorizontal: 18, paddingVertical: 11, borderRadius: 999 },
+  qrBtnText: { color: '#fff', fontSize: 14, fontFamily: FONTS.sansBold },
   submit: {
     marginHorizontal: 16,
     marginBottom: 8,
     marginTop: 4,
-    backgroundColor: COLORS.printer,
+    backgroundColor: COLORS.orange,
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
   },
-  submitText: { color: '#f3efe7', fontSize: 16, fontFamily: FONTS.monoBold },
+  submitText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
 });

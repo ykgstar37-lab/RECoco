@@ -7,7 +7,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { seededRandom } from '../lib/format';
 import { bump } from '../lib/haptics';
 import { FourcutBack, FourcutFront, sizeOf } from '../templates';
-import { FONTS } from '../theme';
+import { COLORS, FONTS } from '../theme';
 import { FourcutRecord, RecoRecord } from '../types';
 
 interface Props {
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(43,42,46,0.8)',
+    backgroundColor: COLORS.orange,
   },
-  hintText: { color: '#f3efe7', fontSize: 11, fontFamily: FONTS.monoBold },
+  hintText: { color: '#fff', fontSize: 11, fontFamily: FONTS.sansBold },
 });

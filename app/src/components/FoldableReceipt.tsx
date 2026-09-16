@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
@@ -14,7 +14,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { seededRandom } from '../lib/format';
 import { bump } from '../lib/haptics';
 import { RecordPaper, sizeOf } from '../templates';
-import { FONTS } from '../theme';
+import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 
 const PAPER_EDGE: Record<RecoRecord['kind'], string> = {
@@ -136,16 +136,6 @@ function FoldableReceiptBase({ record, rollWidth, initiallyOpen = false, onLongP
 
 export const FoldableReceipt = memo(FoldableReceiptBase);
 
-export function CutLine({ label }: { label: string }) {
-  return (
-    <View style={styles.cut}>
-      <Text style={styles.scissors}>✂</Text>
-      <View style={styles.dash} />
-      <Text style={styles.cutLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
   shade: { position: 'absolute', left: 0, right: 0, bottom: 0 },
@@ -170,13 +160,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(43,42,46,0.88)',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: COLORS.line,
   },
-  tabGrip: { width: 18, height: 3, borderRadius: 2, backgroundColor: '#8d8a84' },
-  tabText: { color: '#f3efe7', fontSize: 12, fontFamily: FONTS.monoBold },
+  tabGrip: { width: 16, height: 3, borderRadius: 2, backgroundColor: COLORS.orange },
+  tabText: { color: COLORS.orange, fontSize: 12, fontFamily: FONTS.sansBold },
   tabTextOver: { position: 'absolute', left: 0, top: 0 },
-  cut: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, opacity: 0.55 },
-  scissors: { fontSize: 14, color: '#5d584f' },
-  dash: { flex: 1, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#8a847a' },
-  cutLabel: { fontSize: 12, color: '#5d584f', fontFamily: FONTS.mono },
 });

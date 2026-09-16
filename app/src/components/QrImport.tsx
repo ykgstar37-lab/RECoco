@@ -205,7 +205,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
                   value={typed}
                   onChangeText={setTyped}
                   placeholder="https://..."
-                  placeholderTextColor="#aaa"
+                  placeholderTextColor={COLORS.placeholder}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
@@ -236,7 +236,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
             <View style={styles.panel}>
               {busy ? (
                 <View style={styles.row}>
-                  <ActivityIndicator color={COLORS.printer} />
+                  <ActivityIndicator color={COLORS.orange} />
                   <Text style={styles.body}>사진을 가져오는 중…</Text>
                 </View>
               ) : candidates.length > 0 ? (
@@ -272,34 +272,34 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f6f3ed' },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 14 },
-  headerBtn: { color: COLORS.sub, fontSize: 15, fontFamily: FONTS.mono },
-  title: { color: COLORS.ink, fontSize: 16, fontFamily: FONTS.monoBold },
+  headerBtn: { color: COLORS.sub, fontSize: 15, fontFamily: FONTS.sans },
+  title: { color: COLORS.ink, fontSize: 16, fontFamily: FONTS.sansBold },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
   cameraBox: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
   aim: { width: 230, height: 230, borderRadius: 18, borderWidth: 3, borderColor: 'rgba(255,255,255,0.9)' },
-  aimText: { color: '#fff', marginTop: 18, fontSize: 14, fontFamily: FONTS.monoBold },
-  panel: { padding: 16, gap: 10, backgroundColor: '#f6f3ed', borderTopWidth: 1, borderTopColor: '#e3ddd2' },
-  label: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.monoBold },
-  body: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.mono, textAlign: 'center' },
-  warn: { color: COLORS.accent, fontSize: 13, fontFamily: FONTS.monoBold },
+  aimText: { color: '#fff', marginTop: 18, fontSize: 14, fontFamily: FONTS.sansBold },
+  panel: { padding: 16, gap: 10, backgroundColor: COLORS.bg, borderTopWidth: 1, borderTopColor: COLORS.line },
+  label: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold },
+  body: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.sans, textAlign: 'center' },
+  warn: { color: COLORS.danger, fontSize: 13, fontFamily: FONTS.sansBold },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   input: {
     flex: 1,
     backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e3ddd2',
+    borderColor: COLORS.line,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
     color: COLORS.ink,
   },
-  primary: { backgroundColor: COLORS.printer, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
-  primaryText: { color: '#f3efe7', fontSize: 14, fontFamily: FONTS.monoBold },
-  smallBtn: { backgroundColor: COLORS.printer, paddingHorizontal: 16, paddingVertical: 11, borderRadius: 10 },
-  link: { color: '#5a7ea6', fontSize: 13, fontFamily: FONTS.monoBold },
+  primary: { backgroundColor: COLORS.orange, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
+  primaryText: { color: '#fff', fontSize: 14, fontFamily: FONTS.sansBold },
+  smallBtn: { backgroundColor: COLORS.orange, paddingHorizontal: 16, paddingVertical: 11, borderRadius: 10 },
+  link: { color: COLORS.orange, fontSize: 13, fontFamily: FONTS.sansBold },
   thumb: {
     width: 76,
     height: 110,

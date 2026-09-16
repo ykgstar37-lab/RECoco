@@ -3,13 +3,14 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWind
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Coco } from './components/Coco';
 import { FlipCard } from './components/FlipCard';
-import { CutLine, FoldableReceipt } from './components/FoldableReceipt';
-import { PrintJob, PrinterBar, SLOT_Y } from './components/Printer';
+import { FoldableReceipt } from './components/FoldableReceipt';
+import { PrintJob } from './components/Printer';
 import { RecordForm } from './components/RecordForm';
 import { loadRecords, saveRecords } from './lib/storage';
 import { KIND_LABEL } from './templates';
-import { APP_NAME, BRAND, COLORS, FONTS } from './theme';
+import { BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord } from './types';
 
 export function HomeScreen() {
@@ -20,10 +21,11 @@ export function HomeScreen() {
   const [formOpen, setFormOpen] = useState(false);
   const [printing, setPrinting] = useState<RecoRecord | null>(null);
   const [freshId, setFreshId] = useState<string | null>(null);
+  const [cheer, setCheer] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const paperW = Math.min(screenW - 44, 440);
-  const printW = Math.min(screenW * 0.86, 420);
+  const printW = Math.min(screenW * 0.72, 360);
 
   useEffect(() => {
     loadRecords()
@@ -45,6 +47,8 @@ export function HomeScreen() {
   const handleTorn = (record: RecoRecord) => {
     setPrinting(null);
     setFreshId(record.id);
+    setCheer(true);
+    setTimeout(() => setCheer(false), 3500);
     update([record, ...records]);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
@@ -65,21 +69,27 @@ export function HomeScreen() {
     [records, update],
   );
 
+  const bubble = printing
+    ? '뽑는 중이야!'
+    : cheer
+      ? '영수증 나왔다! 잘 간직할게'
+      : records.length === 0
+        ? '오늘은 뭘 기록해볼까?'
+        : `벌써 ${records.length}장이나 모았어`;
+
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
-          <View style={styles.logoRow}>
-            <Text style={styles.logo}>{APP_NAME}</Text>
-            <Text style={styles.logoKo}>{BRAND.ko}</Text>
-          </View>
-          <Text style={styles.count}>지금까지 출력한 기록 {records.length}장</Text>
+          <Text style={styles.logo}>{BRAND.ko}</Text>
+          <Text style={styles.count}>기록 {records.length}장</Text>
         </View>
         <Pressable
           onPress={() => setFormOpen(true)}
           disabled={!!printing}
-          style={({ pressed }) => [styles.printBtn, (pressed || printing) && { opacity: 0.7 }]}>
-          <Text style={styles.printBtnText}>＋ 기록 출력</Text>
+          accessibilityLabel="기록 추가"
+          style={({ pressed }) => [styles.addBtn, (pressed || printing) && { opacity: 0.75 }]}>
+          <Text style={styles.addBtnText}>＋</Text>
         </Pressable>
       </View>
 
@@ -89,24 +99,31 @@ export function HomeScreen() {
           style={styles.roll}
           contentContainerStyle={[styles.rollContent, { paddingBottom: insets.bottom + 40 }]}
           showsVerticalScrollIndicator={false}>
+          <Pressable style={styles.hero} onPress={() => !printing && setFormOpen(true)}>
+            <View style={styles.bubble}>
+              <Text style={styles.bubbleText}>{bubble}</Text>
+              <View style={styles.bubbleTail} />
+            </View>
+            <Coco size={Math.min(screenW * 0.42, 170)} mood={cheer ? 'happy' : 'idle'} id="coco-home" />
+          </Pressable>
+
           {loaded && records.length === 0 && (
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>아직 출력된 영수증이 없어요</Text>
-              <Text style={styles.emptyText}>오늘 읽은 책, 본 영화, 쓴 돈, 떠난 여행,{'\n'}함께 찍은 네컷을 남겨보세요.</Text>
+              <Text style={styles.emptyText}>읽은 책, 본 영화, 쓴 돈, 떠난 여행,{'\n'}함께 찍은 네컷을 영수증으로 남겨보세요.</Text>
+              <Pressable style={styles.emptyBtn} onPress={() => setFormOpen(true)}>
+                <Text style={styles.emptyBtnText}>첫 기록 남기기</Text>
+              </Pressable>
             </View>
           )}
-          {records.map((record, i) => (
+          {records.map((record) => (
             <Animated.View
               key={record.id}
               entering={record.id === freshId ? FadeInDown.duration(420) : undefined}
               layout={LinearTransition.springify().damping(18)}
               style={styles.item}>
-              {i > 0 && <CutLine label={`${record.date.replace(/-/g, '.')} · ${KIND_LABEL[record.kind]}`} />}
-              {i === 0 && (
-                <Text style={styles.firstLabel}>
-                  {record.date.replace(/-/g, '.')} · {KIND_LABEL[record.kind]}
-                </Text>
-              )}
+              <Text style={styles.itemLabel}>
+                {record.date.replace(/-/g, '.')} · {KIND_LABEL[record.kind]}
+              </Text>
               {record.kind === 'fourcut' ? (
                 <FlipCard record={record} rollWidth={paperW} onLongPress={handleLongPress} />
               ) : (
@@ -124,7 +141,6 @@ export function HomeScreen() {
         {printing && (
           <PrintJob record={printing} rollWidth={printW} onDone={handleTorn} onCancel={() => setPrinting(null)} />
         )}
-        <PrinterBar active={!!printing} />
       </View>
 
       <RecordForm visible={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
@@ -133,27 +149,51 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.desk },
+  root: { flex: 1, backgroundColor: COLORS.bg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 14,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
-  logoRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  logo: { fontSize: 28, color: COLORS.ink, fontFamily: FONTS.code, letterSpacing: -0.5 },
-  logoKo: { fontSize: 13, color: COLORS.sub, fontFamily: FONTS.monoBold },
-  count: { fontSize: 12, color: COLORS.sub, fontFamily: FONTS.mono, marginTop: 2 },
-  printBtn: { backgroundColor: COLORS.printer, paddingHorizontal: 16, paddingVertical: 11, borderRadius: 999 },
-  printBtnText: { color: '#f3efe7', fontSize: 14, fontFamily: FONTS.monoBold },
+  logo: { fontSize: 24, color: COLORS.ink, fontFamily: FONTS.sansHeavy },
+  count: { fontSize: 13, color: COLORS.sub, fontFamily: FONTS.sans, marginTop: 2 },
+  addBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addBtnText: { color: '#fff', fontSize: 26, lineHeight: 30, fontFamily: FONTS.sansBold },
   stage: { flex: 1 },
-  roll: { flex: 1, marginTop: SLOT_Y },
-  rollContent: { alignItems: 'center', paddingTop: 6 },
+  roll: { flex: 1 },
+  rollContent: { alignItems: 'center' },
+  hero: { alignItems: 'center', paddingTop: 8, paddingBottom: 12 },
+  bubble: {
+    backgroundColor: COLORS.orangeSoft,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 18,
+    marginBottom: 10,
+  },
+  bubbleText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
+  bubbleTail: {
+    position: 'absolute',
+    bottom: -6,
+    alignSelf: 'center',
+    width: 12,
+    height: 12,
+    backgroundColor: COLORS.orangeSoft,
+    transform: [{ rotate: '45deg' }],
+  },
   item: { alignItems: 'center', width: '100%', paddingHorizontal: 22 },
-  firstLabel: { fontSize: 12, color: COLORS.sub, fontFamily: FONTS.mono, paddingVertical: 12, opacity: 0.7 },
-  empty: { alignItems: 'center', paddingTop: 80, gap: 10 },
-  emptyTitle: { fontSize: 16, color: COLORS.ink, fontFamily: FONTS.monoBold },
-  emptyText: { fontSize: 14, color: COLORS.sub, fontFamily: FONTS.mono, textAlign: 'center', lineHeight: 22 },
+  itemLabel: { fontSize: 12, color: COLORS.sub, fontFamily: FONTS.sans, paddingTop: 18, paddingBottom: 10 },
+  empty: { alignItems: 'center', paddingTop: 12, gap: 18 },
+  emptyText: { fontSize: 15, color: COLORS.sub, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 23 },
+  emptyBtn: { backgroundColor: COLORS.orange, paddingHorizontal: 22, paddingVertical: 13, borderRadius: 999 },
+  emptyBtnText: { color: '#fff', fontSize: 15, fontFamily: FONTS.sansBold },
 });

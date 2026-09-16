@@ -18,12 +18,15 @@ export const FONTS = {
   code: 'SpaceMono_700Bold',
 } as const;
 
+// 앱 화면(UI)은 흰 배경 + 코코 주황 포인트로 단순하게
 export const COLORS = {
-  desk: '#e4dfd6',
-  deskDark: '#d5cfc4',
-  printer: '#2b2a2e',
-  printerLight: '#3a393e',
-  ink: '#1c1c1f',
-  sub: '#6f6a62',
-  accent: '#c8553d',
+  bg: '#ffffff',
+  surface: '#f5f5f6',
+  line: '#ececee',
+  ink: '#1f1f22',
+  sub: '#8b8b91',
+  placeholder: '#b8b8bd',
+  orange: '#ff7a2f',
+  orangeSoft: '#fff1e7',
+  danger: '#e5484d',
 };
