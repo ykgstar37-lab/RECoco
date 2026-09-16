@@ -1,0 +1,14 @@
+{
+  "name": "recoco-design-tools",
+  "private": true,
+  "description": "영수증 템플릿 미리보기 렌더러와 종이 질감 생성기",
+  "scripts": {
+    "preview": "node preview/build.js",
+    "textures": "node gen_textures.js"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "esbuild": "^0.25.0",
+    "sharp": "^0.34.0"
+  }
+}

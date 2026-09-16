@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1050" viewBox="0 0 1500 1050">
+<defs><filter id="passShadow" x="-20%" y="-20%" width="160%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000" flood-opacity="0.28"/></filter></defs>
+<rect width="1500" height="1050" fill="#0b0b0b"/>
+<g transform="translate(150,90)" filter="url(#passShadow)">
+<rect x="0" y="0" width="1200" height="820" rx="26" fill="#f7f7f5" stroke="#dddddd"/>
+<line x1="0" y1="210" x2="1200" y2="210" stroke="#d8d8d8" stroke-width="2"/>
+<line x1="740" y1="0" x2="740" y2="210" stroke="#d2d2d2" stroke-width="2" stroke-dasharray="7 8"/>
+<text x="58" y="84" font-size="62" fill="#111" font-weight="700" font-family="Arial, 'Noto Sans KR', sans-serif">ICN</text>
+<text x="195" y="86" font-size="40" fill="#bdbdbd" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">→</text>
+<text x="260" y="84" font-size="62" fill="#111" font-weight="700" font-family="Arial, 'Noto Sans KR', sans-serif">HND</text>
+<rect x="55" y="112" width="5" height="34" fill="#111"/>
+<rect x="63" y="112" width="2" height="34" fill="#111"/>
+<rect x="68" y="112" width="7" height="34" fill="#111"/>
+<rect x="78" y="112" width="3" height="34" fill="#111"/>
+<rect x="84" y="112" width="2" height="34" fill="#111"/>
+<rect x="89" y="112" width="6" height="34" fill="#111"/>
+<rect x="98" y="112" width="2" height="34" fill="#111"/>
+<rect x="103" y="112" width="4" height="34" fill="#111"/>
+<rect x="110" y="112" width="7" height="34" fill="#111"/>
+<rect x="120" y="112" width="3" height="34" fill="#111"/>
+<rect x="126" y="112" width="2" height="34" fill="#111"/>
+<rect x="131" y="112" width="6" height="34" fill="#111"/>
+<rect x="140" y="112" width="4" height="34" fill="#111"/>
+<rect x="147" y="112" width="2" height="34" fill="#111"/>
+<rect x="152" y="112" width="7" height="34" fill="#111"/>
+<rect x="162" y="112" width="3" height="34" fill="#111"/>
+<rect x="168" y="112" width="5" height="34" fill="#111"/>
+<text x="58" y="170" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">NAME</text>
+<text x="210" y="170" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">FLIGHT</text>
+<text x="345" y="170" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">SEAT</text>
+<text x="470" y="170" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">GATE</text>
+<text x="58" y="200" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">YOON HANI</text>
+<text x="210" y="200" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">NP 2203</text>
+<text x="345" y="200" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">12A</text>
+<text x="470" y="200" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">05</text>
+<text x="780" y="40" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">NAME</text>
+<text x="780" y="74" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">YOON HANI</text>
+<text x="780" y="112" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">FLIGHT</text>
+<text x="895" y="112" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">DEPARTURE</text>
+<text x="780" y="146" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">NP 2203</text>
+<text x="895" y="146" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">01 SEPT</text>
+<text x="780" y="184" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">SEAT</text>
+<text x="855" y="184" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">12A</text>
+<text x="940" y="184" font-size="15" fill="#777" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">GATE</text>
+<text x="1005" y="184" font-size="22" fill="#111" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">05</text>
+<rect x="1032" y="26" width="4" height="112" fill="#111"/>
+<rect x="1038" y="26" width="2" height="112" fill="#111"/>
+<rect x="1042" y="26" width="6" height="112" fill="#111"/>
+<rect x="1050" y="26" width="3" height="112" fill="#111"/>
+<rect x="1055" y="26" width="2" height="112" fill="#111"/>
+<rect x="1059" y="26" width="8" height="112" fill="#111"/>
+<rect x="1069" y="26" width="2" height="112" fill="#111"/>
+<rect x="1073" y="26" width="4" height="112" fill="#111"/>
+<rect x="1079" y="26" width="6" height="112" fill="#111"/>
+<rect x="1087" y="26" width="2" height="112" fill="#111"/>
+<rect x="1091" y="26" width="3" height="112" fill="#111"/>
+<rect x="1096" y="26" width="7" height="112" fill="#111"/>
+<rect x="1105" y="26" width="2" height="112" fill="#111"/>
+<rect x="1109" y="26" width="5" height="112" fill="#111"/>
+<rect x="1116" y="26" width="3" height="112" fill="#111"/>
+<rect x="1121" y="26" width="2" height="112" fill="#111"/>
+<rect x="1125" y="26" width="6" height="112" fill="#111"/>
+<rect x="1133" y="26" width="4" height="112" fill="#111"/>
+<rect x="1139" y="26" width="2" height="112" fill="#111"/>
+<rect x="1143" y="26" width="7" height="112" fill="#111"/>
+<rect x="1152" y="26" width="2" height="112" fill="#111"/>
+<rect x="1156" y="26" width="5" height="112" fill="#111"/>
+<rect x="1163" y="26" width="2" height="112" fill="#111"/>
+<rect x="1167" y="26" width="4" height="112" fill="#111"/>
+<rect x="1173" y="26" width="8" height="112" fill="#111"/>
+<rect x="1183" y="26" width="2" height="112" fill="#111"/>
+<rect x="1187" y="26" width="3" height="112" fill="#111"/>
+<rect x="1192" y="26" width="6" height="112" fill="#111"/>
+<rect x="1200" y="26" width="2" height="112" fill="#111"/>
+<rect x="1204" y="26" width="5" height="112" fill="#111"/>
+<rect x="1211" y="26" width="3" height="112" fill="#111"/>
+<rect x="1216" y="26" width="7" height="112" fill="#111"/>
+<rect x="1225" y="26" width="2" height="112" fill="#111"/>
+<rect x="1060" y="145" width="92" height="92" fill="#ffffff" stroke="#b8b8b8" stroke-width="2"/>
+<text x="1106" y="199" font-size="17" fill="#b0b0b0" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif" text-anchor="middle">QR</text>
+<text x="30" y="505" font-size="26" fill="#111" font-weight="700" font-family="Arial, 'Noto Sans KR', sans-serif" transform="rotate(-90 30 505)">TRAVEL PIC</text>
+<text x="1170" y="525" font-size="24" fill="#111" font-weight="700" font-family="Arial, 'Noto Sans KR', sans-serif" transform="rotate(90 1170 525)">BOARDING PASS</text>
+<rect x="70" y="260" width="285" height="240" fill="#f0f0f0" stroke="#dbdbdb"/>
+<circle cx="212.5" cy="348" r="38" fill="#d1d1d1"/>
+<rect x="160.5" y="395" width="104" height="76" rx="44" fill="#d1d1d1"/>
+<text x="212.5" y="482" font-size="18" fill="#9a9a9a" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif" text-anchor="middle">PHOTO</text>
+<rect x="390" y="260" width="285" height="240" fill="#f0f0f0" stroke="#dbdbdb"/>
+<circle cx="532.5" cy="348" r="38" fill="#d1d1d1"/>
+<rect x="480.5" y="395" width="104" height="76" rx="44" fill="#d1d1d1"/>
+<text x="532.5" y="482" font-size="18" fill="#9a9a9a" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif" text-anchor="middle">PHOTO</text>
+<rect x="70" y="540" width="285" height="240" fill="#f0f0f0" stroke="#dbdbdb"/>
+<circle cx="212.5" cy="628" r="38" fill="#d1d1d1"/>
+<rect x="160.5" y="675" width="104" height="76" rx="44" fill="#d1d1d1"/>
+<text x="212.5" y="762" font-size="18" fill="#9a9a9a" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif" text-anchor="middle">PHOTO</text>
+<rect x="390" y="540" width="285" height="240" fill="#f0f0f0" stroke="#dbdbdb"/>
+<circle cx="532.5" cy="628" r="38" fill="#d1d1d1"/>
+<rect x="480.5" y="675" width="104" height="76" rx="44" fill="#d1d1d1"/>
+<text x="532.5" y="762" font-size="18" fill="#9a9a9a" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif" text-anchor="middle">PHOTO</text>
+<text x="790" y="310" font-size="26" fill="#111" font-weight="700" font-family="Arial, 'Noto Sans KR', sans-serif">TRAVEL NOTE</text>
+<text x="790" y="360" font-size="19" fill="#444" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">• 출발 : 인천국제공항</text>
+<text x="790" y="396" font-size="19" fill="#444" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">• 도착 : 도쿄 하네다공항</text>
+<text x="790" y="432" font-size="19" fill="#444" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">• 여행 기간 : 2026.09.01 ~ 2026.09.04</text>
+<text x="790" y="468" font-size="19" fill="#444" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">• 항공편 : NP 2203</text>
+<text x="790" y="504" font-size="19" fill="#444" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">• 좌석 : 12A</text>
+<text x="790" y="540" font-size="19" fill="#444" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">• 동행 : 혼자 / 친구 / 가족</text>
+<text x="790" y="595" font-size="20" fill="#888" font-weight="400" font-family="Arial, 'Noto Sans KR', sans-serif">memo</text>
+<line x1="790" y1="620" x2="1130" y2="620" stroke="#d6d6d6" stroke-width="2"/>
+<line x1="790" y1="654" x2="1130" y2="654" stroke="#d6d6d6" stroke-width="2"/>
+<line x1="790" y1="688" x2="1130" y2="688" stroke="#d6d6d6" stroke-width="2"/>
+<line x1="790" y1="722" x2="1130" y2="722" stroke="#d6d6d6" stroke-width="2"/>
+</g>
+</svg>

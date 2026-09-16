@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="1460" viewBox="0 0 760 1460">
+<defs>
+<!-- 구김: 큰 물결 + 날카로운 주름을 섞은 높이맵 -->
+<filter id="crumple" x="-3%" y="-3%" width="106%" height="106%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.0028 0.0042" numOctaves="2" seed="23" result="waves"/>
+  <feTurbulence type="turbulence" baseFrequency="0.0042 0.0058" numOctaves="4" seed="41" result="creases"/>
+  <feComposite in="waves" in2="creases" operator="arithmetic" k2="0.35" k3="0.65" result="height"/>
+  <feDisplacementMap in="SourceGraphic" in2="height" scale="7" xChannelSelector="R" yChannelSelector="G" result="warped"/>
+  <feDiffuseLighting in="height" surfaceScale="11" diffuseConstant="1" lighting-color="#ffffff" result="light">
+    <feDistantLight azimuth="230" elevation="58"/>
+  </feDiffuseLighting>
+  <feComponentTransfer in="light" result="shade">
+    <feFuncR type="linear" slope="0.62" intercept="0.50"/>
+    <feFuncG type="linear" slope="0.62" intercept="0.49"/>
+    <feFuncB type="linear" slope="0.62" intercept="0.46"/>
+  </feComponentTransfer>
+  <feBlend in="warped" in2="shade" mode="multiply" result="lit"/>
+  <feComposite in="lit" in2="warped" operator="in"/>
+</filter>
+<!-- 종이 섬유 입자 -->
+<filter id="grain" x="0" y="0" width="100%" height="100%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3" result="n"/>
+  <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.33  0 0 0 0 0.30  0 0 0 -1.6 1.02"/>
+  <feComposite in2="SourceGraphic" operator="in"/>
+</filter>
+<!-- 볼펜 잉크 번짐 -->
+<filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="5" result="n"/>
+  <feDisplacementMap in="SourceGraphic" in2="n" scale="1.4" xChannelSelector="R" yChannelSelector="G" result="d"/>
+  <feGaussianBlur in="d" stdDeviation="0.25"/>
+</filter>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+  <feGaussianBlur stdDeviation="14"/>
+</filter>
+<linearGradient id="curl" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#000" stop-opacity="0"/>
+  <stop offset="0.72" stop-color="#000" stop-opacity="0"/>
+  <stop offset="1" stop-color="#3a3020" stop-opacity="0.10"/>
+</linearGradient>
+<clipPath id="paperClip"><path d="M0,6 L0,4.5 L8,5.0 L16,3.1 L24,3.0 L32,0.2 L40,2.9 L48,1.6 L56,5.9 L64,3.2 L72,5.5 L80,0.8 L88,2.7 L96,0.2 L104,3.9 L112,3.3 L120,5.4 L128,3.7 L136,2.6 L144,1.6 L152,0.9 L160,3.3 L168,3.1 L176,6.0 L184,2.9 L192,4.3 L200,-0.1 L208,2.9 L216,0.8 L224,5.4 L232,3.4 L240,5.6 L248,2.0 L256,2.3 L264,0.8 L272,2.3 L280,3.8 L288,4.3 L296,5.2 L304,2.3 L312,2.9 L320,-0.1 L328,3.4 L336,1.9 L344,6.2 L352,3.0 L360,4.9 L368,0.5 L376,2.4 L384,0.7 L392,4.1 L400,4.0 L408,5.0 L416,3.7 L424,1.8 L432,1.8 L440,0.8 L448,4.1 L456,3.1 L464,6.2 L472,2.3 L480,3.9 L488,-0.3 L496,3.0 L504,1.4 L512,5.6 L520,3.7 L528,4.9 L536,1.9 L544,1.7 L552,1.3 L560,2.4 L568,4.6 L576,4.0 L584,5.2 L592,1.5 L600,2.9 L608,-0.2 L616,4.0 L624,2.3 L632,6.3 L640,2.9 L640,1337 Q638,1340 632,1340 L6,1340 Q0,1340 1,1335 Z"/></clipPath>
+</defs>
+<path d="M0,6 L0,4.5 L8,5.0 L16,3.1 L24,3.0 L32,0.2 L40,2.9 L48,1.6 L56,5.9 L64,3.2 L72,5.5 L80,0.8 L88,2.7 L96,0.2 L104,3.9 L112,3.3 L120,5.4 L128,3.7 L136,2.6 L144,1.6 L152,0.9 L160,3.3 L168,3.1 L176,6.0 L184,2.9 L192,4.3 L200,-0.1 L208,2.9 L216,0.8 L224,5.4 L232,3.4 L240,5.6 L248,2.0 L256,2.3 L264,0.8 L272,2.3 L280,3.8 L288,4.3 L296,5.2 L304,2.3 L312,2.9 L320,-0.1 L328,3.4 L336,1.9 L344,6.2 L352,3.0 L360,4.9 L368,0.5 L376,2.4 L384,0.7 L392,4.1 L400,4.0 L408,5.0 L416,3.7 L424,1.8 L432,1.8 L440,0.8 L448,4.1 L456,3.1 L464,6.2 L472,2.3 L480,3.9 L488,-0.3 L496,3.0 L504,1.4 L512,5.6 L520,3.7 L528,4.9 L536,1.9 L544,1.7 L552,1.3 L560,2.4 L568,4.6 L576,4.0 L584,5.2 L592,1.5 L600,2.9 L608,-0.2 L616,4.0 L624,2.3 L632,6.3 L640,2.9 L640,1337 Q638,1340 632,1340 L6,1340 Q0,1340 1,1335 Z" transform="translate(66,64)" fill="#000" opacity="0.28" filter="url(#shadow)"/>
+<g transform="translate(60,50) rotate(-0.8 320 670)">
+<g filter="url(#crumple)">
+<path d="M0,6 L0,4.5 L8,5.0 L16,3.1 L24,3.0 L32,0.2 L40,2.9 L48,1.6 L56,5.9 L64,3.2 L72,5.5 L80,0.8 L88,2.7 L96,0.2 L104,3.9 L112,3.3 L120,5.4 L128,3.7 L136,2.6 L144,1.6 L152,0.9 L160,3.3 L168,3.1 L176,6.0 L184,2.9 L192,4.3 L200,-0.1 L208,2.9 L216,0.8 L224,5.4 L232,3.4 L240,5.6 L248,2.0 L256,2.3 L264,0.8 L272,2.3 L280,3.8 L288,4.3 L296,5.2 L304,2.3 L312,2.9 L320,-0.1 L328,3.4 L336,1.9 L344,6.2 L352,3.0 L360,4.9 L368,0.5 L376,2.4 L384,0.7 L392,4.1 L400,4.0 L408,5.0 L416,3.7 L424,1.8 L432,1.8 L440,0.8 L448,4.1 L456,3.1 L464,6.2 L472,2.3 L480,3.9 L488,-0.3 L496,3.0 L504,1.4 L512,5.6 L520,3.7 L528,4.9 L536,1.9 L544,1.7 L552,1.3 L560,2.4 L568,4.6 L576,4.0 L584,5.2 L592,1.5 L600,2.9 L608,-0.2 L616,4.0 L624,2.3 L632,6.3 L640,2.9 L640,1337 Q638,1340 632,1340 L6,1340 Q0,1340 1,1335 Z" fill="#fbfaf5"/>
+<rect width="640" height="1340" fill="#fff" clip-path="url(#paperClip)" filter="url(#grain)" opacity="0.35"/>
+<g id="form" stroke="#5a7ea6" fill="none" stroke-linecap="square">
+<line x1="46" y1="104" x2="156" y2="104" stroke-width="1.1"/>
+<line x1="46" y1="150" x2="534" y2="150" stroke-width="1.1"/>
+<rect x="46" y="170" width="552" height="216" stroke-width="2.2"/>
+<line x1="86" y1="170" x2="86" y2="386" stroke-width="1.2"/>
+<line x1="182" y1="170" x2="182" y2="386" stroke-width="1.2"/>
+<line x1="86" y1="224" x2="598" y2="224" stroke-width="1.2"/>
+<line x1="86" y1="278" x2="598" y2="278" stroke-width="1.2"/>
+<line x1="86" y1="332" x2="598" y2="332" stroke-width="1.2"/>
+<line x1="382" y1="224" x2="382" y2="278" stroke-width="1.2"/>
+<line x1="414" y1="224" x2="414" y2="278" stroke-width="1.2"/>
+<line x1="382" y1="332" x2="382" y2="386" stroke-width="1.2"/>
+<line x1="414" y1="332" x2="414" y2="386" stroke-width="1.2"/>
+<rect x="46" y="386" width="552" height="92" stroke-width="2.2"/>
+<line x1="46" y1="424" x2="598" y2="424" stroke-width="1.2"/>
+<line x1="236" y1="386" x2="236" y2="478" stroke-width="1.2"/>
+<line x1="492" y1="386" x2="492" y2="478" stroke-width="1.2"/>
+<rect x="46" y="478" width="552" height="40" stroke-width="2.2"/>
+<rect x="46" y="518" width="552" height="782" stroke-width="2.2"/>
+<line x1="108" y1="518" x2="108" y2="1248" stroke-width="1.2"/>
+<line x1="340" y1="518" x2="340" y2="1248" stroke-width="1.2"/>
+<line x1="394" y1="518" x2="394" y2="1248" stroke-width="1.2"/>
+<line x1="458" y1="518" x2="458" y2="1248" stroke-width="1.2"/>
+<line x1="46" y1="558" x2="598" y2="558" stroke-width="1.6"/>
+<line x1="46" y1="604" x2="598" y2="604" stroke-width="0.9"/>
+<line x1="46" y1="650" x2="598" y2="650" stroke-width="0.9"/>
+<line x1="46" y1="696" x2="598" y2="696" stroke-width="0.9"/>
+<line x1="46" y1="742" x2="598" y2="742" stroke-width="0.9"/>
+<line x1="46" y1="788" x2="598" y2="788" stroke-width="1.6"/>
+<line x1="46" y1="834" x2="598" y2="834" stroke-width="0.9"/>
+<line x1="46" y1="880" x2="598" y2="880" stroke-width="0.9"/>
+<line x1="46" y1="926" x2="598" y2="926" stroke-width="0.9"/>
+<line x1="46" y1="972" x2="598" y2="972" stroke-width="0.9"/>
+<line x1="46" y1="1018" x2="598" y2="1018" stroke-width="1.6"/>
+<line x1="46" y1="1064" x2="598" y2="1064" stroke-width="0.9"/>
+<line x1="46" y1="1110" x2="598" y2="1110" stroke-width="0.9"/>
+<line x1="46" y1="1156" x2="598" y2="1156" stroke-width="0.9"/>
+<line x1="46" y1="1202" x2="598" y2="1202" stroke-width="0.9"/>
+<line x1="46" y1="1248" x2="598" y2="1248" stroke-width="2"/>
+<line x1="340" y1="1248" x2="340" y2="1300" stroke-width="1.2"/>
+</g>
+<g id="form-text" fill="#5a7ea6" font-family="'NanumMyeongjo', 'Nanum Myeongjo', 'Batang', serif">
+<text x="50" y="96" font-size="22" font-weight="700">NO.</text>
+<text x="318" y="98" font-size="44" font-weight="700" text-anchor="middle" letter-spacing="22">영수증</text>
+<text x="586" y="92" font-size="17" text-anchor="end">(공급받는자용)</text>
+<text x="598" y="146" font-size="21" text-anchor="end">귀하</text>
+<text x="66" y="222" font-size="21" text-anchor="middle" >공</text>
+<text x="66" y="284" font-size="21" text-anchor="middle" >급</text>
+<text x="66" y="346" font-size="21" text-anchor="middle" >자</text>
+<text x="134" y="194" font-size="15" text-anchor="middle" >사 업 자</text>
+<text x="134" y="214" font-size="15" text-anchor="middle" >등록번호</text>
+<text x="134" y="258" font-size="17" text-anchor="middle" >상 　 호</text>
+<text x="134" y="302" font-size="15" text-anchor="middle" >사 업 장</text>
+<text x="134" y="322" font-size="15" text-anchor="middle" >소 재 지</text>
+<text x="134" y="366" font-size="17" text-anchor="middle" >업 　 태</text>
+<text x="398" y="248" font-size="15" text-anchor="middle" >성</text>
+<text x="398" y="268" font-size="15" text-anchor="middle" >명</text>
+<text x="398" y="356" font-size="15" text-anchor="middle" >종</text>
+<text x="398" y="376" font-size="15" text-anchor="middle" >목</text>
+<text x="141" y="412" font-size="17" text-anchor="middle" >작성년월일</text>
+<text x="364" y="412" font-size="17" text-anchor="middle" >공급대가총액</text>
+<text x="545" y="412" font-size="17" text-anchor="middle" >비 　 고</text>
+<text x="322" y="506" font-size="20" text-anchor="middle" letter-spacing="14">공급내역</text>
+<text x="77" y="544" font-size="16" text-anchor="middle" >월일</text>
+<text x="224" y="544" font-size="16" text-anchor="middle" >품 　 　 목</text>
+<text x="367" y="544" font-size="16" text-anchor="middle" >수량</text>
+<text x="426" y="544" font-size="16" text-anchor="middle" >단가</text>
+<text x="528" y="538" font-size="14" text-anchor="middle" >공급대가</text>
+<text x="528" y="553" font-size="13" text-anchor="middle" >(금액)</text>
+<text x="38" y="782" font-size="15" text-anchor="end">5</text>
+<text x="38" y="1012" font-size="15" text-anchor="end">10</text>
+<text x="193" y="1282" font-size="21" text-anchor="middle" >계</text>
+<text x="354" y="1284" font-size="22">₩</text>
+<text x="598" y="1334" font-size="17" text-anchor="end">위 금액을 영수(청구)함</text>
+</g>
+<g id="fields" fill="#23232b" font-family="'Nanum Pen', 'Nanum Pen Script', cursive" filter="url(#ink)">
+<text id="no" x="108" y="100" font-size="46" text-anchor="start" transform="rotate(-3 108 100)">7</text>
+<text id="customer" x="250" y="142" font-size="44" text-anchor="start" transform="rotate(-1 250 142)">코코</text>
+<text id="biz-no" x="196" y="209" font-size="37" text-anchor="start" transform="rotate(-0.6 196 209)">214-87-03591</text>
+<text id="store" x="196" y="262" font-size="39" text-anchor="start" transform="rotate(-1 196 262)">달밤커피</text>
+<text id="owner" x="426" y="262" font-size="39" text-anchor="start" transform="rotate(0.8 426 262)">김달밤</text>
+<text id="address" x="196" y="316" font-size="37" text-anchor="start" transform="rotate(-0.5 196 316)">서울 마포구 연남동 239-8</text>
+<text id="biz-type" x="196" y="370" font-size="39" text-anchor="start" transform="rotate(0.5 196 370)">음식점</text>
+<text id="biz-item" x="426" y="370" font-size="37" text-anchor="start" transform="rotate(-0.8 426 370)">커피, 디저트</text>
+<text id="date" x="141" y="462" font-size="39" text-anchor="middle" transform="rotate(-1.2 141 462)">2026. 9. 16.</text>
+<text id="total-top" x="254" y="462" font-size="39" text-anchor="start" transform="rotate(-0.6 254 462)">₩ 18,500</text>
+<text id="memo" x="545" y="464" font-size="37" text-anchor="middle" transform="rotate(0 545 464)">☕</text>
+<text id="item1-date" x="77" y="592" font-size="34" text-anchor="middle" transform="rotate(-1.2 77 592)">9/16</text>
+<text id="item1-name" x="118" y="592" font-size="38" text-anchor="start" transform="rotate(-1.2 118 592)">아이스 아메리카노</text>
+<text id="item1-qty" x="367" y="592" font-size="37" text-anchor="middle" transform="rotate(-1.2 367 592)">2</text>
+<text id="item1-price" x="452" y="592" font-size="34" text-anchor="end" transform="rotate(-1.2 452 592)">4,500</text>
+<text id="item1-amount" x="588" y="592" font-size="37" text-anchor="end" transform="rotate(-1.2 588 592)">9,000</text>
+<text id="item2-date" x="77" y="638" font-size="34" text-anchor="middle" transform="rotate(0.6 77 638)">9/16</text>
+<text id="item2-name" x="118" y="638" font-size="38" text-anchor="start" transform="rotate(0.6 118 638)">바스크 치즈케이크</text>
+<text id="item2-qty" x="367" y="638" font-size="37" text-anchor="middle" transform="rotate(0.6 367 638)">1</text>
+<text id="item2-price" x="452" y="638" font-size="34" text-anchor="end" transform="rotate(0.6 452 638)">6,500</text>
+<text id="item2-amount" x="588" y="638" font-size="37" text-anchor="end" transform="rotate(0.6 588 638)">6,500</text>
+<text id="item3-date" x="77" y="684" font-size="34" text-anchor="middle" transform="rotate(-0.4 77 684)">9/16</text>
+<text id="item3-name" x="118" y="684" font-size="38" text-anchor="start" transform="rotate(-0.4 118 684)">드립백 원두</text>
+<text id="item3-qty" x="367" y="684" font-size="37" text-anchor="middle" transform="rotate(-0.4 367 684)">3</text>
+<text id="item3-price" x="452" y="684" font-size="34" text-anchor="end" transform="rotate(-0.4 452 684)">1,000</text>
+<text id="item3-amount" x="588" y="684" font-size="37" text-anchor="end" transform="rotate(-0.4 588 684)">3,000</text>
+<text id="total" x="584" y="1286" font-size="41" text-anchor="end" transform="rotate(-1 584 1286)">18,500</text>
+</g>
+<rect width="640" height="1340" fill="url(#curl)" clip-path="url(#paperClip)"/>
+<g clip-path="url(#paperClip)" fill="none">
+  <path d="M-10,482.4 C192,442.20000000000005 384,536 650,495.8" stroke="#fff" stroke-width="2.5" opacity="0.55"/>
+  <path d="M-10,484.9 C192,444.70000000000005 384,538.5 650,498.3" stroke="#6b5f48" stroke-width="1.2" opacity="0.14"/>
+  <path d="M396.8,-10 C371.2,402 422.40000000000003,937.9999999999999 384,1350" stroke="#fff" stroke-width="2" opacity="0.4"/>
+  <path d="M398.8,-10 C373.2,402 424.40000000000003,937.9999999999999 386,1350" stroke="#6b5f48" stroke-width="1" opacity="0.12"/>
+</g>
+</g></g>
+</svg>

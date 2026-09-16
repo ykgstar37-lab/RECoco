@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1086" height="1448" viewBox="0 0 1086 1448">
+<rect width="1086" height="1448" fill="#d8d3cb"/>
+<path d="
+M210,90
+h50 q10,0 10,10 q0,20 18,20 q18,0 18,-20 q0,-10 10,-10
+h36 q10,0 10,10 q0,20 18,20 q18,0 18,-20 q0,-10 10,-10
+h90 q10,0 10,10 q0,20 18,20 q18,0 18,-20 q0,-10 10,-10
+h120 q10,0 10,10 q0,20 18,20 q18,0 18,-20 q0,-10 10,-10
+h90 q10,0 10,10 q0,20 18,20 q18,0 18,-20 q0,-10 10,-10
+h36 q10,0 10,10 q0,20 18,20 q18,0 18,-20 q0,-10 10,-10
+h50
+v1268
+h-50 q-10,0 -10,-10 q0,-20 -18,-20 q-18,0 -18,20 q0,10 -10,10
+h-36 q-10,0 -10,-10 q0,-20 -18,-20 q-18,0 -18,20 q0,10 -10,10
+h-90 q-10,0 -10,-10 q0,-20 -18,-20 q-18,0 -18,20 q0,10 -10,10
+h-120 q-10,0 -10,-10 q0,-20 -18,-20 q-18,0 -18,20 q0,10 -10,10
+h-90 q-10,0 -10,-10 q0,-20 -18,-20 q-18,0 -18,20 q0,10 -10,10
+h-36 q-10,0 -10,-10 q0,-20 -18,-20 q-18,0 -18,20 q0,10 -10,10
+h-50 z
+" fill="#f7eff5" stroke="#d1c6cf"/>
+<g font-family="Arial, 'Noto Sans KR', sans-serif" fill="#191919">
+
+<text x="300" y="190" font-size="62" font-weight="700">CGV 영화입장권</text>
+<text x="250" y="255" font-size="30">2026-09-12 / 강남점</text>
+<text x="760" y="255" font-size="28">[전체발권]</text>
+<line x1="250" y1="285" x2="835" y2="285" stroke="#222" stroke-dasharray="8 6"/>
+<text x="250" y="335" font-size="28">2D, 12세이상관람가</text>
+<text x="250" y="420" font-size="68" font-weight="700">오디세이</text>
+<text x="250" y="455" font-size="30">Odyssey</text>
+<rect x="250" y="475" width="405" height="60" fill="#292329"/>
+<text x="265" y="517" font-size="34" fill="#fff" font-weight="700">2026.09.12(토) 19:30</text>
+<text x="250" y="590" font-size="46" font-weight="700">4관 H11</text>
+<line x1="250" y1="620" x2="835" y2="620" stroke="#222" stroke-dasharray="8 6"/>
+<text x="250" y="675" font-size="30" font-weight="700">총 인원 1명</text>
+<text x="250" y="715" font-size="28">일반 1매</text>
+<text x="250" y="755" font-size="28">예매번호 4837-2915</text>
+<line x1="250" y1="785" x2="835" y2="785" stroke="#222" stroke-dasharray="8 6"/>
+<text x="250" y="835" font-size="24">결제수단   신용카드(일반)</text>
+<text x="250" y="870" font-size="24">발권일시   2026.09.12 18:45</text>
+<text x="250" y="905" font-size="24">판매처     CGV 강남점</text>
+<line x1="250" y1="935" x2="835" y2="935" stroke="#222" stroke-dasharray="8 6"/>
+<text x="250" y="985" font-size="22">* 티켓 미지참 시 관람이 불가합니다.</text>
+<text x="250" y="1019" font-size="22">* 상영시간 10분 전까지 입장해 주시기 바랍니다.</text>
+<text x="250" y="1053" font-size="22">* 영화 상영 후에는 교환 및 환불이 불가합니다.</text>
+<text x="250" y="1087" font-size="22">* 쾌적한 관람을 위해 휴대폰은 진동으로 설정해 주세요.</text>
+<text x="250" y="1121" font-size="22">* 본 영화는 약 156분 상영됩니다.</text>
+<rect x="320" y="1180" width="4" height="90" fill="#111"/>
+<rect x="329" y="1180" width="2" height="90" fill="#111"/>
+<rect x="334" y="1180" width="6" height="90" fill="#111"/>
+<rect x="343" y="1180" width="3" height="90" fill="#111"/>
+<rect x="351" y="1180" width="2" height="90" fill="#111"/>
+<rect x="356" y="1180" width="5" height="90" fill="#111"/>
+<rect x="364" y="1180" width="2" height="90" fill="#111"/>
+<rect x="371" y="1180" width="3" height="90" fill="#111"/>
+<rect x="377" y="1180" width="7" height="90" fill="#111"/>
+<rect x="387" y="1180" width="2" height="90" fill="#111"/>
+<rect x="394" y="1180" width="4" height="90" fill="#111"/>
+<rect x="401" y="1180" width="3" height="90" fill="#111"/>
+<rect x="407" y="1180" width="2" height="90" fill="#111"/>
+<rect x="414" y="1180" width="6" height="90" fill="#111"/>
+<rect x="423" y="1180" width="4" height="90" fill="#111"/>
+<rect x="430" y="1180" width="2" height="90" fill="#111"/>
+<rect x="437" y="1180" width="5" height="90" fill="#111"/>
+<rect x="445" y="1180" width="3" height="90" fill="#111"/>
+<rect x="451" y="1180" width="7" height="90" fill="#111"/>
+<rect x="463" y="1180" width="2" height="90" fill="#111"/>
+<rect x="468" y="1180" width="2" height="90" fill="#111"/>
+<rect x="473" y="1180" width="5" height="90" fill="#111"/>
+<rect x="483" y="1180" width="4" height="90" fill="#111"/>
+<rect x="490" y="1180" width="3" height="90" fill="#111"/>
+<rect x="496" y="1180" width="6" height="90" fill="#111"/>
+<rect x="507" y="1180" width="2" height="90" fill="#111"/>
+<rect x="512" y="1180" width="4" height="90" fill="#111"/>
+<rect x="519" y="1180" width="2" height="90" fill="#111"/>
+<rect x="526" y="1180" width="7" height="90" fill="#111"/>
+<rect x="536" y="1180" width="3" height="90" fill="#111"/>
+<rect x="542" y="1180" width="2" height="90" fill="#111"/>
+<rect x="549" y="1180" width="6" height="90" fill="#111"/>
+<rect x="558" y="1180" width="3" height="90" fill="#111"/>
+<rect x="564" y="1180" width="4" height="90" fill="#111"/>
+<rect x="573" y="1180" width="2" height="90" fill="#111"/>
+<rect x="578" y="1180" width="5" height="90" fill="#111"/>
+<rect x="586" y="1180" width="3" height="90" fill="#111"/>
+<rect x="594" y="1180" width="7" height="90" fill="#111"/>
+<rect x="604" y="1180" width="2" height="90" fill="#111"/>
+<rect x="609" y="1180" width="4" height="90" fill="#111"/>
+<rect x="618" y="1180" width="3" height="90" fill="#111"/>
+<rect x="624" y="1180" width="2" height="90" fill="#111"/>
+<rect x="629" y="1180" width="6" height="90" fill="#111"/>
+<rect x="640" y="1180" width="2" height="90" fill="#111"/>
+<rect x="645" y="1180" width="5" height="90" fill="#111"/>
+<rect x="653" y="1180" width="3" height="90" fill="#111"/>
+<rect x="661" y="1180" width="4" height="90" fill="#111"/>
+<rect x="668" y="1180" width="7" height="90" fill="#111"/>
+<rect x="678" y="1180" width="2" height="90" fill="#111"/>
+<rect x="685" y="1180" width="3" height="90" fill="#111"/>
+<rect x="691" y="1180" width="5" height="90" fill="#111"/>
+<rect x="699" y="1180" width="2" height="90" fill="#111"/>
+<rect x="706" y="1180" width="6" height="90" fill="#111"/>
+<rect x="715" y="1180" width="4" height="90" fill="#111"/>
+<rect x="722" y="1180" width="2" height="90" fill="#111"/>
+<rect x="729" y="1180" width="3" height="90" fill="#111"/>
+<rect x="735" y="1180" width="7" height="90" fill="#111"/>
+<rect x="745" y="1180" width="2" height="90" fill="#111"/>
+<rect x="752" y="1180" width="5" height="90" fill="#111"/>
+<rect x="760" y="1180" width="3" height="90" fill="#111"/>
+<text x="543" y="1305" text-anchor="middle" font-size="26">4837-2915-9011</text>
+</g></svg>

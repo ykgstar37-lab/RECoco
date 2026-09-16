@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="1670" viewBox="0 0 940 1670">
+<rect width="940" height="1670" fill="#f4f4f2"/>
+<rect x="170" y="30" width="600" height="1610" rx="2" fill="#ffffff" stroke="#d8d8d8"/>
+<g font-family="Arial, 'Noto Sans KR', sans-serif" fill="#111">
+
+<text x="250" y="110" font-size="58" font-weight="700">교보문고</text>
+<text x="555" y="88" font-size="18">사람은 책을 만들고</text>
+<text x="555" y="113" font-size="18">책은 사람을 만듭니다</text>
+<text x="470" y="150" text-anchor="middle" font-size="24">교보문고 광화문점</text>
+<line x1="210" y1="170" x2="730" y2="170" stroke="#111" stroke-width="1.2"/>
+<text x="470" y="205" text-anchor="middle" font-size="20">— 좋은 책이 더 좋은 세상을 만듭니다 —</text>
+<text x="470" y="285" text-anchor="middle" font-size="52" font-weight="700">도서 위치 안내</text>
+<text x="470" y="325" text-anchor="middle" font-size="24">고객님의 찾으시는 도서의 위치를 안내합니다.</text>
+<line x1="210" y1="355" x2="730" y2="355" stroke="#555" stroke-dasharray="6 5"/>
+<text x="215" y="395" font-size="23" font-weight="700">출력일시</text>
+<text x="335" y="395" font-size="23">2026-09-09 20:45:10</text>
+<text x="215" y="437" font-size="23" font-weight="700">도서명</text>
+<text x="335" y="437" font-size="23">오디세이아(고대 그리스어 완역본)</text>
+<text x="215" y="479" font-size="23" font-weight="700">저자</text>
+<text x="335" y="479" font-size="23">호메로스</text>
+<text x="215" y="521" font-size="23" font-weight="700">출판사</text>
+<text x="335" y="521" font-size="23">현대지성</text>
+<text x="215" y="563" font-size="23" font-weight="700">분야</text>
+<text x="335" y="563" font-size="23">인문 / 고전 / 그리스 문학</text>
+<text x="215" y="605" font-size="23" font-weight="700">재고</text>
+<text x="335" y="605" font-size="23">매장 재고 있음</text>
+<line x1="210" y1="655" x2="730" y2="655" stroke="#111"/>
+<text x="215" y="725" font-size="26" font-weight="700">위치코드</text>
+<rect x="340" y="675" width="365" height="95" fill="none" stroke="#111" rx="4"/>
+<text x="522" y="742" text-anchor="middle" font-size="64" font-weight="700">B-11-1</text>
+<text x="215" y="820" font-size="24" font-weight="700">서가 위치</text>
+<text x="340" y="820" font-size="24">B구역 11번 서가 1단</text>
+<line x1="210" y1="850" x2="730" y2="850" stroke="#111"/>
+<text x="215" y="900" font-size="24" font-weight="700">찾는 방법</text>
+<text x="340" y="900" font-size="23">B구역으로 이동하신 후,</text>
+<text x="340" y="935" font-size="23">11번 서가의 1단에서 찾아주세요.</text>
+<line x1="210" y1="970" x2="730" y2="970" stroke="#111"/>
+<text x="215" y="1020" font-size="28" font-weight="700">매장 안내도 (3F 인문 · 사회 · 예술)</text>
+<rect x="220" y="1040" width="500" height="370" fill="none" stroke="#111" stroke-width="2"/>
+<rect x="230" y="1055" width="115" height="80" fill="#fff" stroke="#111"/>
+<text x="287" y="1085" text-anchor="middle" font-size="18" font-weight="700">A 구역</text>
+<text x="287" y="1112" text-anchor="middle" font-size="16">(문학)</text>
+<rect x="350" y="1055" width="115" height="80" fill="#e5e5e5" stroke="#111"/>
+<text x="407" y="1085" text-anchor="middle" font-size="18" font-weight="700">B 구역</text>
+<text x="407" y="1112" text-anchor="middle" font-size="16">(인문)</text>
+<rect x="470" y="1055" width="115" height="80" fill="#fff" stroke="#111"/>
+<text x="527" y="1085" text-anchor="middle" font-size="18" font-weight="700">C 구역</text>
+<text x="527" y="1112" text-anchor="middle" font-size="16">(사회과학)</text>
+<rect x="590" y="1055" width="115" height="80" fill="#fff" stroke="#111"/>
+<text x="647" y="1085" text-anchor="middle" font-size="18" font-weight="700">D 구역</text>
+<text x="647" y="1112" text-anchor="middle" font-size="16">(예술/취미)</text>
+<rect x="250" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="284" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="318" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="352" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="386" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="420" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="454" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="488" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="522" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="556" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="590" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="624" y="1160" width="13" height="95" fill="none" stroke="#777"/>
+<rect x="387" y="1160" width="16" height="95" fill="#222"/>
+<circle cx="395" cy="1197" r="5" fill="#fff"/>
+<text x="396" y="1290" text-anchor="middle" font-size="20" font-weight="700">B-11-1</text>
+<line x1="396" y1="1260" x2="396" y2="1210" stroke="#111" stroke-width="2"/>
+<polygon points="396,1200 387,1214 405,1214" fill="#111"/>
+<text x="252" y="1325" font-size="16" font-weight="700">에스컬레이터</text>
+<text x="275" y="1350" font-size="15">(2F→3F)</text>
+<rect x="335" y="1300" width="90" height="48" fill="none" stroke="#111"/>
+<text x="380" y="1328" text-anchor="middle" font-size="16">안내데스크</text>
+<rect x="505" y="1300" width="80" height="48" fill="none" stroke="#111"/>
+<text x="545" y="1328" text-anchor="middle" font-size="16">계산대</text>
+<text x="620" y="1320" font-size="16">휴게공간</text>
+<text x="470" y="1390" text-anchor="middle" font-size="18" font-weight="700">출입구</text>
+<text x="215" y="1460" font-size="18">※ 실제 재고는 실시간으로 변동될 수 있습니다.</text>
+<text x="215" y="1490" font-size="18">※ 도서를 찾지 못하시면 가까운 직원에게 문의해주세요.</text>
+<text x="215" y="1520" font-size="18">※ 교보문고는 항상 더 나은 독서 경험을 위해 노력합니다.</text>
+<line x1="210" y1="1550" x2="730" y2="1550" stroke="#555" stroke-dasharray="6 5"/>
+<text x="470" y="1590" text-anchor="middle" font-size="18">오늘도 좋은 책과 함께, 좋은 하루 되세요.</text>
+<text x="470" y="1620" text-anchor="middle" font-size="18" font-weight="700">교보문고 광화문점</text>
+</g></svg>
