@@ -1,62 +1,85 @@
-// 레코코 마스코트 "코코": 입이 영수증 프린터인 주황색 말랑이
+// 레코코 마스코트 "코코": 말랑한 만두 모양. 누르면 슬라임처럼 눌렸다가 출렁이며 돌아온다
 import { useEffect, useState } from 'react';
-import Svg, { Circle, ClipPath, Defs, Ellipse, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import { Pressable } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Svg, { ClipPath, Circle, Defs, Ellipse, G, Path } from 'react-native-svg';
 
-export type CocoMood = 'idle' | 'happy' | 'print' | 'wow';
+import { bump } from '../lib/haptics';
+
+export type CocoMood = 'idle' | 'happy' | 'print' | 'wow' | 'squish' | 'blink';
+export type CocoTone = 'orange' | 'white';
 
 const VB_W = 400;
 const VB_H = 320;
-/** 프린터 입(슬롯)의 위치 — 출력되는 영수증을 여기에 맞춘다 */
-export const COCO_SLOT = { x: 152 / VB_W, w: 96 / VB_W, y: 220 / VB_H };
 export const COCO_RATIO = VB_H / VB_W;
+/** 몸통 아래쪽 끝 (viewBox 기준 비율) — 출력되는 영수증은 여기서 나온다 */
+export const COCO_BODY_BOTTOM = 302 / VB_H;
 
+const TONES: Record<CocoTone, { body: string; pleat: string; blush: string; mouth: string; tongue: string; shadow: string }> = {
+  orange: { body: '#fb9449', pleat: '#e8692a', blush: '#f5675b', mouth: '#ffffff', tongue: '#f06470', shadow: 'rgba(0,0,0,0.06)' },
+  white: { body: '#ffffff', pleat: '#ffc9a1', blush: '#ffb18c', mouth: '#3a2a22', tongue: '#f06470', shadow: 'rgba(120,40,0,0.14)' },
+};
 const EYE = '#3a2a22';
-const BODY_TOP = '#ff8a3d';
-const BODY_BOTTOM = '#ffb680';
 
+// 둥근 만두 몸통 + 윗부분 꼭지(주름)
 const BODY =
-  'M34,264 C34,120 106,52 200,52 C294,52 366,120 366,264 C366,290 350,302 324,302 H76 C50,302 34,290 34,264 Z';
+  'M40,256 C40,150 108,84 186,78 C196,58 206,40 222,40 C232,40 238,46 240,52 C250,46 262,50 264,60 C272,62 276,72 270,82 C330,98 360,160 360,256 C360,292 336,300 300,301 C250,303 150,303 100,301 C64,300 40,292 40,256 Z';
 
-function Eye({ cx, cy, mood, closed }: { cx: number; cy: number; mood: CocoMood; closed: boolean }) {
+function Eyes({ mood }: { mood: CocoMood }) {
+  const L = 158;
+  const R = 242;
+  const Y = 190;
   if (mood === 'happy') {
-    return <Path d={`M${cx - 22},${cy + 8} Q${cx},${cy - 20} ${cx + 22},${cy + 8}`} stroke={EYE} strokeWidth={9} strokeLinecap="round" fill="none" />;
+    return (
+      <G>
+        {[L, R].map((x) => (
+          <Path key={x} d={`M${x - 20},${Y + 6} Q${x},${Y - 18} ${x + 20},${Y + 6}`} stroke={EYE} strokeWidth={10} strokeLinecap="round" fill="none" />
+        ))}
+      </G>
+    );
   }
-  if (closed) {
-    return <Path d={`M${cx - 22},${cy + 2} Q${cx},${cy + 16} ${cx + 22},${cy + 2}`} stroke={EYE} strokeWidth={8} strokeLinecap="round" fill="none" />;
+  if (mood === 'blink') {
+    return (
+      <G>
+        {[L, R].map((x) => (
+          <Path key={x} d={`M${x - 18},${Y + 2} Q${x},${Y + 12} ${x + 18},${Y + 2}`} stroke={EYE} strokeWidth={9} strokeLinecap="round" fill="none" />
+        ))}
+      </G>
+    );
   }
-  const big = mood === 'wow' ? 1.12 : 1;
+  if (mood === 'squish') {
+    return (
+      <G>
+        <Path d={`M${L - 16},${Y - 14} L${L + 12},${Y} L${L - 16},${Y + 14}`} stroke={EYE} strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path d={`M${R + 16},${Y - 14} L${R - 12},${Y} L${R + 16},${Y + 14}`} stroke={EYE} strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </G>
+    );
+  }
+  const r = mood === 'wow' ? 23 : 20;
   return (
     <G>
-      <Ellipse cx={cx} cy={cy} rx={31 * big} ry={37 * big} fill="#fff" />
-      <Ellipse cx={cx} cy={cy + 1} rx={24 * big} ry={30 * big} fill={EYE} />
-      <Circle cx={cx + 8} cy={cy + 11} r={6.5} fill="#fff" />
-      <Circle cx={cx - 9} cy={cy - 12} r={3.2} fill="#fff" opacity={0.85} />
+      <Circle cx={L} cy={Y} r={r} fill={EYE} />
+      <Circle cx={R} cy={Y} r={r} fill={EYE} />
     </G>
   );
 }
 
-function Mouth({ mood, clipId }: { mood: CocoMood; clipId: string }) {
+function Mouth({ mood, tone, clipId }: { mood: CocoMood; tone: CocoTone; clipId: string }) {
+  const c = TONES[tone];
   if (mood === 'print') {
-    // 영수증이 나오는 프린터 입
+    return <Path d="M184,236 Q200,244 216,236" stroke={EYE} strokeWidth={8} strokeLinecap="round" fill="none" />;
+  }
+  if (mood === 'wow' || mood === 'squish') {
+    const ry = mood === 'wow' ? 20 : 13;
     return (
       <G>
-        <Rect x={138} y={204} width={124} height={34} rx={17} fill="#fff" />
-        <Rect x={152} y={216} width={96} height={9} rx={4.5} fill={EYE} />
+        <Ellipse cx={200} cy={240} rx={17} ry={ry} fill={c.mouth} />
+        <Ellipse cx={200} cy={240 + ry * 0.45} rx={11} ry={ry * 0.45} fill={c.tongue} />
       </G>
     );
   }
-  if (mood === 'wow') {
-    return (
-      <G>
-        <Ellipse cx={200} cy={222} rx={22} ry={24} fill="#fff" />
-        <Ellipse cx={200} cy={230} rx={13} ry={10} fill="#ff6a55" />
-      </G>
-    );
-  }
-  const wide = mood === 'happy' ? 1.15 : 1;
-  const l = 200 - 50 * wide;
-  const r = 200 + 50 * wide;
-  const d = `M${l},204 C${l},195 ${r},195 ${r},204 C${r},262 ${l},262 ${l},204 Z`;
+  const w = mood === 'happy' ? 48 : 42;
+  const d = `M${200 - w},224 Q200,217 ${200 + w},224 Q${200 + w + 5},227 ${200 + w - 2},236 C${200 + w - 14},272 ${200 - w + 14},272 ${200 - w + 2},236 Q${200 - w - 5},227 ${200 - w},224 Z`;
   return (
     <G>
       <Defs>
@@ -64,14 +87,52 @@ function Mouth({ mood, clipId }: { mood: CocoMood; clipId: string }) {
           <Path d={d} />
         </ClipPath>
       </Defs>
-      <Path d={d} fill="#fff" />
-      <Ellipse cx={200} cy={254} rx={30 * wide} ry={22} fill="#ff6a55" clipPath={`url(#${clipId})`} />
+      <Path d={d} fill={c.mouth} />
+      <Ellipse cx={200} cy={266} rx={w * 0.6} ry={19} fill={c.tongue} clipPath={`url(#${clipId})`} />
     </G>
   );
 }
 
-export function Coco({ size, mood = 'idle', id = 'coco' }: { size: number; mood?: CocoMood; id?: string }) {
+/** 코코 그림만 (정적) */
+export function CocoArt({ size, mood = 'idle', tone = 'orange', id = 'coco' }: { size: number; mood?: CocoMood; tone?: CocoTone; id?: string }) {
+  const c = TONES[tone];
+  return (
+    <Svg width={size} height={size * COCO_RATIO} viewBox={`0 0 ${VB_W} ${VB_H}`}>
+      <Ellipse cx={200} cy={306} rx={150} ry={10} fill={c.shadow} />
+      <Path d={BODY} fill={c.body} />
+      <Path d="M214,58 Q206,72 196,80" stroke={c.pleat} strokeWidth={7} strokeLinecap="round" fill="none" />
+      <Path d="M246,64 Q238,76 242,90" stroke={c.pleat} strokeWidth={7} strokeLinecap="round" fill="none" />
+      <Ellipse cx={108} cy={228} rx={24} ry={13} fill={c.blush} opacity={0.85} />
+      <Ellipse cx={292} cy={228} rx={24} ry={13} fill={c.blush} opacity={0.85} />
+      <Eyes mood={mood} />
+      <Mouth mood={mood} tone={tone} clipId={`${id}-mouth`} />
+    </Svg>
+  );
+}
+
+/**
+ * 살아있는 코코: 눈 깜빡임 + (interactive면) 누르면 말랑하게 눌림
+ */
+export function Coco({
+  size,
+  mood = 'idle',
+  tone = 'orange',
+  id = 'coco',
+  interactive = false,
+  onPress,
+}: {
+  size: number;
+  mood?: CocoMood;
+  tone?: CocoTone;
+  id?: string;
+  interactive?: boolean;
+  onPress?: () => void;
+}) {
   const [blink, setBlink] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const sx = useSharedValue(1);
+  const sy = useSharedValue(1);
+  const lift = useSharedValue(0);
 
   // 가끔 눈을 깜빡인다
   useEffect(() => {
@@ -82,39 +143,42 @@ export function Coco({ size, mood = 'idle', id = 'coco' }: { size: number; mood?
         t = setTimeout(() => {
           setBlink(false);
           loop();
-        }, 130);
+        }, 120);
       }, 2600 + Math.random() * 2600);
     };
     loop();
     return () => clearTimeout(t);
   }, []);
 
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateY: lift.value }, { scaleX: sx.value }, { scaleY: sy.value }],
+  }));
+
+  const pressIn = () => {
+    setPressed(true);
+    bump();
+    // 옆으로 퍼지면서 납작하게
+    sx.value = withSpring(1.16, { damping: 12, stiffness: 260 });
+    sy.value = withSpring(0.8, { damping: 12, stiffness: 260 });
+  };
+  const pressOut = () => {
+    setPressed(false);
+    // 탱- 하고 튀어올랐다가 출렁이며 제자리
+    sx.value = withSequence(withTiming(0.9, { duration: 110 }), withSpring(1, { damping: 5, stiffness: 180, mass: 0.7 }));
+    sy.value = withSequence(withTiming(1.14, { duration: 110 }), withSpring(1, { damping: 5, stiffness: 180, mass: 0.7 }));
+    lift.value = withSequence(withTiming(-size * 0.06, { duration: 130 }), withSpring(0, { damping: 7, stiffness: 200 }));
+  };
+
+  const face: CocoMood = pressed ? 'squish' : blink && (mood === 'idle' || mood === 'print') ? 'blink' : mood;
+  const art = (
+    <Animated.View style={[{ width: size, height: size * COCO_RATIO, transformOrigin: 'bottom' }, style]}>
+      <CocoArt size={size} mood={face} tone={tone} id={id} />
+    </Animated.View>
+  );
+  if (!interactive) return art;
   return (
-    <Svg width={size} height={size * COCO_RATIO} viewBox={`0 0 ${VB_W} ${VB_H}`}>
-      <Defs>
-        <LinearGradient id={`${id}-body`} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={BODY_TOP} />
-          <Stop offset="1" stopColor={BODY_BOTTOM} />
-        </LinearGradient>
-      </Defs>
-
-      {/* 머리 위 영수증 한 조각 */}
-      <G transform="rotate(10 200 60)">
-        <Path d="M184,64 L184,22 L189,17 L194,22 L199,17 L204,22 L209,17 L214,22 L214,64 Z" fill="#fff" stroke="#f3c7a6" strokeWidth={2.5} strokeLinejoin="round" />
-        <Rect x={190} y={31} width={18} height={3} rx={1.5} fill="#ffc9a3" />
-        <Rect x={190} y={40} width={12} height={3} rx={1.5} fill="#ffc9a3" />
-      </G>
-
-      <Path d={BODY} fill={`url(#${id}-body)`} />
-      {/* 말랑한 광택 */}
-      <Ellipse cx={126} cy={110} rx={42} ry={18} fill="#fff" opacity={0.16} transform="rotate(-30 126 110)" />
-
-      <Ellipse cx={116} cy={206} rx={20} ry={11} fill="#ff5a3c" opacity={0.25} />
-      <Ellipse cx={284} cy={206} rx={20} ry={11} fill="#ff5a3c" opacity={0.25} />
-
-      <Eye cx={156} cy={156} mood={mood} closed={blink} />
-      <Eye cx={244} cy={156} mood={mood} closed={blink} />
-      <Mouth mood={mood} clipId={`${id}-mouth`} />
-    </Svg>
+    <Pressable onPressIn={pressIn} onPressOut={pressOut} onPress={onPress} accessibilityRole="button" accessibilityLabel="코코">
+      {art}
+    </Pressable>
   );
 }

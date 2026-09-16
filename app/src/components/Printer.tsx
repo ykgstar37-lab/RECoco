@@ -19,13 +19,11 @@ import { bump, tear, tick } from '../lib/haptics';
 import { RecordPaper, sizeOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
-import { COCO_RATIO, Coco, CocoMood } from './Coco';
+import { COCO_BODY_BOTTOM, COCO_RATIO, Coco, CocoMood } from './Coco';
 
 type Phase = 'printing' | 'ready' | 'torn';
 const TEAR_DISTANCE = 130;
 const COCO_TOP = 8;
-/** 코코 몸통 아래쪽 끝 (viewBox 302/320) — 영수증은 여기서 나온다 */
-const BODY_BOTTOM = 302 / 320;
 
 interface JobProps {
   record: RecoRecord;
@@ -43,8 +41,8 @@ export function PrintJob({ record, rollWidth, onDone, onCancel }: JobProps) {
   const [mood, setMood] = useState<CocoMood>('print');
 
   // 코코 몸통 폭(viewBox 332/400)이 영수증보다 살짝 넓게
-  const cocoSize = Math.min(screenW - 24, Math.max(width, 260) / 0.83 + 20);
-  const exitY = COCO_TOP + cocoSize * COCO_RATIO * BODY_BOTTOM - 10;
+  const cocoSize = Math.min(screenW - 24, Math.max(width, 260) / 0.8 + 20);
+  const exitY = COCO_TOP + cocoSize * COCO_RATIO * COCO_BODY_BOTTOM - 12;
 
   const feed = useSharedValue(-height); // 코코 밑으로 나온 길이
   const pull = useSharedValue(0); // 사용자가 당긴 거리
@@ -145,7 +143,7 @@ export function PrintJob({ record, rollWidth, onDone, onCancel }: JobProps) {
         </GestureDetector>
       </View>
       <Animated.View pointerEvents="none" style={[styles.coco, { top: COCO_TOP, left: (screenW - cocoSize) / 2, transformOrigin: 'top' }, cocoStyle]}>
-        <Coco size={cocoSize} mood={mood} id="coco-print" />
+        <Coco size={cocoSize} mood={mood} tone="white" id="coco-print" />
       </Animated.View>
 
       {phase !== 'torn' && (
@@ -163,12 +161,12 @@ export function PrintJob({ record, rollWidth, onDone, onCancel }: JobProps) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { backgroundColor: COLORS.bg },
+  backdrop: { backgroundColor: COLORS.orange },
   feedArea: { position: 'absolute', left: 0, right: 0, bottom: 0, overflow: 'hidden' },
   coco: { position: 'absolute' },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 28, alignItems: 'center', gap: 10 },
-  hintBox: { backgroundColor: COLORS.orange, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 999 },
-  hint: { color: '#fff', fontSize: 15, fontFamily: FONTS.sansBold },
-  cancel: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: COLORS.surface },
-  cancelText: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sansBold },
+  hintBox: { backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 999 },
+  hint: { color: COLORS.orange, fontSize: 15, fontFamily: FONTS.sansBold },
+  cancel: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.25)' },
+  cancelText: { color: '#fff', fontSize: 13, fontFamily: FONTS.sansBold },
 });

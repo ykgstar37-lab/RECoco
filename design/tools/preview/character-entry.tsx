@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import { Coco, CocoMood } from '@app/components/Coco';
+import { CocoArt, CocoMood, CocoTone } from '@app/components/Coco';
 
-export const renderCoco = (mood: CocoMood, size = 400) => renderToStaticMarkup(<Coco size={size} mood={mood} id={`coco-${mood}`} />);
+export const renderCoco = (mood: CocoMood, tone: CocoTone = 'orange', size = 400) =>
+  renderToStaticMarkup(<CocoArt size={size} mood={mood} tone={tone} id={`coco-${tone}-${mood}`} />);

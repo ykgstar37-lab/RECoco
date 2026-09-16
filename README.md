@@ -22,7 +22,7 @@ design/
 docs/                 기획 메모 (유료화 아이디어 등)
 ```
 
-UI는 흰 배경 + 코코 주황(`#ff7a2f`) 포인트. 색은 `app/src/theme.ts` 의 `COLORS`.
+메인은 주황(`#ff7a2f`) 배경 + 흰 코코 + 주간 도장 달력, 영수증 목록은 흰 시트. 색은 `app/src/theme.ts` 의 `COLORS`.
 
 ## 실행
 
@@ -40,7 +40,7 @@ npm install
 npm run preview              # 전체
 npm run preview -- 인생네컷   # 파일 이름에 포함된 것만
 npm run textures             # 종이 질감 PNG 재생성 (app/assets/paper 덮어씀)
-npm run character            # 코코 표정별 PNG
+npm run character            # 코코 표정별 PNG (주황/흰색)
 npm run icons                # 코코로 앱 아이콘·스플래시 재생성 (app/assets 덮어씀)
 ```
 
