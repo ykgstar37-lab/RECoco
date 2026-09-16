@@ -9,7 +9,7 @@ import { PrintJob, PrinterBar, SLOT_Y } from './components/Printer';
 import { RecordForm } from './components/RecordForm';
 import { loadRecords, saveRecords } from './lib/storage';
 import { KIND_LABEL } from './templates';
-import { APP_NAME, COLORS, FONTS } from './theme';
+import { APP_NAME, BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord } from './types';
 
 export function HomeScreen() {
@@ -69,7 +69,10 @@ export function HomeScreen() {
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.logo}>{APP_NAME}</Text>
+          <View style={styles.logoRow}>
+            <Text style={styles.logo}>{APP_NAME}</Text>
+            <Text style={styles.logoKo}>{BRAND.ko}</Text>
+          </View>
           <Text style={styles.count}>지금까지 출력한 기록 {records.length}장</Text>
         </View>
         <Pressable
@@ -139,7 +142,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 14,
   },
+  logoRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
   logo: { fontSize: 28, color: COLORS.ink, fontFamily: FONTS.code, letterSpacing: -0.5 },
+  logoKo: { fontSize: 13, color: COLORS.sub, fontFamily: FONTS.monoBold },
   count: { fontSize: 12, color: COLORS.sub, fontFamily: FONTS.mono, marginTop: 2 },
   printBtn: { backgroundColor: COLORS.printer, paddingHorizontal: 16, paddingVertical: 11, borderRadius: 999 },
   printBtnText: { color: '#f3efe7', fontSize: 14, fontFamily: FONTS.monoBold },

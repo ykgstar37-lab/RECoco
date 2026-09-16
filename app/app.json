@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "RECoco",
-    "slug": "app",
+    "slug": "recoco",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
