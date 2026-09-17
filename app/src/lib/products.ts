@@ -2,7 +2,7 @@
 import { KIND_LABEL } from '../templates';
 import { RecoRecord, RecordKind } from '../types';
 import { sampleFood, sampleFourcut, sampleGift, sampleSpending } from './previewSamples';
-import { PAID_CATEGORIES, THEMES, ThemeItem } from './shop';
+import { FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, THEMES, ThemeItem } from './shop';
 
 export interface PreviewSample {
   record: RecoRecord;
@@ -40,6 +40,38 @@ export function themeProduct(t: ThemeItem): PreviewProduct {
 
 export const themeProductById = (id: ThemeItem['id']) => themeProduct(THEMES.find((t) => t.id === id)!);
 
+export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
+  return {
+    title: d.name,
+    desc: d.desc,
+    productId: d.productId,
+    price: d.price,
+    tags: [KIND_LABEL.food],
+    samples: [
+      { record: { ...sampleFood(), id: `preview-food-${d.id}`, design: d.id }, caption: '카페' },
+      {
+        record: {
+          ...sampleFood(),
+          id: `preview-food-${d.id}-bar`,
+          design: d.id,
+          type: 'bar',
+          place: '연남 작은 술집',
+          menus: [
+            { name: '하이볼', stars: 5 },
+            { name: '감자전', stars: 4 },
+          ],
+          total: 21000,
+          revisit: 'maybe',
+          memo: '',
+        },
+        caption: '술집',
+      },
+    ],
+  };
+}
+
+export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignProduct(FOOD_DESIGNS.find((d) => d.id === id)!);
+
 export function categoryProduct(kind: RecordKind): PreviewProduct | null {
   const c = PAID_CATEGORIES[kind];
   if (!c) return null;
@@ -51,12 +83,11 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
         ]
       : kind === 'food'
         ? [
-            { record: sampleFood(), caption: '주문서' },
+            { record: sampleFood(), caption: '카페' },
             {
               record: {
                 ...sampleFood(),
                 id: 'preview-food-meal',
-                design: 'house',
                 place: '골목 칼국수',
                 area: '망원동',
                 type: 'meal',
@@ -70,7 +101,7 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                 revisit: 'maybe',
                 memo: '',
               },
-              caption: '집 모양',
+              caption: '식당',
             },
           ]
         : [];

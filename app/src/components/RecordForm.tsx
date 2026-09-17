@@ -22,7 +22,6 @@ import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
-  FoodDesign,
   FoodMenu,
   FoodRecord,
   FoodType,
@@ -55,7 +54,7 @@ import { QrImport } from './QrImport';
 import { QuickFill } from './QuickFill';
 import { STICKERS, StickerArt, stickerOf } from './Stickers';
 import { TheaterField } from './TheaterField';
-import { ThemePicker } from './ThemePicker';
+import { FoodDesignPicker, ThemePicker } from './ThemePicker';
 import { TitleSearch } from './TitleSearch';
 
 interface Props {
@@ -123,11 +122,6 @@ const emptyGift = (): Omit<GiftRecord, 'id' | 'createdAt'> => ({
 });
 
 const MAX_MENUS = 6;
-
-const FOOD_DESIGNS: { key: FoodDesign; label: string }[] = [
-  { key: 'order', label: '주문서' },
-  { key: 'house', label: '집 모양' },
-];
 
 const emptyFood = (): Omit<FoodRecord, 'id' | 'createdAt'> => ({
   kind: 'food',
@@ -907,24 +901,15 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                     <Text style={styles.addItemText}>+ 메뉴 추가</Text>
                   </Pressable>
                 )}
-                <Field
-                  label="모두 얼마? (선택)"
-                  value={food.total ? String(food.total) : ''}
-                  onChange={(v) => setFood({ ...food, total: parseInt(v.replace(/[^0-9]/g, ''), 10) || 0 })}
-                  keyboardType="number-pad"
-                  placeholder="12500"
-                />
-                <Label text="영수증 모양" />
-                <View style={styles.row}>
-                  {FOOD_DESIGNS.map((d) => {
-                    const on = (food.design ?? 'order') === d.key;
-                    return (
-                      <Pressable key={d.key} onPress={() => setFood({ ...food, design: d.key })} style={[styles.frameChip, on && styles.frameChipOn]}>
-                        <Text style={styles.segText}>{d.label}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+                <Row>
+                  <Field
+                    label="모두 얼마? (선택)"
+                    value={food.total ? String(food.total) : ''}
+                    onChange={(v) => setFood({ ...food, total: parseInt(v.replace(/[^0-9]/g, ''), 10) || 0 })}
+                    keyboardType="number-pad"
+                    placeholder="12500"
+                  />
+                </Row>
                 <Label text="사진 (선택)" />
                 <View style={styles.coverRow}>
                   <Pressable
@@ -958,6 +943,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   ))}
                 </View>
                 <Field label="한 줄 후기 (포스트잇에 적혀요)" value={food.memo} onChange={(v) => setFood({ ...food, memo: v })} placeholder="치즈케이크 꾸덕해서 또 먹고 싶다" multiline />
+                <FoodDesignPicker value={food.design} onChange={(design) => setFood((f) => ({ ...f, design }))} />
               </>
             )}
 

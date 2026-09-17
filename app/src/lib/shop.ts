@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
 import type { OutfitId } from '../components/Outfits';
-import type { PaperTheme, RecordKind } from '../types';
+import type { FoodDesign, PaperTheme, RecordKind } from '../types';
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
@@ -45,6 +45,22 @@ export const THEMES: ThemeItem[] = [
 
 export const themeUnlocked = (id: PaperTheme | undefined, owned: string[]) =>
   !id || owned.includes(THEMES.find((t) => t.id === id)?.productId ?? '');
+
+export interface FoodDesignItem {
+  id: Exclude<FoodDesign, 'order'>;
+  name: string;
+  desc: string;
+  productId: string;
+  price: number;
+}
+
+/** 카페·맛집 영수증 모양 테마 (기본은 맛집 주문서) */
+export const FOOD_DESIGNS: FoodDesignItem[] = [
+  { id: 'house', name: '집 모양', desc: '간판·창문 사진·칠판 메뉴가 있는 작은 가게 집', productId: 'recoco.theme.food-house', price: 1000 },
+];
+
+export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) =>
+  !id || id === 'order' || owned.includes(FOOD_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 /** 새 카테고리 (기본 5개는 무료) */
 export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; icon: string; productId: string; price: number }>> = {

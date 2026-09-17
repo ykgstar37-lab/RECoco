@@ -4,14 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, THEME_TAGS, categoryProduct, themeProduct } from '../lib/products';
-import { OUTFITS, PAID_CATEGORIES, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { PreviewProduct, THEME_TAGS, categoryProduct, foodDesignProduct, themeProduct } from '../lib/products';
+import { FOOD_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecordKind } from '../types';
 import { CocoArt } from './Coco';
 import { CategoryTags, ProductPreview } from './ProductPreview';
 import { StickerArt } from './Stickers';
-import { ThemeSwatch } from './ThemePicker';
+import { FoodDesignSwatch, ThemeSwatch } from './ThemePicker';
 
 interface Props {
   visible: boolean;
@@ -132,7 +133,30 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                 </Pressable>
               );
             })}
-            <Text style={styles.soon}>산 테마는 기록을 쓸 때 "종이"에서 고르면 돼요.</Text>
+            {FOOD_DESIGNS.map((d) => {
+              const have = owned.includes(d.productId);
+              return (
+                <Pressable key={d.id} onPress={() => setPreview(foodDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
+                  <FoodDesignSwatch design={d.id} size={34} />
+                  <View style={{ width: 34 }} />
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.themeName}>{d.name}</Text>
+                      <CategoryTags tags={[KIND_LABEL.food]} />
+                    </View>
+                    <Text style={styles.themeDesc}>{d.desc}</Text>
+                    <Text style={styles.peek}>눌러서 미리보기 ›</Text>
+                  </View>
+                  <Pressable
+                    disabled={have || busy}
+                    onPress={() => run(() => buy(d.productId))}
+                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
+                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(d.price)}원`}</Text>
+                  </Pressable>
+                </Pressable>
+              );
+            })}
+            <Text style={styles.soon}>산 테마는 기록을 쓸 때 "종이"나 "영수증 모양"에서 고르면 돼요.</Text>
           </Section>
 
           <Pressable onPress={() => run(async () => (await restorePurchases()).forEach(onBought))} hitSlop={8} style={styles.restore}>
