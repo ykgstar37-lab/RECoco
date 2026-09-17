@@ -5,8 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BadBackup, canBackup, exportBackup, pickBackup } from '../lib/backup';
 import { loadHaptics, setHaptics } from '../lib/haptics';
 import { purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { APP_VERSION } from '../lib/support';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
+import { BugReport } from './BugReport';
 
 interface Props {
   visible: boolean;
@@ -17,14 +19,13 @@ interface Props {
   onBought: (productId: string) => void;
 }
 
-const VERSION = '1.0.0';
-
-/** 환경설정: 진동, 내 기록 저장 위치 안내, 구매 복원, 정보 */
+/** 환경설정: 진동, 내 기록·백업, 구매 복원, 버그 신고, 정보 */
 export function Settings({ visible, records, onClose, onImport, onBought }: Props) {
   const [haptics, setHapticsOn] = useState(true);
   const [notice, setNotice] = useState('');
   const [backupNotice, setBackupNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const [bugOpen, setBugOpen] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -136,10 +137,18 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
             {!!notice && <Text style={styles.help}>{notice}</Text>}
           </Group>
 
+          <Group title="도움">
+            <Pressable onPress={() => setBugOpen(true)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}>
+              <Text style={styles.rowLabel}>버그 신고하기</Text>
+              <Text style={styles.rowValue}>›</Text>
+            </Pressable>
+            <Text style={styles.help}>이상한 점이 있으면 알려주세요. 메일 앱으로 보내져요.</Text>
+          </Group>
+
           <Group title="정보">
             <View style={styles.row}>
               <Text style={styles.rowLabel}>버전</Text>
-              <Text style={styles.rowValue}>{VERSION}</Text>
+              <Text style={styles.rowValue}>{APP_VERSION}</Text>
             </View>
             <Text style={styles.help}>
               책 정보: 카카오 · 영화 정보: TMDB (This product uses the TMDB API but is not endorsed or certified by TMDB.){'\n'}글꼴: Pretendard, 나눔글꼴 (SIL Open Font
@@ -147,6 +156,7 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
             </Text>
           </Group>
         </ScrollView>
+        <BugReport visible={bugOpen} recordCount={records.length} onClose={() => setBugOpen(false)} />
       </SafeAreaView>
     </Modal>
   );
