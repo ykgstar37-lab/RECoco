@@ -29,7 +29,6 @@ interface Props {
 export function RollScreen({ visible, records, date, onClearDate, onClose, onSave, onDelete }: Props) {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [kind, setKind] = useState<RecordKind | null>(null);
-  const [stackOpen, setStackOpen] = useState(false);
 
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
@@ -177,32 +176,9 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onSav
             })}
           </ScrollView>
 
-          {/* 오른쪽 아래: 지금 보고 있는 영수증을 쌓아서 보기 */}
-          {list.length > 0 && (
-            <Pressable
-              onPress={() => setStackOpen(true)}
-              style={({ pressed }) => [styles.stackBtn, { bottom: insets.bottom + 20 }, pressed && { transform: [{ scale: 0.94 }] }]}
-              accessibilityLabel="쌓아보기">
-              <View style={styles.stackIcon}>
-                <View style={[styles.stackBar, { width: 16 }]} />
-                <View style={[styles.stackBar, { width: 20 }]} />
-                <View style={[styles.stackBar, { width: 14 }]} />
-              </View>
-              <Text style={styles.stackBtnText}>쌓아보기</Text>
-            </Pressable>
-          )}
+          {/* 오른쪽 아래: 카테고리를 골랐을 때만 그 영수증 더미를 작게 띄운다 */}
+          {kind && <ReceiptStack key={`${kind}-${date}`} records={list} bottom={insets.bottom + 16} onOpen={open} />}
         </Animated.View>
-        <ReceiptStack
-          visible={stackOpen}
-          records={list}
-          label={kindLabel ?? (date ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일` : '전체')}
-          onClose={() => setStackOpen(false)}
-          onOpen={(r) => {
-            // 모달 위에 모달을 바로 띄우면 iOS에서 막히므로, 쌓아보기를 닫고 연다
-            setStackOpen(false);
-            setTimeout(() => setDetailId(r.id), 380);
-          }}
-        />
         <RecordDetail
           key={detailId ?? 'none'}
           record={detail}
@@ -283,25 +259,6 @@ const styles = StyleSheet.create({
   tabTextOn: { color: '#fff' },
   list: { alignItems: 'center', paddingBottom: 110 },
   item: { alignItems: 'center', width: '100%', paddingHorizontal: 22 },
-  stackBtn: {
-    position: 'absolute',
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: COLORS.orange,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 999,
-    shadowColor: '#7a2c00',
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  stackIcon: { gap: 2.5, alignItems: 'center' },
-  stackBar: { height: 4, borderRadius: 2, backgroundColor: '#fff' },
-  stackBtnText: { color: '#fff', fontSize: 14, fontFamily: FONTS.sansBold },
   seam: { position: 'absolute', top: -2, left: 0, right: 0, alignItems: 'center', zIndex: 2 },
   seamFirst: { position: 'relative', top: 0, paddingTop: 14, paddingBottom: 6 },
   seamChip: {
