@@ -12,8 +12,8 @@ export function MovieSmsPaste({ visible, onClose, onFill }: Props) {
   return (
     <PasteFill
       visible={visible}
-      title="예매 문자로 채우기"
-      help="영화관 앱의 예매 완료 문자나 카카오톡 알림을 길게 눌러 복사한 뒤, 아래 칸에 붙여넣어 주세요."
+      title="예매 문자·캡처로 채우기"
+      help="예매 완료 문자·카카오톡 알림을 복사해 붙여넣거나, 예매 내역 화면을 캡처해서 골라주세요."
       placeholder={'[○○시네마] 예매가 완료되었습니다.\n영화: 오디세이\n일시: 2026.09.12(토) 19:30\n극장: 강남 / 4관\n좌석: H11, H12\n인원: 일반 2'}
       parse={(t) => parseMovieBooking(t)}
       rows={(b) => [

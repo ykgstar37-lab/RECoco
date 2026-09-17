@@ -1,7 +1,9 @@
+import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OcrUnavailable, readImageText } from '../lib/ocr';
 import { COLORS, FONTS } from '../theme';
 
 export interface PasteRow {
@@ -24,13 +26,34 @@ interface Props<T> {
   onFill: (result: T) => void;
 }
 
-/** 문자·알림을 붙여넣으면 바로 읽은 내용을 보여주고, 그대로 기록을 채운다 */
+/** 문자·알림을 붙여넣거나 캡처를 고르면 바로 읽은 내용을 보여주고, 그대로 기록을 채운다 */
 export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, warning, failMessage, onClose, onFill }: Props<T>) {
   const [text, setText] = useState('');
+  const [reading, setReading] = useState(false);
+  const [ocrNotice, setOcrNotice] = useState('');
 
   useEffect(() => {
-    if (visible) setText('');
+    if (!visible) return;
+    setText('');
+    setOcrNotice('');
   }, [visible]);
+
+  // 알림·앱 화면 캡처에서 글자를 읽어 칸에 넣는다 (그다음은 붙여넣기와 똑같이)
+  const fromScreenshot = async () => {
+    setOcrNotice('');
+    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
+    if (picked.canceled || !picked.assets[0]) return;
+    setReading(true);
+    try {
+      const found = await readImageText(picked.assets[0].uri);
+      if (found.trim()) setText(found);
+      else setOcrNotice('캡처에서 글자를 찾지 못했어요.');
+    } catch (e) {
+      setOcrNotice(e instanceof OcrUnavailable ? '캡처 읽기는 레코코 앱 설치 버전(개발 빌드)에서 돼요. 지금은 글자를 붙여넣어 주세요.' : '캡처를 읽지 못했어요.');
+    } finally {
+      setReading(false);
+    }
+  };
 
   const result = text.trim() ? parse(text) : null;
   const warn = result && warning ? warning(result) : null;
@@ -48,6 +71,10 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             <Text style={styles.help}>{help}</Text>
+            <Pressable onPress={fromScreenshot} disabled={reading} style={({ pressed }) => [styles.shot, pressed && { opacity: 0.8 }]}>
+              {reading ? <ActivityIndicator color={COLORS.orange} /> : <Text style={styles.shotText}>📷  캡처에서 읽기</Text>}
+            </Pressable>
+            {!!ocrNotice && <Text style={styles.warn}>{ocrNotice}</Text>}
             <TextInput style={styles.input} value={text} onChangeText={setText} multiline autoFocus placeholder={placeholder} placeholderTextColor={COLORS.placeholder} />
 
             {!!text.trim() &&
@@ -88,6 +115,8 @@ const styles = StyleSheet.create({
   closeText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   body: { paddingHorizontal: 18, paddingBottom: 24, gap: 12 },
   help: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, lineHeight: 20 },
+  shot: { alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, backgroundColor: COLORS.orangeSoft, minWidth: 130, alignItems: 'center' },
+  shotText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   input: {
     minHeight: 150,
     backgroundColor: COLORS.surface,

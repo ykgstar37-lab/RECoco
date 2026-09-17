@@ -435,7 +435,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
             {kind === 'movie' && (
               <>
                 {!canSearchMovies && <MissingKey what="영화 검색" />}
-                <QuickFill icon="ticket" title="예매 문자로 채우기" sub="예매 완료 문자·카톡 알림을 붙여넣으면 극장·일시·좌석이 자동으로" onPress={() => setBookingOpen(true)} />
+                <QuickFill icon="ticket" title="예매 문자·캡처로 채우기" sub="예매 알림을 붙여넣거나 예매 내역 캡처를 골라요" onPress={() => setBookingOpen(true)} />
                 <MovieSmsPaste
                   visible={bookingOpen}
                   onClose={() => setBookingOpen(false)}
@@ -520,7 +520,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
 
             {kind === 'spending' && (
               <>
-                <QuickFill icon="card" title="카드 결제 문자로 채우기" sub="승인 문자를 붙여넣으면 가게·금액·날짜가 자동으로" onPress={() => setSmsOpen(true)} />
+                <QuickFill icon="card" title="결제 문자·알림으로 채우기" sub="승인 문자를 붙여넣거나 결제 알림 캡처를 골라요" onPress={() => setSmsOpen(true)} />
                 <CardSmsPaste
                   visible={smsOpen}
                   onClose={() => setSmsOpen(false)}

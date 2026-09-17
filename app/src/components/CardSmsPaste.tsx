@@ -13,8 +13,8 @@ export function CardSmsPaste({ visible, onClose, onFill }: Props) {
   return (
     <PasteFill
       visible={visible}
-      title="카드 결제 문자로 채우기"
-      help="문자 앱에서 카드 승인 문자를 길게 눌러 복사한 뒤, 아래 칸을 길게 눌러 붙여넣어 주세요."
+      title="결제 문자·알림으로 채우기"
+      help="카드 승인 문자를 복사해 아래 칸에 붙여넣거나, 카드 앱 결제 알림·이용내역 화면을 캡처해서 골라주세요."
       placeholder={'[Web발신]\n○○카드 승인\n홍*동\n12,500원 일시불\n09/17 13:22\n달밤커피'}
       parse={(t) => parseCardSms(t)}
       rows={(p) => [
