@@ -1,11 +1,11 @@
 // 코코 옷(머리 장식). 코코 그림과 같은 viewBox(400×320) 좌표로 그려서 CocoArt 위에 겹친다
-import { Circle, G, Path, Rect } from 'react-native-svg';
+import { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
 export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper';
 
 // 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
 const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
-  ribbon: { from: [268, 82], to: [274, 90], k: 1.5, r: 12, top: 40 },
+  ribbon: { from: [268, 82], to: [212, 84], k: 1.65, r: -10, top: 40 },
   beanie: { from: [225, 104], to: [203, 150], k: 1.45, top: 5 },
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
@@ -16,9 +16,9 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
 };
 
-/** 머리를 덮는 모자는 만두 꼭지를 숨긴다 (리본은 꼭지가 보이는 게 귀엽다) */
+/** 머리에 얹는 옷은 만두 꼭지를 숨긴다 */
 export const COVERS_KNOB: Record<OutfitId, boolean> = {
-  ribbon: false,
+  ribbon: true,
   beanie: true,
   straw: true,
   beret: true,
@@ -44,22 +44,19 @@ export function OutfitArt({ id }: { id: OutfitId }) {
 function Hat({ id }: { id: OutfitId }) {
   switch (id) {
     case 'ribbon':
+      // 가운데가 조여진 나비 리본: 고리 두 개 + 접힌 주름 + 짧게 퍼지는 꼬리 + 동그란 매듭
       return (
         <G>
-          {/* 꼬리: 끝이 V자로 파인 리본 끈 */}
-          <Path d="M262,88 C257,100 250,112 242,124 L252,121 L255,131 C263,118 268,104 268,90 Z" fill="#e0628a" />
-          <Path d="M274,88 C279,100 286,112 294,124 L284,121 L281,131 C273,118 268,104 268,90 Z" fill="#e0628a" />
-          {/* 통통한 고리 두 개 + 안쪽 접힌 그림자 */}
-          <Path d="M268,83 C254,63 224,57 219,73 C215,89 240,98 268,87 Z" fill="#f27ca0" />
-          <Path d="M268,83 C282,63 312,57 317,73 C321,89 296,98 268,87 Z" fill="#f27ca0" />
-          <Path d="M267,84 C256,76 241,74 238,80 C237,86 252,89 267,86 Z" fill="#d95a82" />
-          <Path d="M269,84 C280,76 295,74 298,80 C299,86 284,89 269,86 Z" fill="#d95a82" />
-          {/* 반짝이는 윗면 */}
-          <Path d="M230,70 C236,64 246,64 252,68" stroke="#ffc6d8" strokeWidth={3.5} strokeLinecap="round" fill="none" />
-          <Path d="M284,68 C290,64 300,64 306,70" stroke="#ffc6d8" strokeWidth={3.5} strokeLinecap="round" fill="none" />
-          {/* 매듭 */}
-          <Rect x={259} y={75} width={18} height={17} rx={6} fill="#e0628a" />
-          <Path d="M262,79 C266,77 270,77 274,79" stroke="#f59bb8" strokeWidth={2.5} strokeLinecap="round" fill="none" />
+          <Path d="M264,88 C260,96 255,104 248,111 L257,111 L261,118 C266,108 268,98 268,89 Z" fill="#e0628a" />
+          <Path d="M272,88 C276,96 281,104 288,111 L279,111 L275,118 C270,108 268,98 268,89 Z" fill="#e0628a" />
+          <Path d="M268,79 C256,70 236,60 226,66 C216,72 218,94 228,98 C238,102 256,94 268,87 Z" fill="#f58db0" />
+          <Path d="M268,79 C280,70 300,60 310,66 C320,72 318,94 308,98 C298,102 280,94 268,87 Z" fill="#f58db0" />
+          <Path d="M264,82 C254,79 243,80 234,85" stroke="#d9557d" strokeWidth={3} strokeLinecap="round" fill="none" />
+          <Path d="M272,82 C282,79 293,80 302,85" stroke="#d9557d" strokeWidth={3} strokeLinecap="round" fill="none" />
+          <Path d="M230,71 C234,67 240,66 245,67" stroke="#ffd3e2" strokeWidth={2.6} strokeLinecap="round" fill="none" />
+          <Path d="M291,67 C296,66 302,67 306,71" stroke="#ffd3e2" strokeWidth={2.6} strokeLinecap="round" fill="none" />
+          <Ellipse cx={268} cy={83} rx={8} ry={9} fill="#e0628a" />
+          <Ellipse cx={266} cy={80} rx={3} ry={2.2} fill="#f7a8c4" />
         </G>
       );
     case 'beanie':
