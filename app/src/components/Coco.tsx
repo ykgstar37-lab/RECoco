@@ -7,14 +7,17 @@ import Svg, { ClipPath, Circle, Defs, Ellipse, G, Path } from 'react-native-svg'
 import { bump } from '../lib/haptics';
 import { COVERS_KNOB, OutfitArt, OutfitId } from './Outfits';
 
-export type CocoMood = 'idle' | 'happy' | 'print' | 'wow' | 'squish' | 'blink';
+export type CocoMood = 'idle' | 'happy' | 'print' | 'wow' | 'squish' | 'blink' | 'gag' | 'spew';
 export type CocoTone = 'orange' | 'white';
 
 const VB_W = 400;
 const VB_H = 320;
 export const COCO_RATIO = VB_H / VB_W;
-/** 몸통 아래쪽 끝 (viewBox 기준 비율) — 출력되는 영수증은 여기서 나온다 */
-export const COCO_BODY_BOTTOM = 302 / VB_H;
+
+// "우에에에엑" 입: 눈 아래로 크게 벌린 입. 영수증은 입 안(SPEW_EXIT_Y)에서 나온다
+const SPEW = { left: 92, right: 308, top: 214, bottom: 292 };
+export const SPEW_EXIT_Y = 236 / VB_H;
+export const SPEW_MOUTH_WIDTH = (SPEW.right - SPEW.left - 24) / VB_W;
 
 const TONES: Record<CocoTone, { body: string; pleat: string; blush: string; mouth: string; tongue: string; shadow: string }> = {
   orange: { body: '#fb9449', pleat: '#e8692a', blush: '#f5675b', mouth: '#ffffff', tongue: '#f06470', shadow: 'rgba(0,0,0,0.06)' },
@@ -52,7 +55,7 @@ function Eyes({ mood }: { mood: CocoMood }) {
       </G>
     );
   }
-  if (mood === 'squish') {
+  if (mood === 'squish' || mood === 'gag' || mood === 'spew') {
     return (
       <G>
         <Path d={`M${L - 12},${Y - 11} L${L + 9},${Y} L${L - 12},${Y + 11}`} stroke={EYE} strokeWidth={8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -73,6 +76,20 @@ function Mouth({ mood, tone, clipId }: { mood: CocoMood; tone: CocoTone; clipId:
   const c = TONES[tone];
   if (mood === 'print') {
     return <Path d="M184,236 Q200,244 216,236" stroke={EYE} strokeWidth={8} strokeLinecap="round" fill="none" />;
+  }
+  if (mood === 'gag') {
+    // 볼 빵빵, 입은 꾹 다물고 울렁울렁
+    return <Path d="M174,240 Q182,232 190,240 Q198,248 206,240 Q214,232 222,240" stroke={EYE} strokeWidth={7} strokeLinecap="round" fill="none" />;
+  }
+  if (mood === 'spew') {
+    const { left, right, top, bottom } = SPEW;
+    const d = `M${left + 14},${top} Q200,${top - 8} ${right - 14},${top} Q${right},${top + 2} ${right},${top + 20} L${right - 6},${bottom - 22} Q${right - 10},${bottom} ${right - 34},${bottom} L${left + 34},${bottom} Q${left + 10},${bottom} ${left + 6},${bottom - 22} L${left},${top + 20} Q${left},${top + 2} ${left + 14},${top} Z`;
+    return (
+      <G>
+        <Path d={d} fill={c.mouth} />
+        <Path d={`M${left + 20},${top + 10} Q200,${top + 2} ${right - 20},${top + 10}`} stroke="#1f1612" strokeWidth={6} strokeLinecap="round" fill="none" opacity={0.6} />
+      </G>
+    );
   }
   if (mood === 'wow' || mood === 'squish') {
     const ry = mood === 'wow' ? 20 : 13;
@@ -125,8 +142,18 @@ export function CocoArt({
           <Path d="M246,64 Q238,76 242,90" stroke={c.pleat} strokeWidth={7} strokeLinecap="round" fill="none" />
         </>
       )}
-      <Ellipse cx={108} cy={228} rx={24} ry={13} fill={c.blush} opacity={0.85} />
-      <Ellipse cx={292} cy={228} rx={24} ry={13} fill={c.blush} opacity={0.85} />
+      {mood === 'spew' ? (
+        // 입이 커서 볼터치는 눈 옆으로
+        <>
+          <Ellipse cx={100} cy={196} rx={22} ry={12} fill={c.blush} opacity={0.85} />
+          <Ellipse cx={300} cy={196} rx={22} ry={12} fill={c.blush} opacity={0.85} />
+        </>
+      ) : (
+        <>
+          <Ellipse cx={108} cy={228} rx={mood === 'gag' ? 32 : 24} ry={mood === 'gag' ? 19 : 13} fill={c.blush} opacity={mood === 'gag' ? 1 : 0.85} />
+          <Ellipse cx={292} cy={228} rx={mood === 'gag' ? 32 : 24} ry={mood === 'gag' ? 19 : 13} fill={c.blush} opacity={mood === 'gag' ? 1 : 0.85} />
+        </>
+      )}
       <Eyes mood={mood} />
       <Mouth mood={mood} tone={tone} clipId={`${id}-mouth`} />
       {outfit && <OutfitArt id={outfit} />}
