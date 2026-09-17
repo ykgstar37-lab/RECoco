@@ -16,7 +16,7 @@ import Svg from 'react-native-svg';
 
 import { newId, nowTime, today, won } from '../lib/format';
 import { pickPhotos } from '../lib/photos';
-import { canSearchBooks, movieDetail } from '../lib/search';
+import { canSearchBooks, canSearchMovies, movieDetail } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
@@ -43,6 +43,7 @@ import { CardSmsPaste } from './CardSmsPaste';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
 import { QrImport } from './QrImport';
+import { QuickFill } from './QuickFill';
 import { STICKERS, StickerArt, stickerOf } from './Stickers';
 import { TheaterField } from './TheaterField';
 import { ThemePicker } from './ThemePicker';
@@ -325,15 +326,10 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             {kind === 'reading' && (
               <>
-                {canSearchBooks && (
-                  <Pressable onPress={() => setIsbnOpen(true)} style={({ pressed }) => [styles.scanBtn, pressed && { opacity: 0.8 }]}>
-                    <View style={styles.barcode}>
-                      {[3, 1.5, 2.5, 1.5, 3, 1.5, 2].map((w, i) => (
-                        <View key={i} style={{ width: w, height: 16, backgroundColor: COLORS.orange }} />
-                      ))}
-                    </View>
-                    <Text style={styles.scanBtnText}>책 뒷면 바코드 찍어서 채우기</Text>
-                  </Pressable>
+                {canSearchBooks ? (
+                  <QuickFill icon="barcode" title="바코드로 책 찾기" sub="뒷표지 바코드를 찍거나 ISBN 숫자를 넣어요" onPress={() => setIsbnOpen(true)} />
+                ) : (
+                  <MissingKey what="책 검색·바코드" />
                 )}
                 <Field
                   label="책 제목 *"
@@ -393,6 +389,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
 
             {kind === 'movie' && (
               <>
+                {!canSearchMovies && <MissingKey what="영화 검색" />}
                 <Field
                   label="영화 제목 *"
                   value={movie.title}
@@ -460,10 +457,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
 
             {kind === 'spending' && (
               <>
-                <Pressable onPress={() => setSmsOpen(true)} style={({ pressed }) => [styles.scanBtn, pressed && { opacity: 0.8 }]}>
-                  <Text style={styles.smsIcon}>💳</Text>
-                  <Text style={styles.scanBtnText}>카드 결제 문자 붙여넣어서 채우기</Text>
-                </Pressable>
+                <QuickFill icon="card" title="카드 결제 문자로 채우기" sub="승인 문자를 붙여넣으면 가게·금액·날짜가 자동으로" onPress={() => setSmsOpen(true)} />
                 <CardSmsPaste
                   visible={smsOpen}
                   onClose={() => setSmsOpen(false)}
@@ -767,6 +761,12 @@ function PhotoSlots({ photos, onChange }: { photos: (Photo | null)[]; onChange: 
   );
 }
 
+/** 개발 중에만: 검색 키가 앱에 안 들어갔을 때 알려준다 (출시 빌드에서는 조용히 숨김) */
+function MissingKey({ what }: { what: string }) {
+  if (!__DEV__) return null;
+  return <Text style={styles.missingKey}>개발 안내: {what} 키가 없어요. app/.env.local 을 넣은 뒤 개발 서버를 껐다 켜주세요 (npx expo start --clear).</Text>;
+}
+
 function Label({ text }: { text: string }) {
   return <Text style={styles.label}>{text}</Text>;
 }
@@ -924,20 +924,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scanBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: COLORS.orange,
-    backgroundColor: COLORS.orangeSoft,
-  },
-  barcode: { flexDirection: 'row', gap: 1.5, alignItems: 'center' },
-  smsIcon: { fontSize: 16 },
-  scanBtnText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
+  missingKey: { color: COLORS.danger, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
   qrBox: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 14, gap: 12, alignItems: 'center' },
   qrHint: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 20 },
   qrPreview: { width: '100%', height: 220 },
