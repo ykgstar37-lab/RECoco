@@ -4,9 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
+import { PreviewProduct, THEME_TAGS, categoryProduct, themeProduct } from '../lib/products';
 import { OUTFITS, PAID_CATEGORIES, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
+import { RecordKind } from '../types';
 import { CocoArt } from './Coco';
+import { CategoryTags, ProductPreview } from './ProductPreview';
 import { StickerArt } from './Stickers';
 import { ThemeSwatch } from './ThemePicker';
 
@@ -22,6 +25,7 @@ interface Props {
 export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  const [preview, setPreview] = useState<PreviewProduct | null>(null);
   const paidHats = OUTFITS.filter((o) => o.unlock.type === 'paid');
 
   useEffect(() => {
@@ -75,18 +79,25 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
           </Section>
 
           <Section title="새 카테고리" sub="독서·영화·소비·여행·인생네컷은 계속 무료예요">
-            {Object.values(PAID_CATEGORIES).map((c) => {
+            {(Object.entries(PAID_CATEGORIES) as [RecordKind, (typeof PAID_CATEGORIES)[RecordKind]][]).map(([kind, c]) => {
               const have = owned.includes(c!.productId);
               return (
-                <View key={c!.productId} style={styles.themeRow}>
+                <Pressable
+                  key={c!.productId}
+                  onPress={() => setPreview(categoryProduct(kind))}
+                  style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
                   <View style={styles.categoryIcon}>
                     <Svg width={34} height={34} viewBox="0 0 48 48">
                       <StickerArt emoji="🎁" />
                     </Svg>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.themeName}>{c!.name}</Text>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.themeName}>{c!.name}</Text>
+                      <CategoryTags tags={['새 카테고리']} />
+                    </View>
                     <Text style={styles.themeDesc}>{c!.desc}</Text>
+                    <Text style={styles.peek}>눌러서 미리보기 ›</Text>
                   </View>
                   <Pressable
                     disabled={have || busy}
@@ -94,22 +105,26 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                     style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
                     <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(c!.price)}원`}</Text>
                   </Pressable>
-                </View>
+                </Pressable>
               );
             })}
             <Text style={styles.soon}>공연·전시, 카페·맛집, 운동, 음악도 준비하고 있어요.</Text>
           </Section>
 
-          <Section title="영수증 테마" sub="소비 영수증 · 인생네컷 뒷면에 쓸 수 있어요">
+          <Section title="영수증 테마" sub="같은 기록을 다른 종이로">
             {THEMES.map((t) => {
               const have = owned.includes(t.productId);
               return (
-                <View key={t.id} style={styles.themeRow}>
+                <Pressable key={t.id} onPress={() => setPreview(themeProduct(t))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
                   <ThemeSwatch theme={t.id} base="spending" size={34} />
                   <ThemeSwatch theme={t.id} base="fourcut" size={34} />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.themeName}>{t.name}</Text>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.themeName}>{t.name}</Text>
+                      <CategoryTags tags={THEME_TAGS} />
+                    </View>
                     <Text style={styles.themeDesc}>{t.desc}</Text>
+                    <Text style={styles.peek}>눌러서 미리보기 ›</Text>
                   </View>
                   <Pressable
                     disabled={have || busy}
@@ -117,7 +132,7 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                     style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
                     <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(t.price)}원`}</Text>
                   </Pressable>
-                </View>
+                </Pressable>
               );
             })}
             <Text style={styles.soon}>산 테마는 기록을 쓸 때 "종이"에서 고르면 돼요.</Text>
@@ -128,6 +143,7 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
           </Pressable>
           {!!notice && <Text style={styles.notice}>{notice}</Text>}
         </ScrollView>
+        <ProductPreview product={preview} onClose={() => setPreview(null)} onBought={() => setPreview(null)} />
       </SafeAreaView>
     </Modal>
   );
@@ -164,6 +180,8 @@ const styles = StyleSheet.create({
   hatPrice: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: 1 },
   rowLink: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   categoryIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#ffe36b', alignItems: 'center', justifyContent: 'center' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  peek: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3 },
   themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   themeName: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   themeDesc: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 1 },

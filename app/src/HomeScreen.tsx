@@ -10,13 +10,15 @@ import { COCO_RATIO, Coco } from './components/Coco';
 import { BagIcon, DotsIcon, GearIcon, HatIcon } from './components/MenuIcons';
 import { OUTFIT_TOP } from './components/Outfits';
 import { PrintJob } from './components/Printer';
+import { ProductPreview } from './components/ProductPreview';
 import { RecordForm } from './components/RecordForm';
 import { RollScreen } from './components/RollScreen';
 import { Settings } from './components/Settings';
 import { Shop } from './components/Shop';
 import { WeekStamps, dateKey } from './components/WeekStamps';
 import { loadHaptics, tick } from './lib/haptics';
-import { OUTFITS, PAID_CATEGORIES, addOwned, buy, categoryUnlocked, initShop, purchaseErrorMessage, useShop, wearOutfit } from './lib/shop';
+import { PreviewProduct, categoryProduct } from './lib/products';
+import { OUTFITS, addOwned, categoryUnlocked, initShop, useShop, wearOutfit } from './lib/shop';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord, RecordKind } from './types';
@@ -52,6 +54,7 @@ export function HomeScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { owned, outfit } = useShop();
   const [gift, setGift] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ kind: RecordKind; product: PreviewProduct } | null>(null);
 
   useEffect(() => {
     loadRecords().then(setRecords);
@@ -75,15 +78,12 @@ export function HomeScreen() {
     setPicking(true);
   };
 
-  const pickCategory = async (kind: RecordKind) => {
+  const pickCategory = (kind: RecordKind) => {
+    // 새 카테고리는 미리보기에서 사고 나서 연다
     if (!categoryUnlocked(kind, owned)) {
-      try {
-        await buy(PAID_CATEGORIES[kind]!.productId);
-      } catch (e) {
-        setPicking(false);
-        say(purchaseErrorMessage(e), 3000);
-        return;
-      }
+      setPicking(false);
+      setPreview({ kind, product: categoryProduct(kind)! });
+      return;
     }
     setFormKind(kind);
     setPicking(false);
@@ -309,6 +309,16 @@ export function HomeScreen() {
           return added.length;
         }}
         onBought={addOwned}
+      />
+      <ProductPreview
+        product={preview?.product ?? null}
+        onClose={() => setPreview(null)}
+        onBought={() => {
+          const kind = preview?.kind;
+          setPreview(null);
+          // 미리보기 시트가 내려간 뒤 기록 화면
+          if (kind) setTimeout(() => pickCategory(kind), Platform.OS === 'ios' ? 450 : 50);
+        }}
       />
       <RecordForm visible={formOpen} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
     </View>

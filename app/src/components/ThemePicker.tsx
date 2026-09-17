@@ -3,9 +3,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Line, Rect } from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { THEMES, buy, purchaseErrorMessage, themeUnlocked, useShop } from '../lib/shop';
+import { PreviewProduct, themeProductById } from '../lib/products';
+import { THEMES, themeUnlocked, useShop } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { PaperTheme } from '../types';
+import { ProductPreview } from './ProductPreview';
 
 /** 종이 테마 견본 그림 (기본 / 흰 무지 / 모눈종이) */
 export function ThemeSwatch({ theme, base, size = 44 }: { theme: PaperTheme | undefined; base: 'spending' | 'fourcut'; size?: number }) {
@@ -32,26 +34,14 @@ interface Props {
   onChange: (theme: PaperTheme | undefined) => void;
 }
 
-/** 기록 폼의 종이 고르기: 산 테마는 바로 고르고, 안 산 테마는 눌러서 사기 */
+/** 기록 폼의 종이 고르기: 산 테마는 바로 고르고, 안 산 테마는 미리보기에서 사기 */
 export function ThemePicker({ label, base, value, onChange }: Props) {
   const { owned } = useShop();
-  const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState('');
+  const [preview, setPreview] = useState<{ id: PaperTheme; product: PreviewProduct } | null>(null);
 
-  const choose = async (id: PaperTheme | undefined) => {
-    setNotice('');
+  const choose = (id: PaperTheme | undefined) => {
     if (themeUnlocked(id, owned)) return onChange(id);
-    if (busy) return;
-    const item = THEMES.find((t) => t.id === id)!;
-    setBusy(true);
-    try {
-      await buy(item.productId);
-      onChange(id);
-    } catch (e) {
-      setNotice(purchaseErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
+    setPreview({ id: id!, product: themeProductById(id!) });
   };
 
   const options: { id: PaperTheme | undefined; name: string }[] = [{ id: undefined, name: '기본' }, ...THEMES];
@@ -78,7 +68,14 @@ export function ThemePicker({ label, base, value, onChange }: Props) {
           );
         })}
       </View>
-      {!!notice && <Text style={styles.notice}>{notice}</Text>}
+      <ProductPreview
+        product={preview?.product ?? null}
+        onClose={() => setPreview(null)}
+        onBought={() => {
+          if (preview) onChange(preview.id);
+          setPreview(null);
+        }}
+      />
     </View>
   );
 }
@@ -100,5 +97,4 @@ const styles = StyleSheet.create({
   optionOn: { borderColor: COLORS.orange, backgroundColor: COLORS.orangeSoft },
   name: { color: COLORS.ink, fontSize: 13, fontFamily: FONTS.sansBold },
   price: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: -2 },
-  notice: { color: COLORS.danger, fontSize: 12, fontFamily: FONTS.sansBold },
 });

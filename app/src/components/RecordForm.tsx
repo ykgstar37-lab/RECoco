@@ -17,7 +17,8 @@ import Svg from 'react-native-svg';
 import { newId, nowTime, today, won } from '../lib/format';
 import { pickPhotos } from '../lib/photos';
 import { canSearchBooks, movieDetail } from '../lib/search';
-import { PAID_CATEGORIES, buy, categoryUnlocked, purchaseErrorMessage, useShop } from '../lib/shop';
+import { PreviewProduct, categoryProduct } from '../lib/products';
+import { categoryUnlocked, useShop } from '../lib/shop';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
@@ -41,6 +42,7 @@ import {
 import { AirportField } from './AirportField';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
+import { ProductPreview } from './ProductPreview';
 import { QrImport } from './QrImport';
 import { STICKERS, StickerArt, stickerOf } from './Stickers';
 import { TheaterField } from './TheaterField';
@@ -198,6 +200,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [fourcut, setFourcut] = useState(emptyFourcut);
   const [gift, setGift] = useState(emptyGift);
   const { owned } = useShop();
+  const [preview, setPreview] = useState<{ kind: RecordKind; product: PreviewProduct } | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [isbnOpen, setIsbnOpen] = useState(false);
   const [error, setError] = useState('');
@@ -307,17 +310,11 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
               <Pressable
                 key={k.kind}
                 disabled={!k.ready || (!!editing && k.kind !== kind)}
-                onPress={async () => {
+                onPress={() => {
                   setError('');
                   setSearching(false);
-                  if (locked) {
-                    // 새 카테고리는 사고 나서 연다
-                    try {
-                      await buy(PAID_CATEGORIES[k.kind]!.productId);
-                    } catch (e) {
-                      return setError(purchaseErrorMessage(e));
-                    }
-                  }
+                  // 새 카테고리는 미리보기에서 사고 나서 연다
+                  if (locked) return setPreview({ kind: k.kind, product: categoryProduct(k.kind)! });
                   setKind(k.kind as RecordKind);
                 }}
                 style={[styles.chip, selected && styles.chipOn, (!k.ready || (!!editing && !selected)) && styles.chipOff]}>
@@ -717,6 +714,14 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
           </ScrollView>
         </KeyboardAvoidingView>
 
+        <ProductPreview
+          product={preview?.product ?? null}
+          onClose={() => setPreview(null)}
+          onBought={() => {
+            if (preview) setKind(preview.kind);
+            setPreview(null);
+          }}
+        />
         <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && { opacity: 0.85 }]}>
           <Text style={styles.submitText}>{editing ? '고친 내용 저장' : '코코에게 영수증 뽑기'}</Text>
         </Pressable>
