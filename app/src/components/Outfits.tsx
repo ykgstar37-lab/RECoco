@@ -5,7 +5,7 @@ export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'part
 
 // 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
 const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
-  ribbon: { from: [268, 82], to: [212, 84], k: 1.65, r: -10, top: 40 },
+  ribbon: { from: [268, 82], to: [258, 88], k: 1.1, r: 14, top: 62 },
   beanie: { from: [225, 104], to: [203, 150], k: 1.45, top: 5 },
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
