@@ -18,9 +18,13 @@ import { newId, nowTime, today, won } from '../lib/format';
 import { downloadPhoto, pickPhotos } from '../lib/photos';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
+import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
+  FoodMenu,
+  FoodRecord,
+  FoodType,
   FourcutFrame,
   FourcutLayout,
   FourcutRecord,
@@ -70,6 +74,7 @@ const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
   { kind: 'travel', label: '여행', ready: true },
   { kind: 'fourcut', label: '인생네컷', ready: true },
   { kind: 'gift', label: '선물', ready: true },
+  { kind: 'food', label: '카페·맛집', ready: true },
 ];
 
 const FRAMES: { key: FourcutFrame; label: string; color: string }[] = [
@@ -114,6 +119,22 @@ const emptyGift = (): Omit<GiftRecord, 'id' | 'createdAt'> => ({
   message: '',
   photo: null,
   card: 'yellow',
+});
+
+const MAX_MENUS = 6;
+
+const emptyFood = (): Omit<FoodRecord, 'id' | 'createdAt'> => ({
+  kind: 'food',
+  date: today(),
+  place: '',
+  area: '',
+  type: 'cafe',
+  withWhom: '',
+  menus: [{ name: '', stars: 4 }],
+  total: 0,
+  revisit: 'yes',
+  memo: '',
+  photo: null,
 });
 
 const STATUSES: ReadingStatus[] = ['완독', '읽는 중', '잠시 멈춤'];
@@ -203,6 +224,8 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [travel, setTravel] = useState(emptyTravel);
   const [fourcut, setFourcut] = useState(emptyFourcut);
   const [gift, setGift] = useState(emptyGift);
+  const [food, setFood] = useState(emptyFood);
+  const [foodSmsOpen, setFoodSmsOpen] = useState(false);
   const { owned } = useShop();
   const [qrOpen, setQrOpen] = useState(false);
   const [isbnOpen, setIsbnOpen] = useState(false);
@@ -264,6 +287,9 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
       case 'gift':
         setGift(rest);
         break;
+      case 'food':
+        setFood({ ...rest, menus: rest.menus.length ? rest.menus : [{ name: '', stars: 4 }] });
+        break;
     }
   }, [visible, initialKind, editing]);
 
@@ -271,6 +297,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
     setTravel(emptyTravel());
     setFourcut(emptyFourcut());
     setGift(emptyGift());
+    setFood(emptyFood());
     setReading(emptyReading());
     setMovie(emptyMovie());
     setSpending(emptySpending());
@@ -307,6 +334,10 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
     } else if (kind === 'gift') {
       if (!gift.item.trim()) return setError('어떤 선물인지 적어주세요.');
       record = { ...base, ...gift } as GiftRecord;
+    } else if (kind === 'food') {
+      if (!food.place.trim()) return setError('어느 가게인지 적어주세요.');
+      const menus = food.menus.filter((m) => m.name.trim()).map((m) => ({ ...m, name: m.name.trim() }));
+      record = { ...base, ...food, menus } as FoodRecord;
     } else {
       if (fourcut.source === 'qr' && !fourcut.frameImage) {
         return setError('QR로 사진을 가져오거나, "사진 4장 고르기"로 바꿔주세요.');
@@ -810,6 +841,106 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
               </>
             )}
 
+            {kind === 'food' && (
+              <>
+                <QuickFill icon="card" title="결제 문자·알림으로 채우기" sub="가게 이름·날짜·금액을 한 번에" onPress={() => setFoodSmsOpen(true)} />
+                <CardSmsPaste
+                  visible={foodSmsOpen}
+                  onClose={() => setFoodSmsOpen(false)}
+                  onFill={(pay) => {
+                    setFoodSmsOpen(false);
+                    setFood((f) => ({ ...f, place: pay.store || f.place, date: pay.date ?? f.date, total: pay.amount || f.total }));
+                  }}
+                />
+                <View style={styles.segment}>
+                  {(Object.entries(FOOD_TYPES) as [FoodType, string][]).map(([key, text]) => (
+                    <Pressable key={key} onPress={() => setFood({ ...food, type: key })} style={[styles.seg, food.type === key && styles.segOn]}>
+                      <Text style={[styles.segText, food.type === key && styles.segTextOn]}>{text}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Row>
+                  <Field label="가게 이름 *" value={food.place} onChange={(v) => setFood({ ...food, place: v })} placeholder="달밤커피" />
+                  <DateField label="날짜" value={food.date} onChange={(v) => setFood({ ...food, date: v })} />
+                </Row>
+                <Row>
+                  <Field label="위치 (선택)" value={food.area} onChange={(v) => setFood({ ...food, area: v })} placeholder="연남동" />
+                  <Field label="누구랑? (선택)" value={food.withWhom} onChange={(v) => setFood({ ...food, withWhom: v })} placeholder="지민" />
+                </Row>
+                <Label text="먹은 메뉴와 맛" />
+                {food.menus.map((m, i) => {
+                  const setMenu = (next: Partial<FoodMenu>) => setFood((f) => ({ ...f, menus: f.menus.map((x, j) => (j === i ? { ...x, ...next } : x)) }));
+                  return (
+                    <View key={i} style={styles.menuRow}>
+                      <TextInput
+                        inputAccessoryViewID={KEYBOARD_DONE_ID}
+                        style={[styles.input, { flex: 1 }]}
+                        value={m.name}
+                        placeholder={i ? '바스크 치즈케이크' : '아이스 라떼'}
+                        placeholderTextColor={COLORS.placeholder}
+                        onChangeText={(v) => setMenu({ name: v })}
+                      />
+                      <View style={styles.menuStars}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Pressable key={n} onPress={() => setMenu({ stars: m.stars === n ? n - 1 : n })} hitSlop={3} accessibilityLabel={`별 ${n}개`}>
+                            <Text style={[styles.menuStar, n <= m.stars && styles.starOn]}>{n <= m.stars ? '★' : '☆'}</Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                      <Pressable
+                        onPress={() => setFood((f) => ({ ...f, menus: f.menus.length > 1 ? f.menus.filter((_, j) => j !== i) : [{ name: '', stars: 4 }] }))}
+                        hitSlop={8}>
+                        <Text style={styles.remove}>−</Text>
+                      </Pressable>
+                    </View>
+                  );
+                })}
+                {food.menus.length < MAX_MENUS && (
+                  <Pressable onPress={() => setFood((f) => ({ ...f, menus: [...f.menus, { name: '', stars: 4 }] }))} style={styles.addItem}>
+                    <Text style={styles.addItemText}>+ 메뉴 추가</Text>
+                  </Pressable>
+                )}
+                <Row>
+                  <Field
+                    label="모두 얼마? (선택)"
+                    value={food.total ? String(food.total) : ''}
+                    onChange={(v) => setFood({ ...food, total: parseInt(v.replace(/[^0-9]/g, ''), 10) || 0 })}
+                    keyboardType="number-pad"
+                    placeholder="12500"
+                  />
+                  <View style={styles.field}>
+                    <Label text="사진 (선택)" />
+                    <Pressable
+                      onPress={async () => {
+                        const [p] = await pickPhotos(1);
+                        if (p) setFood((f) => ({ ...f, photo: p }));
+                      }}
+                      style={styles.foodPhoto}>
+                      {food.photo ? (
+                        <>
+                          <Image source={{ uri: food.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                          <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setFood((f) => ({ ...f, photo: null }))}>
+                            <Text style={styles.slotRemoveText}>×</Text>
+                          </Pressable>
+                        </>
+                      ) : (
+                        <Text style={styles.slotText}>+ 사진</Text>
+                      )}
+                    </Pressable>
+                  </View>
+                </Row>
+                <Label text="또 갈래요?" />
+                <View style={styles.segment}>
+                  {REVISIT.map(([key, text]) => (
+                    <Pressable key={key} onPress={() => setFood({ ...food, revisit: key })} style={[styles.seg, food.revisit === key && styles.segOn]}>
+                      <Text style={[styles.segText, food.revisit === key && styles.segTextOn]}>{text}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Field label="한 줄 후기 (포스트잇에 적혀요)" value={food.memo} onChange={(v) => setFood({ ...food, memo: v })} placeholder="치즈케이크 꾸덕해서 또 먹고 싶다" multiline />
+              </>
+            )}
+
             {!!error && <Text style={styles.error}>{error}</Text>}
           </ScrollView>
           {/* 키보드가 올라와도 버튼이 가려지지 않게 KeyboardAvoidingView 안에 둔다 */}
@@ -1026,6 +1157,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   coverHelp: { flex: 1, color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  menuStars: { flexDirection: 'row' },
+  menuStar: { fontSize: 20, color: COLORS.line, paddingHorizontal: 1 },
+  foodPhoto: {
+    height: Platform.OS === 'ios' ? 42 : 38,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.line,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   giftPhoto: {
     width: 96,
     height: 96,

@@ -88,7 +88,7 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                   style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
                   <View style={styles.categoryIcon}>
                     <Svg width={34} height={34} viewBox="0 0 48 48">
-                      <StickerArt emoji="🎁" />
+                      <StickerArt emoji={c!.icon} />
                     </Svg>
                   </View>
                   <View style={{ flex: 1 }}>
@@ -105,7 +105,7 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                 </Pressable>
               );
             })}
-            <Text style={styles.soon}>공연·전시, 카페·맛집, 운동, 음악도 준비하고 있어요.</Text>
+            <Text style={styles.soon}>공연·전시, 운동, 음악도 준비하고 있어요.</Text>
           </Section>
 
           <Section title="영수증 테마" sub="같은 기록을 다른 종이로">

@@ -40,7 +40,16 @@ module.exports = () => {
     id: 'sample-gift', createdAt: '2026-09-14T12:00:00', kind: 'gift', date: '2026-09-14', direction: 'received', person: '지민',
     item: '달밤커피 아이스 아메리카노 2잔', brand: '달밤커피', price: 9000, message: '시험 끝난 거 축하해! 커피 마시면서 푹 쉬어 ☺', photo: null, card: 'yellow',
   };
+  const food = {
+    id: 'sample-food', createdAt: '2026-09-16T15:20:00', kind: 'food', date: '2026-09-16', place: '달밤커피', area: '서울 마포구 연남동',
+    type: 'cafe', withWhom: '지민', menus: [{ name: '아이스 라떼', stars: 4 }, { name: '바스크 치즈케이크', stars: 5 }], total: 12500,
+    revisit: 'yes', memo: '치즈케이크 꾸덕해서 또 먹고 싶다. 창가 자리 명당!', photo: null,
+  };
   return [
+    { name: '맛집_카페', record: food },
+    { name: '맛집_식당_사진', record: { ...food, id: 'sample-food-2', place: '골목 칼국수', area: '망원동', type: 'meal', withWhom: '', photo: photo(3),
+      menus: [{ name: '바지락 칼국수', stars: 5 }, { name: '김치만두', stars: 3 }, { name: '보리밥', stars: 4 }, { name: '아주 긴 이름의 계절 한정 들기름 막국수 곱빼기', stars: 2 }], total: 0, revisit: 'maybe', memo: '' } },
+    { name: '맛집_최소', record: { ...food, id: 'sample-food-3', place: '', area: '', withWhom: '', menus: [], total: 0, revisit: 'no', memo: '' } },
     { name: '선물_받은_노랑', record: gift },
     { name: '선물_보낸_사진_민트', record: { ...gift, id: 'sample-gift-2', direction: 'given', person: '엄마', item: '꽃다발', brand: '', price: 0, message: '생일 축하해요 엄마, 늘 고마워요.', photo: photo(2), card: 'mint' } },
     { name: '독서_영수증', record: reading },

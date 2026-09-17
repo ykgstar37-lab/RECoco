@@ -18,5 +18,7 @@ export function shortLabel(r: RecoRecord) {
       return r.store.trim() || '소비';
     case 'gift':
       return r.item.trim() || '선물';
+    case 'food':
+      return r.place.trim() || '카페·맛집';
   }
 }

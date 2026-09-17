@@ -1,4 +1,4 @@
-export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift';
+export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food';
 
 interface BaseRecord {
   id: string;
@@ -124,4 +124,26 @@ export interface GiftRecord extends BaseRecord {
   couponCode?: string; // 찍어 온 진짜 교환권 번호 (없으면 무작위)
 }
 
-export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord;
+export type FoodType = 'cafe' | 'meal' | 'dessert' | 'bar';
+
+export interface FoodMenu {
+  name: string;
+  stars: number; // 0~5
+}
+
+/** 카페·맛집: 먹은 메뉴마다 별점을 매기는 주문서 */
+export interface FoodRecord extends BaseRecord {
+  kind: 'food';
+  date: string; // YYYY-MM-DD
+  place: string; // 가게 이름
+  area: string; // 동네·위치 (선택)
+  type: FoodType;
+  withWhom: string;
+  menus: FoodMenu[]; // 0~6개
+  total: number; // 0 이면 표시 안 함
+  revisit: 'yes' | 'maybe' | 'no';
+  memo: string; // 한 줄 후기
+  photo: Photo | null;
+}
+
+export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord;

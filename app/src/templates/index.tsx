@@ -1,6 +1,7 @@
 import { memo } from 'react';
 
 import { RecoRecord } from '../types';
+import { FoodOrder, layoutFood } from './FoodOrder';
 import { FourcutBack, FourcutFront, layoutFourcut } from './Fourcut';
 import { GiftCoupon, layoutGift } from './GiftCoupon';
 import { MovieTicket, layoutMovie } from './MovieTicket';
@@ -26,6 +27,8 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
       return layoutFourcut(record);
     case 'gift':
       return layoutGift(record);
+    case 'food':
+      return layoutFood(record);
   }
 }
 
@@ -58,6 +61,8 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
       return <FourcutFront record={record} width={width} />;
     case 'gift':
       return <GiftCoupon record={record} width={width} />;
+    case 'food':
+      return <FoodOrder record={record} width={width} />;
   }
 });
 
@@ -68,4 +73,5 @@ export const KIND_LABEL: Record<RecoRecord['kind'], string> = {
   travel: '여행',
   fourcut: '인생네컷',
   gift: '선물',
+  food: '카페·맛집',
 };

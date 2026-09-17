@@ -47,8 +47,9 @@ export const themeUnlocked = (id: PaperTheme | undefined, owned: string[]) =>
   !id || owned.includes(THEMES.find((t) => t.id === id)?.productId ?? '');
 
 /** 새 카테고리 (기본 5개는 무료) */
-export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; productId: string; price: number }>> = {
-  gift: { name: '선물', desc: '받은·보낸 선물을 모바일 교환권처럼', productId: 'recoco.category.gift', price: 1500 },
+export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; icon: string; productId: string; price: number }>> = {
+  gift: { name: '선물', desc: '받은·보낸 선물을 모바일 교환권처럼', icon: '🎁', productId: 'recoco.category.gift', price: 1500 },
+  food: { name: '카페·맛집', desc: '먹은 메뉴마다 별점을 매기는 맛집 주문서', icon: '☕', productId: 'recoco.category.food', price: 1500 },
 };
 
 export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {

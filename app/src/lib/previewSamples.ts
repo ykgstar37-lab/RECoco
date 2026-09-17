@@ -1,5 +1,5 @@
 // 상점 미리보기용 예시 기록 (저장되지 않음)
-import { FourcutRecord, GiftCard, GiftRecord, PaperTheme, SpendingRecord } from '../types';
+import { FoodRecord, FourcutRecord, GiftCard, GiftRecord, PaperTheme, SpendingRecord } from '../types';
 
 export function sampleSpending(theme?: PaperTheme): SpendingRecord {
   return {
@@ -53,5 +53,26 @@ export function sampleGift(card: GiftCard = 'yellow'): GiftRecord {
     message: '시험 끝난 거 축하해! 커피 마시면서 푹 쉬어',
     photo: null,
     card,
+  };
+}
+
+export function sampleFood(): FoodRecord {
+  return {
+    id: 'preview-food',
+    createdAt: '2026-09-16T15:20:00.000Z',
+    kind: 'food',
+    date: '2026-09-16',
+    place: '달밤커피',
+    area: '연남동',
+    type: 'cafe',
+    withWhom: '지민',
+    menus: [
+      { name: '아이스 라떼', stars: 4 },
+      { name: '바스크 치즈케이크', stars: 5 },
+    ],
+    total: 12500,
+    revisit: 'yes',
+    memo: '치즈케이크 꾸덕해서 또 먹고 싶다. 창가 자리 명당!',
+    photo: null,
   };
 }

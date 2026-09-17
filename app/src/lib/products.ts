@@ -1,7 +1,7 @@
 // 상점 미리보기에 보여줄 상품 정보: 이름·설명·가격·쓰는 곳 태그·예시 기록
 import { KIND_LABEL } from '../templates';
 import { RecoRecord, RecordKind } from '../types';
-import { sampleFourcut, sampleGift, sampleSpending } from './previewSamples';
+import { sampleFood, sampleFourcut, sampleGift, sampleSpending } from './previewSamples';
 import { PAID_CATEGORIES, THEMES, ThemeItem } from './shop';
 
 export interface PreviewSample {
@@ -49,6 +49,29 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
           { record: sampleGift('yellow'), caption: '받은 선물' },
           { record: { ...sampleGift('pink'), direction: 'given', person: '엄마', item: '꽃다발', brand: '', price: 0, message: '생일 축하해요 엄마, 늘 고마워요.' }, caption: '보낸 선물' },
         ]
-      : [];
+      : kind === 'food'
+        ? [
+            { record: sampleFood(), caption: '카페' },
+            {
+              record: {
+                ...sampleFood(),
+                id: 'preview-food-meal',
+                place: '골목 칼국수',
+                area: '망원동',
+                type: 'meal',
+                withWhom: '엄마',
+                menus: [
+                  { name: '바지락 칼국수', stars: 5 },
+                  { name: '김치만두', stars: 3 },
+                  { name: '보리밥', stars: 4 },
+                ],
+                total: 23000,
+                revisit: 'maybe',
+                memo: '',
+              },
+              caption: '식당',
+            },
+          ]
+        : [];
   return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };
 }
