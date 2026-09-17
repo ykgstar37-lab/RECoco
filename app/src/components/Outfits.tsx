@@ -3,18 +3,46 @@ import { Circle, G, Path, Rect } from 'react-native-svg';
 
 export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones';
 
-/** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
-export const OUTFIT_TOP: Record<OutfitId, number> = {
-  ribbon: 50,
-  beanie: 4,
-  straw: 38,
-  beret: 20,
-  crown: 8,
-  party: 2,
-  headphones: 36,
+// 모자는 꼭지 기준(225, 104)으로 그려두고, 머리를 푹 덮도록 키워서 코코 가운데로 옮긴다
+const FIT: Record<OutfitId, { k: number; x: number; y: number }> = {
+  ribbon: { k: 1.7, x: 250, y: 118 },
+  beanie: { k: 1.45, x: 203, y: 150 },
+  straw: { k: 1.3, x: 203, y: 142 },
+  beret: { k: 1.4, x: 200, y: 142 },
+  crown: { k: 1.35, x: 203, y: 146 },
+  party: { k: 1.45, x: 205, y: 152 },
+  headphones: { k: 1, x: 225, y: 104 },
 };
 
+/** 머리를 덮는 모자는 만두 꼭지를 숨긴다 (리본·헤드폰은 꼭지가 보이는 게 귀엽다) */
+export const COVERS_KNOB: Record<OutfitId, boolean> = {
+  ribbon: false,
+  beanie: true,
+  straw: true,
+  beret: true,
+  crown: true,
+  party: true,
+  headphones: false,
+};
+
+/** 그림 안에서 모자 원본의 가장 위쪽 y */
+const RAW_TOP: Record<OutfitId, number> = { ribbon: 50, beanie: 4, straw: 38, beret: 20, crown: 8, party: 2, headphones: 36 };
+
+/** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
+export const OUTFIT_TOP = Object.fromEntries(
+  (Object.keys(FIT) as OutfitId[]).map((id) => [id, Math.max(0, FIT[id].y - FIT[id].k * (104 - RAW_TOP[id]))]),
+) as Record<OutfitId, number>;
+
 export function OutfitArt({ id }: { id: OutfitId }) {
+  const { k, x, y } = FIT[id];
+  return (
+    <G transform={`translate(${x} ${y}) scale(${k}) translate(-225 -104)`}>
+      <Hat id={id} />
+    </G>
+  );
+}
+
+function Hat({ id }: { id: OutfitId }) {
   switch (id) {
     case 'ribbon':
       return (

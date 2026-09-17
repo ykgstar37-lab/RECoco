@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { won } from '../lib/format';
 import { tick } from '../lib/haptics';
-import { BUNDLE, OUTFITS, OutfitItem, PurchaseUnavailable, isUnlocked, purchase } from '../lib/shop';
+import { BUNDLE, OUTFITS, OutfitItem, isUnlocked, purchase, purchaseErrorMessage } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { Coco, CocoArt } from './Coco';
 import { OutfitId } from './Outfits';
@@ -45,7 +45,7 @@ export function Closet({ visible, owned, recordCount, outfit, onClose, onWear, o
       onBought(await purchase(productId));
       setNotice('고마워요! 코코가 신났어요');
     } catch (e) {
-      setNotice(e instanceof PurchaseUnavailable ? '결제는 스토어 출시 버전에서 열려요.' : '결제를 완료하지 못했어요.');
+      setNotice(purchaseErrorMessage(e));
     } finally {
       setBusy(false);
     }

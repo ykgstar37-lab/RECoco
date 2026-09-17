@@ -1,18 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 
 import { CATEGORIES, CategoryPicker } from './components/CategoryPicker';
 import { Closet } from './components/Closet';
 import { COCO_RATIO, Coco } from './components/Coco';
+import { BagIcon, DotsIcon, GearIcon, HatIcon } from './components/MenuIcons';
 import { OUTFIT_TOP, OutfitId } from './components/Outfits';
 import { PrintJob } from './components/Printer';
 import { RecordForm } from './components/RecordForm';
 import { RollScreen } from './components/RollScreen';
+import { Settings } from './components/Settings';
+import { Shop } from './components/Shop';
 import { WeekStamps, dateKey } from './components/WeekStamps';
+import { loadHaptics, tick } from './lib/haptics';
 import { OUTFITS, loadShop, saveOutfit, saveOwned } from './lib/shop';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
@@ -43,13 +46,17 @@ export function HomeScreen() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [stage, setStage] = useState({ width: 0, height: 0 });
   const pokeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [closetOpen, setClosetOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [owned, setOwned] = useState<string[]>([]);
   const [outfit, setOutfit] = useState<OutfitId | null>(null);
   const [gift, setGift] = useState<string | null>(null);
 
   useEffect(() => {
     loadRecords().then(setRecords);
+    loadHaptics().catch(() => {});
     loadShop().then((s) => {
       setOwned(s.owned);
       setOutfit(s.outfit);
@@ -159,11 +166,14 @@ export function HomeScreen() {
         </View>
         <View style={styles.headerBtns}>
           <Pressable
-            onPress={() => setClosetOpen(true)}
+            onPress={() => {
+              tick();
+              setMenuOpen(!menuOpen);
+            }}
             disabled={!!printing}
-            accessibilityLabel="코코 옷장"
-            style={({ pressed }) => [styles.closetBtn, pressed && { transform: [{ scale: 0.92 }] }]}>
-            <HatIcon />
+            accessibilityLabel={menuOpen ? '메뉴 닫기' : '메뉴'}
+            style={({ pressed }) => [styles.menuBtn, menuOpen && styles.menuBtnOn, pressed && { transform: [{ scale: 0.92 }] }]}>
+            <DotsIcon color={menuOpen ? COLORS.orange : '#fff'} />
           </Pressable>
           <Pressable
             onPress={picking ? () => setPicking(false) : openPicker}
@@ -174,6 +184,36 @@ export function HomeScreen() {
           </Pressable>
         </View>
       </View>
+
+      {/* 메뉴: 점 세 개를 누르면 아래로 주르륵 */}
+      {menuOpen && (
+        <>
+          <Animated.View entering={FadeIn.duration(150)} style={[StyleSheet.absoluteFill, styles.menuBackdrop]}>
+            <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuOpen(false)} accessibilityLabel="메뉴 닫기" />
+          </Animated.View>
+          <View style={[styles.menu, { top: insets.top + 24 + 48 + 10 }]} pointerEvents="box-none">
+            {[
+              { label: '상점', icon: BagIcon, open: () => setShopOpen(true) },
+              { label: '코코 옷장', icon: HatIcon, open: () => setClosetOpen(true) },
+              { label: '설정', icon: GearIcon, open: () => setSettingsOpen(true) },
+            ].map((m, i) => (
+              <Animated.View key={m.label} entering={FadeInUp.delay(i * 50).springify().damping(15)}>
+                <Pressable
+                  onPress={() => {
+                    setMenuOpen(false);
+                    m.open();
+                  }}
+                  style={({ pressed }) => [styles.menuItem, pressed && { transform: [{ scale: 0.95 }] }]}>
+                  <Text style={styles.menuLabel}>{m.label}</Text>
+                  <View style={styles.menuIcon}>
+                    <m.icon color={COLORS.orange} />
+                  </View>
+                </Pressable>
+              </Animated.View>
+            ))}
+          </View>
+        </>
+      )}
 
       {/* 상단 바와 대사 사이는 비워두고, 대사와 코코는 붙여서 아래쪽에 모은다 */}
       <View style={styles.stage} onLayout={(e) => setStage(e.nativeEvent.layout)}>
@@ -231,6 +271,12 @@ export function HomeScreen() {
         date={rollDate}
         onClearDate={() => setRollDate(null)}
         onClose={() => setRollOpen(false)}
+        onAdd={(kind) => {
+          setRollOpen(false);
+          // 카테고리를 골라둔 목록이면 바로 그 기록 화면, 전체면 메인의 카테고리 알약
+          // (iOS는 모달이 완전히 닫힌 뒤에야 다음 모달이 뜬다)
+          setTimeout(() => (kind ? pickCategory(kind) : openPicker()), Platform.OS === 'ios' ? 450 : 50);
+        }}
         onSave={handleEdit}
         onDelete={handleDelete}
       />
@@ -243,6 +289,18 @@ export function HomeScreen() {
         onWear={wear}
         onBought={bought}
       />
+      <Shop
+        visible={shopOpen}
+        owned={owned}
+        onClose={() => setShopOpen(false)}
+        onBought={bought}
+        onOpenCloset={() => {
+          setShopOpen(false);
+          // 시트가 내려간 뒤 옷장을 연다
+          setTimeout(() => setClosetOpen(true), Platform.OS === 'ios' ? 450 : 250);
+        }}
+      />
+      <Settings visible={settingsOpen} recordCount={records.length} onClose={() => setSettingsOpen(false)} onBought={bought} />
       <RecordForm visible={formOpen} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
     </View>
   );
@@ -256,18 +314,47 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 22,
     paddingTop: 24,
+    zIndex: 7, // 메뉴를 열어도 버튼은 어두워지지 않게
   },
   // 로고 원본(523×119) 비율 그대로
   logo: { height: 30, width: (30 * 523) / 119, marginLeft: -2, marginBottom: 2 },
   count: { fontSize: 13, color: 'rgba(255,255,255,0.85)', fontFamily: FONTS.sans, marginTop: 2 },
   headerBtns: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  closetBtn: {
+  menuBtn: {
     width: 48,
     height: 48,
     borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.22)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  menuBtnOn: { backgroundColor: '#fff' },
+  // 메뉴 버튼(＋ 왼쪽) 바로 아래에 세로로
+  menu: { position: 'absolute', right: 22 + 48 + 10, zIndex: 6, alignItems: 'flex-end', gap: 10 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  menuBackdrop: { zIndex: 5, backgroundColor: 'rgba(60,20,0,0.35)' },
+  menuLabel: {
+    color: COLORS.ink,
+    fontSize: 14,
+    fontFamily: FONTS.sansBold,
+    backgroundColor: '#fff',
+    borderRadius: 999,
+    overflow: 'hidden',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  menuIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#7a2c00',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
   },
   addBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   addBtnText: { color: COLORS.orange, fontSize: 28, lineHeight: 32, fontFamily: FONTS.sansBold },
@@ -295,13 +382,3 @@ const styles = StyleSheet.create({
   rollBtnText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   rollBtnArrow: { color: '#fff', fontSize: 26, lineHeight: 26, fontFamily: FONTS.sansBold },
 });
-
-/** 옷장 버튼: 단순한 모자 실루엣 */
-function HatIcon() {
-  return (
-    <Svg width={26} height={22} viewBox="0 0 26 22">
-      <Path d="M5,15 C4,7 8,3 13,3 C18,3 22,7 21,15 Z" fill="#fff" />
-      <Path d="M1.5,16.5 C6,13.5 20,13.5 24.5,16.5 C20,19.5 6,19.5 1.5,16.5 Z" fill="#fff" />
-    </Svg>
-  );
-}

@@ -54,3 +54,12 @@ export async function purchase(productId: string): Promise<string> {
   // TODO: 개발 빌드에서 스토어 결제 연결 (RevenueCat 또는 expo-iap)
   throw new PurchaseUnavailable(productId);
 }
+
+/** 구매 복원 (스토어 계정에 남은 구매 내역을 다시 불러오기) */
+export async function restorePurchases(): Promise<string[]> {
+  // TODO: 스토어 결제 연결 시 구현
+  throw new PurchaseUnavailable('restore');
+}
+
+export const purchaseErrorMessage = (e: unknown) =>
+  e instanceof PurchaseUnavailable ? '결제는 스토어 출시 버전에서 열려요.' : '결제를 완료하지 못했어요.';

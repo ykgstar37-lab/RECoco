@@ -21,12 +21,14 @@ interface Props {
   date: string | null;
   onClearDate: () => void;
   onClose: () => void;
+  /** 여기서 바로 기록 추가 (카테고리를 골라둔 상태면 그 카테고리로) */
+  onAdd: (kind: RecordKind | null) => void;
   onSave: (record: RecoRecord) => void;
   onDelete: (record: RecoRecord) => void;
 }
 
 /** 모아둔 영수증을 세로로 길게 이어서 보는 화면 */
-export function RollScreen({ visible, records, date, onClearDate, onClose, onSave, onDelete }: Props) {
+export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd, onSave, onDelete }: Props) {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [kind, setKind] = useState<RecordKind | null>(null);
 
@@ -46,11 +48,12 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onSav
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  const close = () => {
+  const close = (then: () => void = onClose) => {
     drag.value = withTiming(screenH, { duration: 240, easing: Easing.in(Easing.cubic) }, (finished) => {
-      if (finished) scheduleOnRN(onClose);
+      if (finished) scheduleOnRN(then);
     });
   };
+  const add = () => close(() => onAdd(kind));
 
   // 손잡이·제목 부분을 아래로 끌어내리면 닫힌다
   const pull = Gesture.Pan()
@@ -89,11 +92,11 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onSav
       : '나의 영수증';
 
   return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={close}>
+    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={() => close()}>
       {/* Modal 안에서도 제스처(펼치기·뒤집기·끌어내리기)가 동작하도록 */}
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="닫기" />
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => close()} accessibilityLabel="닫기" />
         </Animated.View>
 
         {/* 위쪽이 둥근 시트 */}
@@ -111,7 +114,10 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onSav
                     <Text style={styles.chipText}>전체 보기</Text>
                   </Pressable>
                 )}
-                <Pressable onPress={close} hitSlop={10} style={styles.close} accessibilityLabel="닫기">
+                <Pressable onPress={add} hitSlop={10} style={styles.add} accessibilityLabel="기록 추가">
+                  <Text style={styles.addText}>＋</Text>
+                </Pressable>
+                <Pressable onPress={() => close()} hitSlop={10} style={styles.close} accessibilityLabel="닫기">
                   <Text style={styles.closeText}>✕</Text>
                 </Pressable>
               </View>
@@ -242,6 +248,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
+  add: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addText: { color: '#fff', fontSize: 20, lineHeight: 24, fontFamily: FONTS.sansBold },
   tabsScroll: { flexGrow: 0, flexShrink: 0 },
   tabs: { paddingHorizontal: 18, paddingVertical: 8, gap: 8 },
   tab: {

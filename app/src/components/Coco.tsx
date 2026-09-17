@@ -5,7 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, w
 import Svg, { ClipPath, Circle, Defs, Ellipse, G, Path } from 'react-native-svg';
 
 import { bump } from '../lib/haptics';
-import { OutfitArt, OutfitId } from './Outfits';
+import { COVERS_KNOB, OutfitArt, OutfitId } from './Outfits';
 
 export type CocoMood = 'idle' | 'happy' | 'print' | 'wow' | 'squish' | 'blink';
 export type CocoTone = 'orange' | 'white';
@@ -25,6 +25,10 @@ const EYE = '#3a2a22';
 // 둥근 만두 몸통 + 윗부분 꼭지(주름)
 const BODY =
   'M40,256 C40,150 108,84 186,78 C196,58 206,40 222,40 C232,40 238,46 240,52 C250,46 262,50 264,60 C272,62 276,72 270,82 C330,98 360,160 360,256 C360,292 336,300 300,301 C250,303 150,303 100,301 C64,300 40,292 40,256 Z';
+
+// 꼭지 없이 둥글게 닫은 몸통 (모자를 쓸 때)
+const BODY_ROUND =
+  'M40,256 C40,150 108,84 186,78 C214,74 244,76 270,82 C330,98 360,160 360,256 C360,292 336,300 300,301 C250,303 150,303 100,301 C64,300 40,292 40,256 Z';
 
 function Eyes({ mood }: { mood: CocoMood }) {
   const L = 158;
@@ -112,9 +116,15 @@ export function CocoArt({
   return (
     <Svg width={size} height={size * COCO_RATIO} viewBox={`0 0 ${VB_W} ${VB_H}`}>
       <Ellipse cx={200} cy={306} rx={150} ry={10} fill={c.shadow} />
-      <Path d={BODY} fill={c.body} />
-      <Path d="M214,58 Q206,72 196,80" stroke={c.pleat} strokeWidth={7} strokeLinecap="round" fill="none" />
-      <Path d="M246,64 Q238,76 242,90" stroke={c.pleat} strokeWidth={7} strokeLinecap="round" fill="none" />
+      {outfit && COVERS_KNOB[outfit] ? (
+        <Path d={BODY_ROUND} fill={c.body} />
+      ) : (
+        <>
+          <Path d={BODY} fill={c.body} />
+          <Path d="M214,58 Q206,72 196,80" stroke={c.pleat} strokeWidth={7} strokeLinecap="round" fill="none" />
+          <Path d="M246,64 Q238,76 242,90" stroke={c.pleat} strokeWidth={7} strokeLinecap="round" fill="none" />
+        </>
+      )}
       <Ellipse cx={108} cy={228} rx={24} ry={13} fill={c.blush} opacity={0.85} />
       <Ellipse cx={292} cy={228} rx={24} ry={13} fill={c.blush} opacity={0.85} />
       <Eyes mood={mood} />
