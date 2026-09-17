@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -82,21 +82,8 @@ export function HomeScreen() {
     update([record, ...records]);
   };
 
-  const handleLongPress = useCallback(
-    (record: RecoRecord) => {
-      const remove = () => update(records.filter((r) => r.id !== record.id));
-      if (Platform.OS === 'web') {
-        // eslint-disable-next-line no-alert
-        if (window.confirm('이 기록을 버릴까요?')) remove();
-        return;
-      }
-      Alert.alert('기록 버리기', '이 영수증을 구겨서 버릴까요?', [
-        { text: '취소', style: 'cancel' },
-        { text: '버리기', style: 'destructive', onPress: remove },
-      ]);
-    },
-    [records, update],
-  );
+  const handleEdit = useCallback((next: RecoRecord) => update(records.map((r) => (r.id === next.id ? next : r))), [records, update]);
+  const handleDelete = useCallback((record: RecoRecord) => update(records.filter((r) => r.id !== record.id)), [records, update]);
 
   const pokeCoco = () => {
     setPoke(POKES[Math.floor(Math.random() * POKES.length)]);
@@ -116,8 +103,8 @@ export function HomeScreen() {
           ? `오늘 벌써\n${todayCount}장이나 남겼어!`
           : '오늘 하루도\n영수증으로 남겨볼까?';
 
-  // 코코는 남는 공간을 꽉 채울 만큼 크게 (화면 폭보다 살짝 넓게)
-  const cocoSize = stage.width ? Math.min(stage.width * 1.06, stage.height / COCO_RATIO) : 0;
+  // 코코는 남는 세로 공간을 꽉 채우고, 양옆은 화면 밖으로 살짝 잘릴 만큼 크게
+  const cocoSize = stage.width ? Math.min((stage.width - 80) * 1.32, (stage.height + 8) / COCO_RATIO) : 0;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom + 8 }]}>
@@ -181,7 +168,7 @@ export function HomeScreen() {
         )}
       </View>
 
-      {printing && <PrintJob record={printing} rollWidth={Math.min(stage.width * 0.72, 360) || 280} onDone={handleTorn} onCancel={() => setPrinting(null)} />}
+      {printing && <PrintJob record={printing} rollWidth={Math.min((stage.width - 80) * 0.72, 360) || 280} onDone={handleTorn} onCancel={() => setPrinting(null)} />}
 
       <RollScreen
         visible={rollOpen}
@@ -189,7 +176,8 @@ export function HomeScreen() {
         date={rollDate}
         onClearDate={() => setRollDate(null)}
         onClose={() => setRollOpen(false)}
-        onLongPress={handleLongPress}
+        onSave={handleEdit}
+        onDelete={handleDelete}
       />
       <RecordForm visible={formOpen} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
     </View>
@@ -211,16 +199,16 @@ const styles = StyleSheet.create({
   addBtnText: { color: COLORS.orange, fontSize: 28, lineHeight: 32, fontFamily: FONTS.sansBold },
   headline: {
     color: '#fff',
-    fontSize: 27,
-    lineHeight: 37,
+    fontSize: 25,
+    lineHeight: 34,
     textAlign: 'center',
     fontFamily: FONTS.sansHeavy,
-    marginTop: 14,
-    minHeight: 74,
+    marginTop: 6,
+    minHeight: 72,
   },
   // 코코가 남는 세로 공간을 전부 차지한다
-  stage: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 14 },
-  bottom: { minHeight: 104, justifyContent: 'center', marginTop: 14 },
+  stage: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 6, marginHorizontal: -40 },
+  bottom: { minHeight: 92, justifyContent: 'center', marginTop: 8 },
   bottomRow: { paddingHorizontal: 18 },
   rollBtn: {
     flexDirection: 'row',

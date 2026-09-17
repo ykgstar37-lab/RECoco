@@ -30,12 +30,15 @@ import {
   SpendingRecord,
   TravelRecord,
 } from '../types';
+import { DateField } from './DateField';
 import { QrImport } from './QrImport';
 
 interface Props {
   visible: boolean;
   /** 메인에서 고른 카테고리로 열기 */
   initialKind?: RecordKind;
+  /** 있으면 새로 만들지 않고 이 기록을 고친다 */
+  editing?: RecoRecord | null;
   onClose: () => void;
   onSubmit: (record: RecoRecord) => void;
 }
@@ -125,12 +128,8 @@ interface ItemDraft {
   price: string;
 }
 
-export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
+export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }: Props) {
   const [kind, setKind] = useState<RecordKind>(initialKind ?? 'reading');
-
-  useEffect(() => {
-    if (visible && initialKind) setKind(initialKind);
-  }, [visible, initialKind]);
   const [reading, setReading] = useState(emptyReading);
   const [movie, setMovie] = useState(emptyMovie);
   const [spending, setSpending] = useState({ date: today(), store: '', category: '', address: '', memo: '' });
@@ -139,6 +138,36 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
   const [fourcut, setFourcut] = useState(emptyFourcut);
   const [qrOpen, setQrOpen] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!visible) return;
+    if (!editing) {
+      if (initialKind) setKind(initialKind);
+      return;
+    }
+    // 고치기: 기존 기록 내용으로 채운다
+    setKind(editing.kind);
+    setError('');
+    const { id: _id, createdAt: _c, ...rest } = editing;
+    switch (rest.kind) {
+      case 'reading':
+        setReading(rest);
+        break;
+      case 'movie':
+        setMovie(rest);
+        break;
+      case 'spending':
+        setSpending({ date: rest.date, store: rest.store, category: rest.category, address: rest.address, memo: rest.memo });
+        setItems(rest.items.map((it) => ({ name: it.name, qty: String(it.qty), price: String(it.price) })));
+        break;
+      case 'travel':
+        setTravel({ ...rest, photos: [0, 1, 2, 3].map((i) => rest.photos[i] ?? null) });
+        break;
+      case 'fourcut':
+        setFourcut({ ...emptyFourcut(), ...rest, photos: [0, 1, 2, 3].map((i) => rest.photos[i] ?? null) });
+        break;
+    }
+  }, [visible, initialKind, editing]);
 
   const reset = () => {
     setTravel(emptyTravel());
@@ -160,7 +189,7 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
   const total = parsedItems.reduce((s, it) => s + it.qty * it.price, 0);
 
   const submit = () => {
-    const base = { id: newId(), createdAt: new Date().toISOString() };
+    const base = editing ? { id: editing.id, createdAt: editing.createdAt } : { id: newId(), createdAt: new Date().toISOString() };
     let record: RecoRecord;
     if (kind === 'reading') {
       if (!reading.title.trim()) return setError('책 제목을 적어주세요.');
@@ -193,7 +222,7 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
           <Pressable onPress={onClose} hitSlop={10}>
             <Text style={styles.close}>닫기</Text>
           </Pressable>
-          <Text style={styles.title}>무엇을 기록할까요?</Text>
+          <Text style={styles.title}>{editing ? '기록 고치기' : '무엇을 기록할까요?'}</Text>
           <View style={{ width: 32 }} />
         </View>
 
@@ -203,12 +232,12 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
             return (
               <Pressable
                 key={k.kind}
-                disabled={!k.ready}
+                disabled={!k.ready || (!!editing && k.kind !== kind)}
                 onPress={() => {
                   setKind(k.kind as RecordKind);
                   setError('');
                 }}
-                style={[styles.chip, selected && styles.chipOn, !k.ready && styles.chipOff]}>
+                style={[styles.chip, selected && styles.chipOn, (!k.ready || (!!editing && !selected)) && styles.chipOff]}>
                 <Text style={[styles.chipText, selected && styles.chipTextOn]}>{k.label}</Text>
                 {!k.ready && <Text style={styles.soon}>준비 중</Text>}
               </Pressable>
@@ -227,7 +256,7 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
                 </Row>
                 <Row>
                   <Field label="분야" value={reading.genre} onChange={(v) => setReading({ ...reading, genre: v })} placeholder="문학 / 인문 / 예술…" />
-                  <Field label="날짜" value={reading.date} onChange={(v) => setReading({ ...reading, date: v })} placeholder="2026-09-17" />
+                  <DateField label="날짜" value={reading.date} onChange={(v) => setReading({ ...reading, date: v })} />
                 </Row>
                 <Field label="어디서 읽었나요? (서점·도서관·카페 등)" value={reading.place} onChange={(v) => setReading({ ...reading, place: v })} placeholder="교보문고 광화문점" />
                 <Label text="상태" />
@@ -248,7 +277,7 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
                 <Field label="원제 (선택)" value={movie.originalTitle} onChange={(v) => setMovie({ ...movie, originalTitle: v })} placeholder="Odyssey" />
                 <Field label="어디서 봤나요?" value={movie.theater} onChange={(v) => setMovie({ ...movie, theater: v })} placeholder="CGV 강남점 / 롯데시네마 월드타워" />
                 <Row>
-                  <Field label="날짜" value={movie.date} onChange={(v) => setMovie({ ...movie, date: v })} placeholder="2026-09-12" />
+                  <DateField label="날짜" value={movie.date} onChange={(v) => setMovie({ ...movie, date: v })} />
                   <Field label="시간" value={movie.time} onChange={(v) => setMovie({ ...movie, time: v })} placeholder="19:30" />
                 </Row>
                 <Row>
@@ -279,7 +308,7 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
                   <Field label="종류" value={spending.category} onChange={(v) => setSpending({ ...spending, category: v })} placeholder="카페" />
                 </Row>
                 <Row>
-                  <Field label="날짜" value={spending.date} onChange={(v) => setSpending({ ...spending, date: v })} placeholder="2026-09-16" />
+                  <DateField label="날짜" value={spending.date} onChange={(v) => setSpending({ ...spending, date: v })} />
                   <Field label="비고" value={spending.memo} onChange={(v) => setSpending({ ...spending, memo: v })} placeholder="☕" />
                 </Row>
                 <Field label="위치 (선택)" value={spending.address} onChange={(v) => setSpending({ ...spending, address: v })} placeholder="서울 마포구 연남동" />
@@ -326,7 +355,7 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
                 <Row>
                   <Field label="출발 *" value={travel.from} onChange={(v) => setTravel({ ...travel, from: v.toUpperCase() })} placeholder="ICN" />
                   <Field label="도착 *" value={travel.to} onChange={(v) => setTravel({ ...travel, to: v.toUpperCase() })} placeholder="HND" />
-                  <Field label="출발일" value={travel.date} onChange={(v) => setTravel({ ...travel, date: v })} placeholder="2026-09-01" />
+                  <DateField label="출발일" value={travel.date} onChange={(v) => setTravel({ ...travel, date: v })} />
                 </Row>
                 <Field label="이름 (영문)" value={travel.name} onChange={(v) => setTravel({ ...travel, name: v })} placeholder="KIM COCO" />
                 <Row>
@@ -412,7 +441,7 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
                 <Row>
                   <Field label="어디서" value={fourcut.place} onChange={(v) => setFourcut({ ...fourcut, place: v })} placeholder="연남동" />
                   <Field label="누구랑" value={fourcut.withWhom} onChange={(v) => setFourcut({ ...fourcut, withWhom: v })} placeholder="지민" />
-                  <Field label="날짜" value={fourcut.date} onChange={(v) => setFourcut({ ...fourcut, date: v })} placeholder="2026-09-17" />
+                  <DateField label="날짜" value={fourcut.date} onChange={(v) => setFourcut({ ...fourcut, date: v })} />
                 </Row>
                 <Field
                   label="오늘 하루는 어땠나요?"
@@ -437,7 +466,7 @@ export function RecordForm({ visible, initialKind, onClose, onSubmit }: Props) {
         </KeyboardAvoidingView>
 
         <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && { opacity: 0.85 }]}>
-          <Text style={styles.submitText}>코코에게 영수증 뽑기</Text>
+          <Text style={styles.submitText}>{editing ? '고친 내용 저장' : '코코에게 영수증 뽑기'}</Text>
         </Pressable>
       </SafeAreaView>
     </Modal>

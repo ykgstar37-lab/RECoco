@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { LinearTransition } from 'react-native-reanimated';
@@ -8,6 +9,7 @@ import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { FlipCard } from './FlipCard';
 import { FoldableReceipt } from './FoldableReceipt';
+import { RecordDetail } from './RecordDetail';
 
 interface Props {
   visible: boolean;
@@ -16,11 +18,15 @@ interface Props {
   date: string | null;
   onClearDate: () => void;
   onClose: () => void;
-  onLongPress: (record: RecoRecord) => void;
+  onSave: (record: RecoRecord) => void;
+  onDelete: (record: RecoRecord) => void;
 }
 
 /** 모아둔 영수증을 세로로 길게 이어서 보는 화면 */
-export function RollScreen({ visible, records, date, onClearDate, onClose, onLongPress }: Props) {
+export function RollScreen({ visible, records, date, onClearDate, onClose, onSave, onDelete }: Props) {
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const detail = records.find((r) => r.id === detailId) ?? null;
+  const open = (record: RecoRecord) => setDetailId(record.id);
   const { width: screenW } = useWindowDimensions();
   const paperW = Math.min(screenW - 44, 440);
   const list = date ? records.filter((r) => r.date === date) : records;
@@ -50,18 +56,33 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onLon
             {list.length === 0 && <Text style={styles.empty}>아직 뽑은 영수증이 없어요.</Text>}
             {list.map((record) => (
               <Animated.View key={record.id} layout={LinearTransition.springify().damping(18)} style={styles.item}>
-                <Text style={styles.itemLabel}>
-                  {record.date.replace(/-/g, '.')} · {KIND_LABEL[record.kind]}
-                </Text>
+                <View style={[styles.itemHead, { width: paperW }]}>
+                  <Text style={styles.itemLabel}>
+                    {record.date.replace(/-/g, '.')} · {KIND_LABEL[record.kind]}
+                  </Text>
+                  <Pressable onPress={() => open(record)} hitSlop={8} style={styles.more}>
+                    <Text style={styles.moreText}>크게 보기</Text>
+                  </Pressable>
+                </View>
                 {record.kind === 'fourcut' ? (
-                  <FlipCard record={record} rollWidth={paperW} onLongPress={onLongPress} />
+                  <FlipCard record={record} rollWidth={paperW} onLongPress={open} />
                 ) : (
-                  <FoldableReceipt record={record} rollWidth={paperW} onLongPress={onLongPress} />
+                  <FoldableReceipt record={record} rollWidth={paperW} onLongPress={open} />
                 )}
               </Animated.View>
             ))}
           </ScrollView>
         </SafeAreaView>
+        <RecordDetail
+          key={detailId ?? 'none'}
+          record={detail}
+          onClose={() => setDetailId(null)}
+          onSave={onSave}
+          onDelete={(r) => {
+            setDetailId(null);
+            onDelete(r);
+          }}
+        />
       </GestureHandlerRootView>
     </Modal>
   );
@@ -78,6 +99,9 @@ const styles = StyleSheet.create({
   closeText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   list: { alignItems: 'center', paddingBottom: 60 },
   item: { alignItems: 'center', width: '100%', paddingHorizontal: 22 },
-  itemLabel: { fontSize: 12, color: COLORS.sub, fontFamily: FONTS.sans, paddingTop: 18, paddingBottom: 10 },
+  itemHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 18, paddingBottom: 8 },
+  itemLabel: { fontSize: 12, color: COLORS.sub, fontFamily: FONTS.sans },
+  more: { backgroundColor: COLORS.orangeSoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
+  moreText: { color: COLORS.orange, fontSize: 12, fontFamily: FONTS.sansBold },
   empty: { color: COLORS.sub, fontSize: 15, fontFamily: FONTS.sans, paddingTop: 80 },
 });
