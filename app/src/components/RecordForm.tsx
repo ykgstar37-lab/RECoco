@@ -34,6 +34,7 @@ import {
   SpendingRecord,
   TravelRecord,
 } from '../types';
+import { AirportField } from './AirportField';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
 import { QrImport } from './QrImport';
@@ -226,7 +227,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
       if (!parsedItems.length) return setError('품목을 하나 이상 적어주세요.');
       record = { ...base, kind: 'spending', ...spending, items: parsedItems } as SpendingRecord;
     } else if (kind === 'travel') {
-      if (!travel.from.trim() || !travel.to.trim()) return setError('출발지와 도착지를 적어주세요. (예: ICN → HND)');
+      if (!travel.from.trim() || !travel.to.trim()) return setError('출발지와 도착지를 골라주세요. (예: 인천 → 도쿄)');
       record = { ...base, ...travel } as TravelRecord;
     } else {
       if (fourcut.source === 'qr' && !fourcut.frameImage) {
@@ -478,11 +479,13 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
             {kind === 'travel' && (
               <>
                 <Row>
-                  <Field label="출발 *" value={travel.from} onChange={(v) => setTravel({ ...travel, from: v.toUpperCase() })} placeholder="ICN" />
-                  <Field label="도착 *" value={travel.to} onChange={(v) => setTravel({ ...travel, to: v.toUpperCase() })} placeholder="HND" />
-                  <DateField label="출발일" value={travel.date} onChange={(v) => setTravel({ ...travel, date: v })} />
+                  <AirportField label="출발 *" value={travel.from} onChange={(v) => setTravel((t) => ({ ...t, from: v }))} placeholder="인천 / ICN" />
+                  <AirportField label="도착 *" value={travel.to} onChange={(v) => setTravel((t) => ({ ...t, to: v }))} placeholder="도쿄 / HND" />
                 </Row>
-                <Field label="이름 (영문)" value={travel.name} onChange={(v) => setTravel({ ...travel, name: v })} placeholder="KIM COCO" />
+                <Row>
+                  <DateField label="출발일" value={travel.date} onChange={(v) => setTravel({ ...travel, date: v })} />
+                  <Field label="이름 (영문)" value={travel.name} onChange={(v) => setTravel({ ...travel, name: v })} placeholder="KIM COCO" />
+                </Row>
                 <Row>
                   <Field label="편명" value={travel.flight} onChange={(v) => setTravel({ ...travel, flight: v })} placeholder="NP 2203" />
                   <Field label="좌석" value={travel.seat} onChange={(v) => setTravel({ ...travel, seat: v })} placeholder="12A" />

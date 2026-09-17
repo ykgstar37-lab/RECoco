@@ -1,7 +1,7 @@
 import { Linking, Platform } from 'react-native';
 
 /** 버그 신고를 받을 메일 주소 */
-export const SUPPORT_EMAIL = 'ykgstar37@gmail.com';
+export const SUPPORT_EMAIL = 'yge0307@gmail.com';
 export const APP_VERSION = '1.0.0';
 
 export const BUG_TYPES = ['앱이 멈춰요', '화면이 이상해요', '기록이 사라졌어요', '결제·구매', '기타'] as const;
