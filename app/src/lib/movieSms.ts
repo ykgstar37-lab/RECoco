@@ -50,12 +50,12 @@ export function parseMovieBooking(raw: string, today = new Date()): MovieBooking
   if (!text) return null;
 
   const chain = CHAIN_ALIASES.find(([re]) => re.test(text))?.[1] ?? '';
-  const date = parseDate(label(text, '일시|관람일시|상영일시|관람일|날짜') || text, today);
-  const time = /(\d{1,2}):(\d{2})/.exec(label(text, '일시|관람일시|상영일시|시간') || text);
+  const date = parseDate(label(text, '일시|관람일시|상영일시|관람일|관람일자|상영일자|날짜') || text, today);
+  const time = /(\d{1,2}):(\d{2})/.exec(label(text, '상영시간|관람시간|시간|일시|관람일시|상영일시') || text);
   if (!date && !time) return null;
 
   // 극장·상영관
-  let place = label(text, '극장|영화관|상영관|관람극장|지점|장소');
+  let place = label(text, '극장명|극장|영화관|관람극장|지점|장소|상영관');
   if (!place) place = text.split('\n').find((l) => SCREEN.test(l) && !/좌석|인원|예매번호/.test(l)) ?? '';
   const screenMatch = SCREEN.exec(place) ?? SCREEN.exec(text);
   const screen = screenMatch ? screenMatch[1].replace(/\s+/g, ' ').trim() : '';

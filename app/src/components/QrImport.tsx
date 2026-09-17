@@ -6,6 +6,7 @@ import WebView, { WebViewMessageEvent } from 'react-native-webview';
 import { downloadPhoto, pickPhotos, saveBase64Photo } from '../lib/photos';
 import { COLORS, FONTS } from '../theme';
 import { Photo } from '../types';
+import { KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 import { ModalSafeArea } from './ModalSafeArea';
 
 interface Props {
@@ -201,6 +202,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
               <Text style={styles.label}>링크가 있다면 붙여넣기</Text>
               <View style={styles.row}>
                 <TextInput
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                   style={styles.input}
                   value={typed}
                   onChangeText={setTyped}
@@ -266,6 +268,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
             </View>
           </View>
         )}
+        <KeyboardDone />
       </ModalSafeArea>
     </Modal>
   );

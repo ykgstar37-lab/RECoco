@@ -4,6 +4,7 @@ import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 
 import { bump } from '../lib/haptics';
 import { COLORS, FONTS } from '../theme';
+import { KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 import { ModalSafeArea } from './ModalSafeArea';
 
 interface Props {
@@ -98,6 +99,7 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
               <Text style={styles.label}>바코드 아래 숫자를 직접 입력해도 돼요</Text>
               <View style={styles.row}>
                 <TextInput
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                   style={styles.input}
                   value={typed}
                   onChangeText={setTyped}
@@ -118,6 +120,7 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
             </>
           )}
         </View>
+        <KeyboardDone />
       </ModalSafeArea>
     </Modal>
   );

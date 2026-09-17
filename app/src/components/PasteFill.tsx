@@ -1,10 +1,11 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OcrUnavailable, readImageText } from '../lib/ocr';
 import { COLORS, FONTS } from '../theme';
+import { DISMISS_ON_DRAG, KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 
 export interface PasteRow {
   label: string;
@@ -55,6 +56,12 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
     }
   };
 
+  // 한 번에 긴 글이 들어오면(붙여넣기) 키보드를 내려서 읽은 내용과 버튼이 바로 보이게
+  const changeText = (next: string) => {
+    if (next.length - text.length > 15) Keyboard.dismiss();
+    setText(next);
+  };
+
   const result = text.trim() ? parse(text) : null;
   const warn = result && warning ? warning(result) : null;
 
@@ -69,13 +76,13 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
         </View>
 
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode={DISMISS_ON_DRAG}>
             <Text style={styles.help}>{help}</Text>
             <Pressable onPress={fromScreenshot} disabled={reading} style={({ pressed }) => [styles.shot, pressed && { opacity: 0.8 }]}>
               {reading ? <ActivityIndicator color={COLORS.orange} /> : <Text style={styles.shotText}>📷  캡처에서 읽기</Text>}
             </Pressable>
             {!!ocrNotice && <Text style={styles.warn}>{ocrNotice}</Text>}
-            <TextInput style={styles.input} value={text} onChangeText={setText} multiline autoFocus placeholder={placeholder} placeholderTextColor={COLORS.placeholder} />
+            <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} style={styles.input} value={text} onChangeText={changeText} multiline autoFocus placeholder={placeholder} placeholderTextColor={COLORS.placeholder} />
 
             {!!text.trim() &&
               (result ? (
@@ -94,14 +101,17 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
                 <Text style={styles.warn}>{failMessage}</Text>
               ))}
           </ScrollView>
+          <Pressable
+            disabled={!result}
+            onPress={() => {
+              Keyboard.dismiss();
+              if (result) onFill(result);
+            }}
+            style={({ pressed }) => [styles.fill, !result && styles.fillOff, pressed && { opacity: 0.85 }]}>
+            <Text style={[styles.fillText, !result && styles.fillTextOff]}>이 내용으로 채우기</Text>
+          </Pressable>
         </KeyboardAvoidingView>
-
-        <Pressable
-          disabled={!result}
-          onPress={() => result && onFill(result)}
-          style={({ pressed }) => [styles.fill, !result && styles.fillOff, pressed && { opacity: 0.85 }]}>
-          <Text style={[styles.fillText, !result && styles.fillTextOff]}>이 내용으로 채우기</Text>
-        </Pressable>
+        <KeyboardDone />
       </SafeAreaView>
     </Modal>
   );

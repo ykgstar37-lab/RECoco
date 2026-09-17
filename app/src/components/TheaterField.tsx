@@ -3,6 +3,7 @@ import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, Vi
 
 import { THEATER_CHAINS, TheaterHit, canSearchBooks, searchTheaters } from '../lib/search';
 import { COLORS, FONTS } from '../theme';
+import { KEYBOARD_DONE_ID } from './KeyboardDone';
 
 interface Props {
   value: string;
@@ -107,6 +108,7 @@ export function TheaterField({ value, onChange }: Props) {
       </View>
       {chain && (
         <TextInput
+          inputAccessoryViewID={KEYBOARD_DONE_ID}
           style={styles.input}
           value={branch}
           onChangeText={type}

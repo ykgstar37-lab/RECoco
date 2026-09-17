@@ -5,6 +5,7 @@ import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TextInput
 import { bump } from '../lib/haptics';
 import { BookHit, bookByIsbn, isIsbn13 } from '../lib/search';
 import { COLORS, FONTS } from '../theme';
+import { KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 import { ModalSafeArea } from './ModalSafeArea';
 
 interface Props {
@@ -126,6 +127,7 @@ export function IsbnScan({ visible, onClose, onFound }: Props) {
               <Text style={styles.label}>바코드가 안 읽히면 숫자를 직접 입력</Text>
               <View style={styles.row}>
                 <TextInput
+                  inputAccessoryViewID={KEYBOARD_DONE_ID}
                   style={styles.input}
                   value={typed}
                   onChangeText={setTyped}
@@ -146,6 +148,7 @@ export function IsbnScan({ visible, onClose, onFound }: Props) {
             </>
           )}
         </View>
+        <KeyboardDone />
       </ModalSafeArea>
     </Modal>
   );

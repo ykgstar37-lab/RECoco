@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { APP_VERSION, BUG_TYPES, MAX_REPORT_PHOTOS, ReportPhoto, canReport, pickReportPhotos, sendBugReport } from '../lib/support';
 import { COLORS, FONTS } from '../theme';
 import { CocoArt } from './Coco';
+import { DISMISS_ON_DRAG, KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 
 interface Props {
   visible: boolean;
@@ -71,7 +72,7 @@ export function BugReport({ visible, recordCount, onClose }: Props) {
           </View>
         ) : (
           <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+            <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode={DISMISS_ON_DRAG}>
               <Text style={styles.label}>어떤 문제인가요?</Text>
               <View style={styles.types}>
                 {BUG_TYPES.map((t) => {
@@ -86,6 +87,7 @@ export function BugReport({ visible, recordCount, onClose }: Props) {
 
               <Text style={styles.label}>무슨 일이 있었나요?</Text>
               <TextInput
+                inputAccessoryViewID={KEYBOARD_DONE_ID}
                 style={styles.input}
                 value={detail}
                 onChangeText={setDetail}
@@ -115,6 +117,7 @@ export function BugReport({ visible, recordCount, onClose }: Props) {
 
               <Text style={styles.label}>답장 받을 이메일 (선택)</Text>
               <TextInput
+                inputAccessoryViewID={KEYBOARD_DONE_ID}
                 style={styles.line}
                 value={contact}
                 onChangeText={setContact}
@@ -131,6 +134,7 @@ export function BugReport({ visible, recordCount, onClose }: Props) {
           </KeyboardAvoidingView>
         )}
 
+        <KeyboardDone />
         <Pressable
           onPress={sent ? onClose : send}
           disabled={sending}

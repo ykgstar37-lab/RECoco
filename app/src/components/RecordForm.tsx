@@ -44,6 +44,7 @@ import { CouponScan, formatCoupon } from './CouponScan';
 import { CardSmsPaste } from './CardSmsPaste';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
+import { DISMISS_ON_DRAG, KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 import { MovieSmsPaste } from './MovieSmsPaste';
 import { QrImport } from './QrImport';
 import { QuickFill } from './QuickFill';
@@ -349,7 +350,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
         </ScrollView>
 
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode={DISMISS_ON_DRAG}>
             {kind === 'reading' && (
               <>
                 {canSearchBooks ? (
@@ -564,6 +565,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                 {items.map((it, i) => (
                   <View key={i} style={styles.itemRow}>
                     <TextInput
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
                       style={[styles.input, { flex: 3 }]}
                       value={it.name}
                       placeholder="아이스 아메리카노"
@@ -571,12 +573,14 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                       onChangeText={(v) => setItems(items.map((x, j) => (j === i ? { ...x, name: v } : x)))}
                     />
                     <TextInput
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
                       style={[styles.input, { flex: 1, textAlign: 'center' }]}
                       value={it.qty}
                       keyboardType="number-pad"
                       onChangeText={(v) => setItems(items.map((x, j) => (j === i ? { ...x, qty: v } : x)))}
                     />
                     <TextInput
+                      inputAccessoryViewID={KEYBOARD_DONE_ID}
                       style={[styles.input, { flex: 2, textAlign: 'right' }]}
                       value={it.price}
                       placeholder="단가"
@@ -808,11 +812,12 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
 
             {!!error && <Text style={styles.error}>{error}</Text>}
           </ScrollView>
+          {/* 키보드가 올라와도 버튼이 가려지지 않게 KeyboardAvoidingView 안에 둔다 */}
+          <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && { opacity: 0.85 }]}>
+            <Text style={styles.submitText}>{editing ? '고친 내용 저장' : '코코에게 영수증 뽑기'}</Text>
+          </Pressable>
         </KeyboardAvoidingView>
-
-        <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && { opacity: 0.85 }]}>
-          <Text style={styles.submitText}>{editing ? '고친 내용 저장' : '코코에게 영수증 뽑기'}</Text>
-        </Pressable>
+        <KeyboardDone />
       </SafeAreaView>
     </Modal>
   );
@@ -888,6 +893,7 @@ function Field({
     <View style={styles.field}>
       <Label text={label} />
       <TextInput
+        inputAccessoryViewID={KEYBOARD_DONE_ID}
         style={[styles.input, multiline && styles.multiline]}
         value={value}
         onChangeText={onChange}

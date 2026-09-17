@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 
 import { airportOf, findAirports } from '../lib/airports';
 import { COLORS, FONTS } from '../theme';
+import { KEYBOARD_DONE_ID } from './KeyboardDone';
 
 interface Props {
   label: string;
@@ -60,6 +61,7 @@ export function AirportField({ label, value, onChange, placeholder }: Props) {
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
+        inputAccessoryViewID={KEYBOARD_DONE_ID}
         style={styles.input}
         value={text}
         onChangeText={type}
