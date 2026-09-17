@@ -1,18 +1,18 @@
-// 영화 입장권: 분홍 감열지, 위/아래 가운데 큰 홈 + 잔 홈
+// 영화 입장권: 분홍/흰 감열지, 위/아래 가운데 큰 홈 + 잔 홈
 import type { ComponentProps } from 'react';
 import Svg, { G, Line, Path, Rect, Text } from 'react-native-svg';
 
 import { dotDateWithDay, pad2, seededRandom } from '../lib/format';
 import { fitLine, fitLines, measure } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
-import { MovieRecord } from '../types';
+import { MoviePaper, MovieRecord } from '../types';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
 const PW = 640;
 const PAD = 16;
 const BASE_H = 1268;
 const INK = '#1d1a1c';
-const PAPER = '#f2e6ee';
+export const MOVIE_PAPERS: Record<MoviePaper, string> = { pink: '#f2e6ee', white: '#f7f7f4' };
 const M = 40; // 좌우 여백
 const TITLE_LINE = 70;
 
@@ -63,6 +63,7 @@ export function MovieTicket({ record: r, width }: { record: MovieRecord; width: 
   const { title, extra } = computeLayout(r);
   const PH = BASE_H + extra;
   const shape = ticketPath(PH);
+  const PAPER = MOVIE_PAPERS[r.paper ?? 'pink'];
 
   const rnd = seededRandom(r.id);
   const num = () => String(1000 + Math.floor(rnd() * 9000));

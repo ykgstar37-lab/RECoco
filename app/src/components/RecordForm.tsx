@@ -16,11 +16,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { newId, nowTime, today, won } from '../lib/format';
 import { pickPhotos } from '../lib/photos';
 import { movieDetail } from '../lib/search';
+import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
   FourcutFrame,
   FourcutLayout,
   FourcutRecord,
+  MoviePaper,
   MovieRecord,
   Photo,
   ReadingRecord,
@@ -67,6 +69,11 @@ const LAYOUTS: { key: FourcutLayout; label: string; ratio: number; cells: [numbe
   { key: 'wide', label: '가로 2×2', ratio: 900 / 600, cells: [0, 1, 2, 3].map((i) => [0.04 + (i % 2) * 0.44, 0.06 + Math.floor(i / 2) * 0.46, 0.41, 0.42]) },
 ];
 
+const MOVIE_PAPER_OPTIONS: { key: MoviePaper; label: string }[] = [
+  { key: 'pink', label: '분홍' },
+  { key: 'white', label: '흰색' },
+];
+
 const STATUSES: ReadingStatus[] = ['완독', '읽는 중', '잠시 멈춤'];
 
 const emptyReading = (): Omit<ReadingRecord, 'id' | 'createdAt'> => ({
@@ -95,6 +102,7 @@ const emptyMovie = (): Omit<MovieRecord, 'id' | 'createdAt'> => ({
   ageRating: '',
   stars: 4,
   runtime: '',
+  paper: 'pink' as MoviePaper,
 });
 
 const emptyTravel = (): Omit<TravelRecord, 'id' | 'createdAt'> => ({
@@ -339,6 +347,18 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   <Field label="관람등급" value={movie.ageRating} onChange={(v) => setMovie({ ...movie, ageRating: v })} placeholder="12세이상관람가" />
                   <Field label="러닝타임(분)" value={movie.runtime} onChange={(v) => setMovie({ ...movie, runtime: v.replace(/[^0-9]/g, '') })} keyboardType="number-pad" placeholder="156" />
                 </Row>
+                <Label text="티켓 종이" />
+                <View style={styles.row}>
+                  {MOVIE_PAPER_OPTIONS.map((p) => {
+                    const on = (movie.paper ?? 'pink') === p.key;
+                    return (
+                      <Pressable key={p.key} onPress={() => setMovie({ ...movie, paper: p.key })} style={[styles.frameChip, on && styles.frameChipOn]}>
+                        <View style={[styles.frameDot, { backgroundColor: MOVIE_PAPERS[p.key] }]} />
+                        <Text style={styles.segText}>{p.label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
                 <Label text="관람평" />
                 <View style={styles.stars}>
                   {[1, 2, 3, 4, 5].map((n) => (

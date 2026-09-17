@@ -40,6 +40,7 @@ module.exports = () => {
     { name: '독서_영수증', record: reading },
     { name: '독서_영수증_긴글', record: readingLong },
     { name: '영화_티켓', record: movie },
+    { name: '영화_티켓_흰색', record: { ...movie, id: 'sample-movie-white', paper: 'white' } },
     { name: '소비_영수증', record: spending },
     { name: '여행_사진0장', record: tr(0), px: 1100 },
     { name: '여행_사진1장', record: tr(1), px: 1100 },

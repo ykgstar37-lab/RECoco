@@ -33,7 +33,10 @@ export interface MovieRecord extends BaseRecord {
   ageRating: string;
   stars: number; // 0~5
   runtime: string; // 분
+  paper?: MoviePaper; // 없으면 분홍 (예전 기록)
 }
+
+export type MoviePaper = 'pink' | 'white';
 
 export interface SpendingItem {
   name: string;
