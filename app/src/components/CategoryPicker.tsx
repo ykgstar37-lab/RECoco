@@ -30,7 +30,7 @@ export function CategoryPicker({ focused, onFocus, onPick }: Props) {
   return (
     <View style={styles.wrap}>
       <View style={styles.row}>
-        {CATEGORIES.map((c, i) => {
+        {CATEGORIES.filter((c) => categoryUnlocked(c.kind, owned)).map((c, i) => {
           const on = focused === c.kind;
           return (
             <Animated.View
@@ -44,10 +44,7 @@ export function CategoryPicker({ focused, onFocus, onPick }: Props) {
                 }}
                 onPress={() => onPick(c.kind)}
                 style={[styles.pill, on && styles.pillOn]}>
-                <Text style={[styles.pillText, on && styles.pillTextOn]}>
-                  {categoryUnlocked(c.kind, owned) ? '' : '🔒 '}
-                  {c.label}
-                </Text>
+                <Text style={[styles.pillText, on && styles.pillTextOn]}>{c.label}</Text>
               </Pressable>
             </Animated.View>
           );

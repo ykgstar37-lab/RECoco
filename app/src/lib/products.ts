@@ -50,5 +50,5 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
           { record: { ...sampleGift('pink'), direction: 'given', person: '엄마', item: '꽃다발', brand: '', price: 0, message: '생일 축하해요 엄마, 늘 고마워요.' }, caption: '보낸 선물' },
         ]
       : [];
-  return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: ['새 카테고리'], samples };
+  return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };
 }

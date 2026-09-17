@@ -5,6 +5,7 @@ import Animated, { Easing, LinearTransition, useAnimatedStyle, useSharedValue, w
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { categoryUnlocked, useShop } from '../lib/shop';
 import { KIND_LABEL, sizeOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord, RecordKind } from '../types';
@@ -31,6 +32,7 @@ interface Props {
 export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd, onSave, onDelete }: Props) {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [kind, setKind] = useState<RecordKind | null>(null);
+  const { owned } = useShop();
 
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
@@ -126,7 +128,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
 
           {/* 카테고리 탭: 누르면 그 카테고리 영수증만 줄줄이 */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll} contentContainerStyle={styles.tabs}>
-            {[{ kind: null, label: '전체' }, ...CATEGORIES].map((c) => {
+            {[{ kind: null, label: '전체' }, ...CATEGORIES.filter((c) => categoryUnlocked(c.kind, owned) || records.some((r) => r.kind === c.kind))].map((c) => {
               const on = kind === c.kind;
               const n = c.kind ? byDate.filter((r) => r.kind === c.kind).length : byDate.length;
               return (

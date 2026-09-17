@@ -92,10 +92,7 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                     </Svg>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.themeName}>{c!.name}</Text>
-                      <CategoryTags tags={['새 카테고리']} />
-                    </View>
+                    <Text style={styles.themeName}>{c!.name}</Text>
                     <Text style={styles.themeDesc}>{c!.desc}</Text>
                     <Text style={styles.peek}>눌러서 미리보기 ›</Text>
                   </View>

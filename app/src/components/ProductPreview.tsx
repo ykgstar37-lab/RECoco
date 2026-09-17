@@ -53,7 +53,7 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
           <ScrollView contentContainerStyle={styles.body}>
             <View style={styles.nameRow}>
               <Text style={styles.name}>{product.title}</Text>
-              <CategoryTags tags={product.tags} />
+              {product.tags.length > 0 && <CategoryTags tags={product.tags} />}
             </View>
             <Text style={styles.desc}>{product.desc}</Text>
 
