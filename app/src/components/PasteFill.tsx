@@ -1,7 +1,9 @@
+import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { OcrUnavailable, readImageText } from '../lib/ocr';
 import { COLORS, FONTS } from '../theme';
@@ -56,6 +58,18 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
     }
   };
 
+  // 복사해 둔 문자·알림 글을 바로 칸에 넣는다
+  const fromClipboard = async () => {
+    setOcrNotice('');
+    const copied = await Clipboard.getStringAsync().catch(() => '');
+    if (!copied.trim()) {
+      setOcrNotice('복사한 글이 없어요. 문자·알림을 먼저 복사해 주세요.');
+      return;
+    }
+    Keyboard.dismiss();
+    setText(copied);
+  };
+
   // 한 번에 긴 글이 들어오면(붙여넣기) 키보드를 내려서 읽은 내용과 버튼이 바로 보이게
   const changeText = (next: string) => {
     if (next.length - text.length > 15) Keyboard.dismiss();
@@ -78,11 +92,12 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode={DISMISS_ON_DRAG}>
             <Text style={styles.help}>{help}</Text>
-            <Pressable onPress={fromScreenshot} disabled={reading} style={({ pressed }) => [styles.shot, pressed && { opacity: 0.8 }]}>
-              {reading ? <ActivityIndicator color={COLORS.orange} /> : <Text style={styles.shotText}>📷  캡처에서 읽기</Text>}
-            </Pressable>
+            <View style={styles.picks}>
+              <PickCard icon="shot" title="캡처 고르기" sub="앨범에서 골라 읽기" busy={reading} onPress={fromScreenshot} />
+              <PickCard icon="paste" title="붙여넣기" sub="복사한 글 넣기" onPress={fromClipboard} />
+            </View>
             {!!ocrNotice && <Text style={styles.warn}>{ocrNotice}</Text>}
-            <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} style={styles.input} value={text} onChangeText={changeText} multiline autoFocus placeholder={placeholder} placeholderTextColor={COLORS.placeholder} />
+            <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} style={styles.input} value={text} onChangeText={changeText} multiline placeholder={placeholder} placeholderTextColor={COLORS.placeholder} />
 
             {!!text.trim() &&
               (result ? (
@@ -117,6 +132,44 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
   );
 }
 
+/** 캡처 고르기 / 붙여넣기: 폼 위 QuickFill 과 같은 흰 카드, 아이콘 타일 위·글자 아래 */
+function PickCard({ icon, title, sub, busy, onPress }: { icon: 'shot' | 'paste'; title: string; sub: string; busy?: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} disabled={busy} style={({ pressed }) => [styles.pick, pressed && styles.pickPressed]} accessibilityRole="button" accessibilityLabel={title}>
+      <View style={styles.pickTile}>{busy ? <ActivityIndicator color={COLORS.orange} /> : <PickIcon icon={icon} />}</View>
+      <Text style={styles.pickTitle}>{busy ? '읽는 중…' : title}</Text>
+      <Text style={styles.pickSub} numberOfLines={1}>
+        {sub}
+      </Text>
+    </Pressable>
+  );
+}
+
+function PickIcon({ icon }: { icon: 'shot' | 'paste' }) {
+  if (icon === 'shot') {
+    // 폰 화면 속 사진
+    return (
+      <Svg width={26} height={26} viewBox="0 0 26 26">
+        <Rect x={6} y={2} width={14} height={22} rx={3} fill={COLORS.orange} />
+        <Rect x={8} y={5} width={10} height={14} rx={1} fill="#fff" />
+        <Path d="M8,17 L11.5,12.5 L13.5,15 L15,13.5 L18,17 V19 H8 Z" fill="#ffd2b3" />
+        <Circle cx={15.3} cy={8.3} r={1.4} fill="#ffd2b3" />
+        <Rect x={11} y={20.8} width={4} height={1.4} rx={0.7} fill="#fff" />
+      </Svg>
+    );
+  }
+  // 클립보드
+  return (
+    <Svg width={26} height={26} viewBox="0 0 26 26">
+      <Rect x={4.5} y={4} width={17} height={20} rx={3} fill={COLORS.orange} />
+      <Rect x={9} y={2} width={8} height={4.5} rx={1.6} fill="#c9551a" />
+      <Rect x={8} y={10} width={10} height={2} rx={1} fill="#fff" />
+      <Rect x={8} y={14} width={10} height={2} rx={1} fill="#fff" />
+      <Rect x={8} y={18} width={6} height={2} rx={1} fill="#ffd2b3" />
+    </Svg>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22, paddingVertical: 12 },
@@ -125,8 +178,25 @@ const styles = StyleSheet.create({
   closeText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   body: { paddingHorizontal: 18, paddingBottom: 24, gap: 12 },
   help: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, lineHeight: 20 },
-  shot: { alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, backgroundColor: COLORS.orangeSoft, minWidth: 130, alignItems: 'center' },
-  shotText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
+  picks: { flexDirection: 'row', gap: 10 },
+  pick: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: COLORS.line,
+    shadowColor: '#7a2c00',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  pickPressed: { backgroundColor: COLORS.orangeSoft, borderColor: COLORS.orange },
+  pickTile: { width: 42, height: 42, borderRadius: 12, backgroundColor: COLORS.orangeSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  pickTitle: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
+  pickSub: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 2 },
   input: {
     minHeight: 150,
     backgroundColor: COLORS.surface,
