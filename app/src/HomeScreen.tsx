@@ -165,7 +165,7 @@ export function HomeScreen() {
 
       <View style={styles.bottom}>
         {picking ? (
-          <CategoryPicker focused={focusKind} onFocus={setFocusKind} onPick={pickCategory} onClose={() => setPicking(false)} />
+          <CategoryPicker focused={focusKind} onFocus={setFocusKind} onPick={pickCategory} />
         ) : (
           <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(80)} style={styles.bottomRow}>
             <Pressable

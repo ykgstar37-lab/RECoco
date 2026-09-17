@@ -17,14 +17,13 @@ interface Props {
   focused: RecordKind | null;
   onFocus: (kind: RecordKind) => void;
   onPick: (kind: RecordKind) => void;
-  onClose: () => void;
 }
 
 /**
  * ＋를 누르면 아래에서 톡톡 올라오는 카테고리 알약 버튼.
  * 손가락을 대면 그 카테고리가 도드라지고(코코가 질문), 떼면 기록 화면으로 간다.
  */
-export function CategoryPicker({ focused, onFocus, onPick, onClose }: Props) {
+export function CategoryPicker({ focused, onFocus, onPick }: Props) {
   return (
     <View style={styles.wrap}>
       <View style={styles.row}>
@@ -48,11 +47,6 @@ export function CategoryPicker({ focused, onFocus, onPick, onClose }: Props) {
           );
         })}
       </View>
-      <Animated.View entering={FadeInDown.delay(260)} exiting={FadeOutDown.duration(100)}>
-        <Pressable onPress={onClose} hitSlop={10} style={styles.close}>
-          <Text style={styles.closeText}>닫기</Text>
-        </Pressable>
-      </Animated.View>
     </View>
   );
 }
@@ -77,6 +71,4 @@ const styles = StyleSheet.create({
   },
   pillText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   pillTextOn: { color: COLORS.orange },
-  close: { paddingHorizontal: 14, paddingVertical: 6 },
-  closeText: { color: 'rgba(255,255,255,0.85)', fontSize: 14, fontFamily: FONTS.sansBold },
 });
