@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +13,8 @@ import { WeekStamps, dateKey } from './components/WeekStamps';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord, RecordKind } from './types';
+
+const LOGO_WHITE = require('../assets/logo/recoco-logo-white.png');
 
 const HEADLINE_H = 70; // 대사 두 줄 높이
 const MIN_TOP_GAP = 36; // 상단 바와 대사 사이 최소 여백
@@ -120,7 +122,7 @@ export function HomeScreen() {
 
       <View style={styles.header}>
         <View>
-          <Text style={styles.logo}>{BRAND.ko}</Text>
+          <Image source={LOGO_WHITE} style={styles.logo} resizeMode="contain" accessibilityLabel={BRAND.ko} />
           <Text style={styles.count}>모은 영수증 {records.length}장</Text>
         </View>
         <Pressable
@@ -204,7 +206,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingTop: 10,
   },
-  logo: { fontSize: 24, color: '#fff', fontFamily: FONTS.sansHeavy },
+  // 로고 원본(523×119) 비율 그대로
+  logo: { height: 30, width: (30 * 523) / 119, marginLeft: -2, marginBottom: 2 },
   count: { fontSize: 13, color: 'rgba(255,255,255,0.85)', fontFamily: FONTS.sans, marginTop: 2 },
   addBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   addBtnText: { color: COLORS.orange, fontSize: 28, lineHeight: 32, fontFamily: FONTS.sansBold },

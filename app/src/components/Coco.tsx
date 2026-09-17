@@ -33,7 +33,7 @@ function Eyes({ mood }: { mood: CocoMood }) {
     return (
       <G>
         {[L, R].map((x) => (
-          <Path key={x} d={`M${x - 20},${Y + 6} Q${x},${Y - 18} ${x + 20},${Y + 6}`} stroke={EYE} strokeWidth={10} strokeLinecap="round" fill="none" />
+          <Path key={x} d={`M${x - 15},${Y + 5} Q${x},${Y - 13} ${x + 15},${Y + 5}`} stroke={EYE} strokeWidth={8} strokeLinecap="round" fill="none" />
         ))}
       </G>
     );
@@ -42,7 +42,7 @@ function Eyes({ mood }: { mood: CocoMood }) {
     return (
       <G>
         {[L, R].map((x) => (
-          <Path key={x} d={`M${x - 18},${Y + 2} Q${x},${Y + 12} ${x + 18},${Y + 2}`} stroke={EYE} strokeWidth={9} strokeLinecap="round" fill="none" />
+          <Path key={x} d={`M${x - 14},${Y + 2} Q${x},${Y + 10} ${x + 14},${Y + 2}`} stroke={EYE} strokeWidth={7} strokeLinecap="round" fill="none" />
         ))}
       </G>
     );
@@ -50,12 +50,12 @@ function Eyes({ mood }: { mood: CocoMood }) {
   if (mood === 'squish') {
     return (
       <G>
-        <Path d={`M${L - 16},${Y - 14} L${L + 12},${Y} L${L - 16},${Y + 14}`} stroke={EYE} strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <Path d={`M${R + 16},${Y - 14} L${R - 12},${Y} L${R + 16},${Y + 14}`} stroke={EYE} strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path d={`M${L - 12},${Y - 11} L${L + 9},${Y} L${L - 12},${Y + 11}`} stroke={EYE} strokeWidth={8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path d={`M${R + 12},${Y - 11} L${R - 9},${Y} L${R + 12},${Y + 11}`} stroke={EYE} strokeWidth={8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </G>
     );
   }
-  const r = mood === 'wow' ? 23 : 20;
+  const r = mood === 'wow' ? 17 : 14.5;
   return (
     <G>
       <Circle cx={L} cy={Y} r={r} fill={EYE} />

@@ -4,7 +4,7 @@ import Svg, { Circle, G, Line, Path, Polygon, Rect, Text } from 'react-native-sv
 
 import { pad2, parseDate, seededRandom } from '../lib/format';
 import { FontMetric, fitLine, fitLines, measure } from '../lib/text';
-import { BRAND, FONTS } from '../theme';
+import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { ReadingRecord } from '../types';
 import { PaperOverlay, PaperShadow, TemplateLayout, serratedRect } from './shared';
 

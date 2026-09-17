@@ -4,7 +4,7 @@ import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'r
 
 import { seededRandom } from '../lib/format';
 import { fitLine, measure } from '../lib/text';
-import { BRAND, FONTS } from '../theme';
+import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { Photo, TravelRecord } from '../types';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 

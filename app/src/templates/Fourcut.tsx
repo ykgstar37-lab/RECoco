@@ -4,7 +4,7 @@ import Svg, { Circle, ClipPath, Defs, G, Image, Line, LinearGradient, Path, Rect
 
 import { parseDate, seededRandom, withParticle } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
-import { BRAND, FONTS } from '../theme';
+import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { FourcutFrame, FourcutLayout, FourcutRecord, Photo } from '../types';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 

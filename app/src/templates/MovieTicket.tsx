@@ -4,7 +4,7 @@ import Svg, { G, Line, Path, Rect, Text } from 'react-native-svg';
 
 import { dotDateWithDay, pad2, seededRandom } from '../lib/format';
 import { fitLine, fitLines, measure } from '../lib/text';
-import { BRAND, FONTS } from '../theme';
+import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { MovieRecord } from '../types';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 

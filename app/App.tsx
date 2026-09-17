@@ -22,6 +22,9 @@ export default function App() {
     NanumMyeongjo_700Bold,
     NanumPenScript_400Regular,
     SpaceMono_700Bold,
+    'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.otf'),
+    'Pretendard-SemiBold': require('./assets/fonts/Pretendard-SemiBold.otf'),
+    'Pretendard-Bold': require('./assets/fonts/Pretendard-Bold.otf'),
   });
 
   if (!fontsLoaded && !fontError) {

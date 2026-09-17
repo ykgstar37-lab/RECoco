@@ -5,8 +5,8 @@ export const BRAND = {
 };
 export const APP_NAME = BRAND.en;
 
-// expo-google-fonts 로 로드되는 폰트 이름
-export const FONTS = {
+// 영수증·티켓 양식(종이)에 찍히는 폰트. 글자폭 실측(lib/metrics.ts)과 짝이라 바꾸면 다시 뽑아야 한다
+export const PAPER_FONTS = {
   sans: 'NanumGothic_400Regular',
   sansBold: 'NanumGothic_700Bold',
   sansHeavy: 'NanumGothic_800ExtraBold',
@@ -16,6 +16,14 @@ export const FONTS = {
   serifBold: 'NanumMyeongjo_700Bold',
   hand: 'NanumPenScript_400Regular',
   code: 'SpaceMono_700Bold',
+} as const;
+
+// 앱 화면(UI) 글꼴: Pretendard (assets/fonts, SIL OFL)
+export const FONTS = {
+  ...PAPER_FONTS,
+  sans: 'Pretendard-Regular',
+  sansBold: 'Pretendard-SemiBold',
+  sansHeavy: 'Pretendard-Bold',
 } as const;
 
 // 앱 화면(UI)은 흰 배경 + 코코 주황 포인트로 단순하게

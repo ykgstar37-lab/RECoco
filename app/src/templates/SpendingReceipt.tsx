@@ -4,7 +4,7 @@ import Svg, { G, Line, Path, Rect, Text } from 'react-native-svg';
 
 import { handDate, seededRandom, won } from '../lib/format';
 import { fitLine } from '../lib/text';
-import { FONTS } from '../theme';
+import { PAPER_FONTS as FONTS } from '../theme';
 import { SpendingRecord } from '../types';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
