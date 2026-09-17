@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { LinearTransition } from 'react-native-reanimated';
@@ -6,7 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
-import { RecoRecord } from '../types';
+import { RecoRecord, RecordKind } from '../types';
+import { CATEGORIES } from './CategoryPicker';
 import { FlipCard } from './FlipCard';
 import { FoldableReceipt } from './FoldableReceipt';
 import { RecordDetail } from './RecordDetail';
@@ -25,12 +26,25 @@ interface Props {
 /** 모아둔 영수증을 세로로 길게 이어서 보는 화면 */
 export function RollScreen({ visible, records, date, onClearDate, onClose, onSave, onDelete }: Props) {
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [kind, setKind] = useState<RecordKind | null>(null);
+
+  // 열 때마다 카테고리는 '전체'부터
+  useEffect(() => {
+    if (visible) setKind(null);
+  }, [visible]);
   const detail = records.find((r) => r.id === detailId) ?? null;
   const open = (record: RecoRecord) => setDetailId(record.id);
   const { width: screenW } = useWindowDimensions();
   const paperW = Math.min(screenW - 44, 440);
-  const list = date ? records.filter((r) => r.date === date) : records;
-  const title = date ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일의 영수증` : '나의 영수증';
+  // 날짜 → 카테고리 순서로 거른다 (둘 다 걸 수 있음)
+  const byDate = date ? records.filter((r) => r.date === date) : records;
+  const list = kind ? byDate.filter((r) => r.kind === kind) : byDate;
+  const kindLabel = kind ? CATEGORIES.find((c) => c.kind === kind)?.label : null;
+  const title = date
+    ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일의 ${kindLabel ?? ''} 영수증`.replace('  ', ' ')
+    : kindLabel
+      ? `${kindLabel} 영수증`
+      : '나의 영수증';
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -52,8 +66,24 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onSav
             </Pressable>
           </View>
 
+          {/* 카테고리 탭: 누르면 그 카테고리 영수증만 줄줄이 */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll} contentContainerStyle={styles.tabs}>
+            {[{ kind: null, label: '전체' }, ...CATEGORIES].map((c) => {
+              const on = kind === c.kind;
+              const n = c.kind ? byDate.filter((r) => r.kind === c.kind).length : byDate.length;
+              return (
+                <Pressable key={c.label} onPress={() => setKind(c.kind)} style={[styles.tab, on && styles.tabOn]}>
+                  <Text style={[styles.tabText, on && styles.tabTextOn]}>{c.label}</Text>
+                  <Text style={[styles.tabCount, on && styles.tabTextOn]}>{n}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
           <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-            {list.length === 0 && <Text style={styles.empty}>아직 뽑은 영수증이 없어요.</Text>}
+            {list.length === 0 && (
+              <Text style={styles.empty}>{kindLabel ? `아직 뽑은 ${kindLabel} 영수증이 없어요.` : '아직 뽑은 영수증이 없어요.'}</Text>
+            )}
             {list.map((record) => (
               <Animated.View key={record.id} layout={LinearTransition.springify().damping(18)} style={styles.item}>
                 <View style={[styles.itemHead, { width: paperW }]}>
@@ -97,6 +127,13 @@ const styles = StyleSheet.create({
   chipText: { color: COLORS.orange, fontSize: 13, fontFamily: FONTS.sansBold },
   close: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   closeText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
+  tabsScroll: { flexGrow: 0 },
+  tabs: { paddingHorizontal: 18, paddingVertical: 8, gap: 8 },
+  tab: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, backgroundColor: COLORS.surface },
+  tabOn: { backgroundColor: COLORS.orange },
+  tabText: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.sansBold },
+  tabCount: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans },
+  tabTextOn: { color: '#fff' },
   list: { alignItems: 'center', paddingBottom: 60 },
   item: { alignItems: 'center', width: '100%', paddingHorizontal: 22 },
   itemHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 18, paddingBottom: 8 },

@@ -14,6 +14,10 @@ import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord, RecordKind } from './types';
 
+const HEADLINE_H = 70; // 대사 두 줄 높이
+const MIN_TOP_GAP = 36; // 상단 바와 대사 사이 최소 여백
+const COCO_TOP_EMPTY = 34 / 320; // 코코 그림에서 꼭지 위쪽 빈 공간 비율
+
 // 코코를 누를 때마다 바뀌는 한마디
 const POKES = ['간지러워!', '말랑말랑~', '헤헤 또 눌러봐', '영수증 뽑아줄까?', '기록은 내가 챙길게', '만두 아니고 코코야!'];
 
@@ -103,8 +107,12 @@ export function HomeScreen() {
           ? `오늘 벌써\n${todayCount}장이나 남겼어!`
           : '오늘 하루도\n영수증으로 남겨볼까?';
 
-  // 코코는 남는 세로 공간을 꽉 채우고, 양옆은 화면 밖으로 살짝 잘릴 만큼 크게
-  const cocoSize = stage.width ? Math.min((stage.width - 80) * 1.32, (stage.height + 8) / COCO_RATIO) : 0;
+  // 코코는 (대사 + 위쪽 여백)을 뺀 세로 공간을 꽉 채우고, 양옆은 화면 밖으로 살짝 잘릴 만큼 크게
+  const cocoSize = stage.width
+    ? Math.min((stage.width - 80) * 1.32, (stage.height - HEADLINE_H - MIN_TOP_GAP) / (COCO_RATIO * (1 - COCO_TOP_EMPTY)))
+    : 0;
+  // 그림 위쪽의 빈 공간(꼭지 위)만큼 대사를 코코 쪽으로 내려서 딱 붙인다
+  const hug = -cocoSize * COCO_RATIO * COCO_TOP_EMPTY;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom + 8 }]}>
@@ -124,9 +132,12 @@ export function HomeScreen() {
         </Pressable>
       </View>
 
-      <Text style={styles.headline}>{headline}</Text>
-
+      {/* 상단 바와 대사 사이는 비워두고, 대사와 코코는 붙여서 아래쪽에 모은다 */}
       <View style={styles.stage} onLayout={(e) => setStage(e.nativeEvent.layout)}>
+        {/* 한 줄 대사여도 코코 바로 위에 붙도록 아래 정렬 */}
+        <View style={[styles.headlineBox, { marginBottom: hug }]}>
+          <Text style={styles.headline}>{headline}</Text>
+        </View>
         {cocoSize > 0 && (
           <Coco
             size={cocoSize}
@@ -203,9 +214,8 @@ const styles = StyleSheet.create({
     lineHeight: 34,
     textAlign: 'center',
     fontFamily: FONTS.sansHeavy,
-    marginTop: 6,
-    minHeight: 72,
   },
+  headlineBox: { height: HEADLINE_H, justifyContent: 'flex-end', zIndex: 1 },
   // 코코가 남는 세로 공간을 전부 차지한다
   stage: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 6, marginHorizontal: -40 },
   bottom: { minHeight: 92, justifyContent: 'center', marginTop: 8 },
