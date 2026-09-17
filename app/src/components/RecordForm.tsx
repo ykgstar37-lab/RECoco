@@ -36,6 +36,7 @@ import {
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
 import { QrImport } from './QrImport';
+import { TheaterField } from './TheaterField';
 import { TitleSearch } from './TitleSearch';
 
 interface Props {
@@ -265,7 +266,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             {kind === 'reading' && (
               <>
-                {Platform.OS !== 'web' && canSearchBooks && (
+                {canSearchBooks && (
                   <Pressable onPress={() => setIsbnOpen(true)} style={({ pressed }) => [styles.scanBtn, pressed && { opacity: 0.8 }]}>
                     <View style={styles.barcode}>
                       {[3, 1.5, 2.5, 1.5, 3, 1.5, 2].map((w, i) => (
@@ -353,7 +354,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   }}
                 />
                 <Field label="원제 (선택)" value={movie.originalTitle} onChange={(v) => setMovie({ ...movie, originalTitle: v })} placeholder="Odyssey" />
-                <Field label="어디서 봤나요?" value={movie.theater} onChange={(v) => setMovie({ ...movie, theater: v })} placeholder="CGV 강남점 / 롯데시네마 월드타워" />
+                <TheaterField value={movie.theater} onChange={(v) => setMovie((m) => ({ ...m, theater: v }))} />
                 <Row>
                   <DateField label="날짜" value={movie.date} onChange={(v) => setMovie({ ...movie, date: v })} />
                   <Field label="시간" value={movie.time} onChange={(v) => setMovie({ ...movie, time: v })} placeholder="19:30" />

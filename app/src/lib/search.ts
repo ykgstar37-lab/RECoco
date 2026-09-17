@@ -65,6 +65,28 @@ export async function bookByIsbn(isbn: string): Promise<BookHit | null> {
   return d ? toBook(d) : null;
 }
 
+export const THEATER_CHAINS = ['CGV', '롯데시네마', '메가박스', '씨네Q'] as const;
+
+export interface TheaterHit {
+  id: string;
+  name: string; // 예: CGV 강남
+  address: string;
+}
+
+const squash = (t: string) => t.replace(/\s/g, '');
+
+/** 카카오 지도(장소) 검색으로 체인 + 지역에 맞는 영화관 지점 찾기 */
+export async function searchTheaters(chain: string, query: string, signal?: AbortSignal): Promise<TheaterHit[]> {
+  const q = encodeURIComponent(`${chain} ${query}`.trim());
+  const url = `https://dapi.kakao.com/v2/local/search/keyword.json?category_group_code=CT1&size=15&query=${q}`;
+  const res = await fetch(url, { headers: { Authorization: `KakaoAK ${KAKAO_KEY}` }, signal });
+  if (!res.ok) throw new Error(`kakao-local ${res.status}`);
+  const docs = (await res.json()).documents as any[];
+  return docs
+    .filter((d) => String(d.category_name).includes('영화관') && squash(d.place_name).startsWith(squash(chain)))
+    .map((d) => ({ id: d.id, name: d.place_name, address: d.road_address_name || d.address_name }));
+}
+
 // API 키(32자)면 쿼리로, 읽기 토큰(eyJ…)이면 헤더로 보낸다
 function tmdb(path: string, params: Record<string, string>, signal?: AbortSignal) {
   const bearer = TMDB_KEY.startsWith('eyJ');
