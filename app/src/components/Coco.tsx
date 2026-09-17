@@ -15,9 +15,9 @@ const VB_H = 320;
 export const COCO_RATIO = VB_H / VB_W;
 
 // "우에에에엑" 입: 눈 아래로 크게 벌린 입. 영수증은 입 안(SPEW_EXIT_Y)에서 나온다
-const SPEW = { left: 92, right: 308, top: 214, bottom: 292 };
+const SPEW = { left: 68, right: 332, top: 214, bottom: 292 };
 export const SPEW_EXIT_Y = 236 / VB_H;
-export const SPEW_MOUTH_WIDTH = (SPEW.right - SPEW.left - 24) / VB_W;
+export const SPEW_MOUTH_WIDTH = (SPEW.right - SPEW.left - 16) / VB_W;
 
 const TONES: Record<CocoTone, { body: string; pleat: string; blush: string; mouth: string; tongue: string; shadow: string }> = {
   orange: { body: '#fb9449', pleat: '#e8692a', blush: '#f5675b', mouth: '#ffffff', tongue: '#f06470', shadow: 'rgba(0,0,0,0.06)' },
