@@ -139,22 +139,24 @@ function Tile({
   onPress: () => void;
 }) {
   return (
-    <Pressable
-      onPressIn={tick}
-      onPress={onPress}
-      style={[styles.tile, selected && styles.tileOn]}
-      accessibilityLabel={`${label}${locked ? ' (잠김)' : ''}`}>
-      <View style={[styles.tileArt, locked && { opacity: 0.45 }]}>
-        <CocoArt size={70} tone="white" outfit={outfit} id={`tile-${outfit ?? 'none'}`} />
-      </View>
-      <Text style={styles.tileLabel} numberOfLines={1}>
-        {locked ? '🔒 ' : ''}
-        {label}
-      </Text>
-      <Text style={[styles.tileStatus, status === '입는 중' && { color: COLORS.orange }]} numberOfLines={1}>
-        {status || ' '}
-      </Text>
-    </Pressable>
+    <View style={styles.cell}>
+      <Pressable
+        onPressIn={tick}
+        onPress={onPress}
+        style={[styles.tile, selected && styles.tileOn]}
+        accessibilityLabel={`${label}${locked ? ' (잠김)' : ''}`}>
+        <View style={[styles.tileArt, locked && { opacity: 0.45 }]}>
+          <CocoArt size={70} tone="white" outfit={outfit} id={`tile-${outfit ?? 'none'}`} />
+        </View>
+        <Text style={styles.tileLabel} numberOfLines={1}>
+          {locked ? '🔒 ' : ''}
+          {label}
+        </Text>
+        <Text style={[styles.tileStatus, status === '입는 중' && { color: COLORS.orange }]} numberOfLines={1}>
+          {status || ' '}
+        </Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -167,9 +169,10 @@ const styles = StyleSheet.create({
   body: { paddingHorizontal: 18, paddingBottom: 24, gap: 16 },
   stage: { backgroundColor: COLORS.orange, borderRadius: 24, alignItems: 'center', paddingTop: 22, paddingBottom: 14, gap: 6 },
   stageName: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8 },
+  // 한 줄에 4칸 (칸마다 좌우 4씩 띄움)
+  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, rowGap: 8 },
+  cell: { width: '25%', paddingHorizontal: 4 },
   tile: {
-    width: '23.5%',
     alignItems: 'center',
     paddingTop: 8,
     paddingBottom: 6,

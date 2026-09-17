@@ -1,7 +1,7 @@
 // 코코 옷(머리 장식). 코코 그림과 같은 viewBox(400×320) 좌표로 그려서 CocoArt 위에 겹친다
 import { Circle, G, Path, Rect } from 'react-native-svg';
 
-export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones';
+export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper';
 
 // 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
 const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
@@ -10,11 +10,13 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
-  party: { from: [236, 98], to: [208, 92], k: 1.1, r: 8, top: 4 },
-  headphones: { from: [225, 104], to: [225, 104], k: 1, top: 36 },
+  party: { from: [236, 98], to: [238, 104], k: 1.25, r: 12, top: 6 },
+  headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
+  earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
+  trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
 };
 
-/** 머리를 덮는 모자는 만두 꼭지를 숨긴다 (리본·헤드폰은 꼭지가 보이는 게 귀엽다) */
+/** 머리를 덮는 모자는 만두 꼭지를 숨긴다 (리본은 꼭지가 보이는 게 귀엽다) */
 export const COVERS_KNOB: Record<OutfitId, boolean> = {
   ribbon: false,
   beanie: true,
@@ -22,7 +24,9 @@ export const COVERS_KNOB: Record<OutfitId, boolean> = {
   beret: true,
   crown: true,
   party: true,
-  headphones: false,
+  headphones: true,
+  earflap: true,
+  trapper: true,
 };
 
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
@@ -99,13 +103,56 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'headphones':
+      // 에어팟 맥스 느낌: 얇은 프레임 + 메쉬 캐노피 + 둥근 사각 이어컵
       return (
         <G>
-          <Path d="M66,196 C62,30 338,30 334,196" stroke="#3a3a44" strokeWidth={16} strokeLinecap="round" fill="none" />
-          <Rect x={38} y={158} width={50} height={82} rx={22} fill="#ff9a5c" />
-          <Rect x={312} y={158} width={50} height={82} rx={22} fill="#ff9a5c" />
-          <Rect x={54} y={170} width={18} height={58} rx={9} fill="#3a3a44" />
-          <Rect x={328} y={170} width={18} height={58} rx={9} fill="#3a3a44" />
+          <Path d="M58,168 C52,28 348,28 342,168" stroke="#4d525c" strokeWidth={12} strokeLinecap="round" fill="none" />
+          <Path d="M92,112 C120,58 280,58 308,112" stroke="#9aa1ad" strokeWidth={20} strokeLinecap="round" fill="none" />
+          <Path d="M92,112 C120,58 280,58 308,112" stroke="#b7bdc7" strokeWidth={2} strokeDasharray="1 5" strokeLinecap="round" fill="none" />
+          <Rect x={53} y={160} width={10} height={20} rx={3} fill="#d5d9df" />
+          <Rect x={337} y={160} width={10} height={20} rx={3} fill="#d5d9df" />
+          <Rect x={14} y={176} width={74} height={104} rx={34} fill="#5f6570" />
+          <Rect x={312} y={176} width={74} height={104} rx={34} fill="#5f6570" />
+          <Rect x={62} y={186} width={26} height={84} rx={13} fill="#7d8490" />
+          <Rect x={312} y={186} width={26} height={84} rx={13} fill="#7d8490" />
+        </G>
+      );
+    case 'earflap':
+      // 방울 달린 귀도리 니트 모자 (페어아일 무늬 + 끈)
+      return (
+        <G>
+          <Path d="M70,236 C60,270 74,296 62,318" stroke="#6f5236" strokeWidth={6} strokeLinecap="round" fill="none" />
+          <Path d="M330,236 C340,270 326,296 338,318" stroke="#6f5236" strokeWidth={6} strokeLinecap="round" fill="none" />
+          <Path d="M48,150 C40,196 44,232 70,246 C96,254 112,222 112,168 Z" fill="#8a6a4a" />
+          <Path d="M352,150 C360,196 356,232 330,246 C304,254 288,222 288,168 Z" fill="#8a6a4a" />
+          <Path d="M52,160 C52,18 348,18 348,160 C280,140 120,140 52,160 Z" fill="#8a6a4a" />
+          <Path d="M60,108 C120,78 280,78 340,108 L344,134 C280,106 120,106 56,134 Z" fill="#efe3cc" />
+          {[96, 136, 176, 216, 256, 296].map((x, i) => (
+            <Path key={x} d={`M${x},${112 - Math.sin(((i + 0.5) / 6) * Math.PI) * 16} l8,-7 l8,7 l-8,7 Z`} fill={i % 2 ? '#8fa9d6' : '#d9534f'} />
+          ))}
+          <Path d="M46,158 C120,132 280,132 354,158 L356,188 C280,162 120,162 44,188 Z" fill="#7a5c3e" />
+          {[70, 100, 130, 160, 190, 220, 250, 280, 310, 338].map((x) => (
+            <Path key={x} d={`M${x},${150 - Math.sin(((x - 46) / 310) * Math.PI) * 14} l0,24`} stroke="#6a4f35" strokeWidth={4} strokeLinecap="round" />
+          ))}
+          <Circle cx={200} cy={42} r={28} fill="#f4ece0" />
+          <Circle cx={180} cy={32} r={13} fill="#f4ece0" />
+          <Circle cx={222} cy={30} r={13} fill="#f4ece0" />
+          <Circle cx={212} cy={54} r={14} fill="#e9dfd0" />
+        </G>
+      );
+    case 'trapper':
+      // 털 달린 방한모 (가죽 + 앞 털 말림 + 귀 덮개)
+      return (
+        <G>
+          <Path d="M50,150 C38,196 42,236 70,252 C98,262 116,228 114,160 Z" fill="#b7773f" />
+          <Path d="M350,150 C362,196 358,236 330,252 C302,262 284,228 286,160 Z" fill="#b7773f" />
+          <Circle cx={54} cy={244} r={17} fill="#d9d2c9" /><Circle cx={70} cy={256} r={17} fill="#d9d2c9" /><Circle cx={88} cy={258} r={17} fill="#d9d2c9" /><Circle cx={104} cy={250} r={17} fill="#d9d2c9" />
+          <Circle cx={346} cy={244} r={17} fill="#d9d2c9" /><Circle cx={330} cy={256} r={17} fill="#d9d2c9" /><Circle cx={312} cy={258} r={17} fill="#d9d2c9" /><Circle cx={296} cy={250} r={17} fill="#d9d2c9" />
+          <Path d="M66,152 C66,34 334,34 334,152 Z" fill="#c4854a" />
+          <Path d="M200,70 L200,128" stroke="#a5672f" strokeWidth={4} strokeLinecap="round" />
+          <Path d="M130,84 C142,100 146,116 146,132 M270,84 C258,100 254,116 254,132" stroke="#a5672f" strokeWidth={4} strokeLinecap="round" fill="none" />
+          <Circle cx={62} cy={150} r={24} fill="#cfc7bc" /><Circle cx={82} cy={144} r={24} fill="#cfc7bc" /><Circle cx={101} cy={139} r={24} fill="#cfc7bc" /><Circle cx={121} cy={134} r={24} fill="#cfc7bc" /><Circle cx={141} cy={130} r={24} fill="#cfc7bc" /><Circle cx={161} cy={127} r={24} fill="#cfc7bc" /><Circle cx={180} cy={125} r={24} fill="#cfc7bc" /><Circle cx={200} cy={124} r={24} fill="#cfc7bc" /><Circle cx={220} cy={125} r={24} fill="#cfc7bc" /><Circle cx={239} cy={127} r={24} fill="#cfc7bc" /><Circle cx={259} cy={130} r={24} fill="#cfc7bc" /><Circle cx={279} cy={134} r={24} fill="#cfc7bc" /><Circle cx={299} cy={139} r={24} fill="#cfc7bc" /><Circle cx={318} cy={144} r={24} fill="#cfc7bc" /><Circle cx={338} cy={150} r={24} fill="#cfc7bc" />
+          <Circle cx={82} cy={138} r={18} fill="#e6e0d8" /><Circle cx={101} cy={133} r={18} fill="#e6e0d8" /><Circle cx={121} cy={128} r={18} fill="#e6e0d8" /><Circle cx={141} cy={124} r={18} fill="#e6e0d8" /><Circle cx={161} cy={121} r={18} fill="#e6e0d8" /><Circle cx={180} cy={119} r={18} fill="#e6e0d8" /><Circle cx={200} cy={118} r={18} fill="#e6e0d8" /><Circle cx={220} cy={119} r={18} fill="#e6e0d8" /><Circle cx={239} cy={121} r={18} fill="#e6e0d8" /><Circle cx={259} cy={124} r={18} fill="#e6e0d8" /><Circle cx={279} cy={128} r={18} fill="#e6e0d8" /><Circle cx={299} cy={133} r={18} fill="#e6e0d8" /><Circle cx={318} cy={138} r={18} fill="#e6e0d8" />
         </G>
       );
   }
