@@ -115,7 +115,6 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
               return (
                 <Pressable key={t.id} onPress={() => setPreview(themeProduct(t))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
                   <ThemeSwatch theme={t.id} base="spending" size={34} />
-                  <ThemeSwatch theme={t.id} base="fourcut" size={34} />
                   <View style={{ flex: 1 }}>
                     <View style={styles.nameRow}>
                       <Text style={styles.themeName}>{t.name}</Text>
@@ -138,7 +137,6 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
               return (
                 <Pressable key={d.id} onPress={() => setPreview(foodDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
                   <FoodDesignSwatch design={d.id} size={34} />
-                  <View style={{ width: 34 }} />
                   <View style={{ flex: 1 }}>
                     <View style={styles.nameRow}>
                       <Text style={styles.themeName}>{d.name}</Text>
