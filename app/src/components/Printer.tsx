@@ -13,6 +13,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { bump, tear, tick } from '../lib/haptics';
@@ -24,7 +25,6 @@ import { OutfitId } from './Outfits';
 
 type Phase = 'gag' | 'printing' | 'ready' | 'torn';
 const TEAR_DISTANCE = 130;
-const COCO_TOP = 8;
 const GAG_MS = 650; // 볼 빵빵하게 참는 시간
 
 interface JobProps {
@@ -39,6 +39,7 @@ interface JobProps {
 /** 코코가 입을 크게 벌려 새 기록을 뱉어내고, 사용자가 아래로 잡아당겨 뜯어내는 과정 */
 export function PrintJob({ record, rollWidth, onDone, onCancel, outfit }: JobProps) {
   const { width: screenW } = useWindowDimensions();
+  const COCO_TOP = useSafeAreaInsets().top + 8;
   const [phase, setPhase] = useState<Phase>('gag');
   const [mood, setMood] = useState<CocoMood>('gag');
 
@@ -145,7 +146,7 @@ export function PrintJob({ record, rollWidth, onDone, onCancel, outfit }: JobPro
   const hintStyle = useAnimatedStyle(() => ({ opacity: interpolate(pull.value, [0, 40], [1, 0.4], 'clamp') }));
 
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View style={[StyleSheet.absoluteFill, styles.layer]}>
       <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]} />
       <Animated.View pointerEvents="none" style={[styles.coco, { top: COCO_TOP, left: (screenW - cocoSize) / 2, transformOrigin: 'bottom' }, cocoStyle]}>
         <Coco size={cocoSize} mood={mood} tone="white" id="coco-print" outfit={outfit} />
@@ -174,6 +175,8 @@ export function PrintJob({ record, rollWidth, onDone, onCancel, outfit }: JobPro
 }
 
 const styles = StyleSheet.create({
+  // 메인 상단 바(zIndex 7)·대사보다 위에 덮는다
+  layer: { zIndex: 50, elevation: 50 },
   backdrop: { backgroundColor: COLORS.orange },
   feedArea: { position: 'absolute', left: 0, right: 0, bottom: 0, overflow: 'hidden' },
   coco: { position: 'absolute' },

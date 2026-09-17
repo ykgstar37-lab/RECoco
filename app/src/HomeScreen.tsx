@@ -122,17 +122,20 @@ export function HomeScreen() {
 
   const todayCount = counts[dateKey(new Date())] ?? 0;
   const focusHint = CATEGORIES.find((c) => c.kind === focusKind)?.hint;
-  const headline = gift
-    ? gift
-    : cheer
-      ? '영수증 나왔다!\n도장 쾅 찍어줄게'
-      : picking
-        ? (focusHint ?? '오늘은\n뭘 기록할까?')
-        : poke
-          ? poke
-          : todayCount > 0
-            ? `오늘 벌써\n${todayCount}장이나 남겼어!`
-            : '오늘 하루도\n영수증으로 남겨볼까?';
+  // 영수증을 뽑는 동안에는 대사를 비운다 (출력 화면 뒤로 흰 글씨가 비치지 않게)
+  const headline = printing
+    ? ''
+    : gift
+      ? gift
+      : cheer
+        ? '영수증 나왔다!\n도장 쾅 찍어줄게'
+        : picking
+          ? (focusHint ?? '오늘은\n뭘 기록할까?')
+          : poke
+            ? poke
+            : todayCount > 0
+              ? `오늘 벌써\n${todayCount}장이나 남겼어!`
+              : '오늘 하루도\n영수증으로 남겨볼까?';
 
   // 모자를 쓰면 그림 위쪽 빈 공간이 줄어든다
   const topEmpty = outfit ? Math.min(COCO_TOP_EMPTY, OUTFIT_TOP[outfit] / 320) : COCO_TOP_EMPTY;

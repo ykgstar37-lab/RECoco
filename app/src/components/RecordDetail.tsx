@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInUp, FadeOut } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { canCapture, saveCard, shareCard } from '../lib/share';
 import { FourcutBack, KIND_LABEL, RecordPaper, sizeOf } from '../templates';
 import { BRAND, COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { CocoArt } from './Coco';
+import { ModalSafeArea } from './ModalSafeArea';
 import { RecordForm } from './RecordForm';
 
 interface Props {
@@ -53,7 +53,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <ModalSafeArea style={styles.root}>
         <View style={styles.top}>
           <Pressable onPress={onClose} hitSlop={10} style={styles.iconBtn} accessibilityLabel="닫기">
             <Text style={styles.iconText}>✕</Text>
@@ -125,7 +125,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
             setTimeout(() => show('고쳤어요'), Platform.OS === 'ios' ? 450 : 50);
           }}
         />
-      </SafeAreaView>
+      </ModalSafeArea>
     </Modal>
   );
 }

@@ -1,12 +1,12 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 
 import { downloadPhoto, pickPhotos, saveBase64Photo } from '../lib/photos';
 import { COLORS, FONTS } from '../theme';
 import { Photo } from '../types';
+import { ModalSafeArea } from './ModalSafeArea';
 
 interface Props {
   visible: boolean;
@@ -163,7 +163,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <ModalSafeArea style={styles.root}>
         <View style={styles.header}>
           <Pressable onPress={step === 'page' ? () => setStep('scan') : onClose} hitSlop={10}>
             <Text style={styles.headerBtn}>{step === 'page' ? '다시 스캔' : '닫기'}</Text>
@@ -266,7 +266,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
             </View>
           </View>
         )}
-      </SafeAreaView>
+      </ModalSafeArea>
     </Modal>
   );
 }

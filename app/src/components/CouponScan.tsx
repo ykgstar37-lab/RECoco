@@ -1,10 +1,10 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { bump } from '../lib/haptics';
 import { COLORS, FONTS } from '../theme';
+import { ModalSafeArea } from './ModalSafeArea';
 
 interface Props {
   visible: boolean;
@@ -46,7 +46,7 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <ModalSafeArea style={styles.root}>
         <View style={styles.header}>
           <Pressable onPress={onClose} hitSlop={10}>
             <Text style={styles.headerBtn}>닫기</Text>
@@ -118,7 +118,7 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
             </>
           )}
         </View>
-      </SafeAreaView>
+      </ModalSafeArea>
     </Modal>
   );
 }
