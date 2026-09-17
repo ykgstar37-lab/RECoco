@@ -29,19 +29,40 @@ export interface MovieDetail {
   ageRating: string;
 }
 
+const toBook = (d: any): BookHit => ({
+  id: d.isbn || d.url,
+  title: d.title,
+  author: (d.authors as string[]).join(', '),
+  publisher: d.publisher,
+  year: (d.datetime as string).slice(0, 4),
+  thumbnail: d.thumbnail,
+});
+
 export async function searchBooks(query: string, signal?: AbortSignal): Promise<BookHit[]> {
   const url = `https://dapi.kakao.com/v3/search/book?size=8&query=${encodeURIComponent(query)}`;
   const res = await fetch(url, { headers: { Authorization: `KakaoAK ${KAKAO_KEY}` }, signal });
   if (!res.ok) throw new Error(`kakao ${res.status}`);
   const data = await res.json();
-  return (data.documents as any[]).map((d) => ({
-    id: d.isbn || d.url,
-    title: d.title,
-    author: (d.authors as string[]).join(', '),
-    publisher: d.publisher,
-    year: (d.datetime as string).slice(0, 4),
-    thumbnail: d.thumbnail,
-  }));
+  return (data.documents as any[]).map(toBook);
+}
+
+/** 책 뒷표지 바코드(EAN-13)가 ISBN인지: 978/979로 시작하고 체크 숫자가 맞아야 한다 */
+export function isIsbn13(code: string) {
+  if (!/^97[89]\d{10}$/.test(code)) return false;
+  const sum = code
+    .slice(0, 12)
+    .split('')
+    .reduce((acc, d, i) => acc + Number(d) * (i % 2 ? 3 : 1), 0);
+  return (10 - (sum % 10)) % 10 === Number(code[12]);
+}
+
+/** ISBN으로 딱 그 책 찾기 */
+export async function bookByIsbn(isbn: string): Promise<BookHit | null> {
+  const url = `https://dapi.kakao.com/v3/search/book?target=isbn&size=1&query=${encodeURIComponent(isbn)}`;
+  const res = await fetch(url, { headers: { Authorization: `KakaoAK ${KAKAO_KEY}` } });
+  if (!res.ok) throw new Error(`kakao ${res.status}`);
+  const d = (await res.json()).documents?.[0];
+  return d ? toBook(d) : null;
 }
 
 // API 키(32자)면 쿼리로, 읽기 토큰(eyJ…)이면 헤더로 보낸다

@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { newId, nowTime, today, won } from '../lib/format';
 import { pickPhotos } from '../lib/photos';
-import { movieDetail } from '../lib/search';
+import { canSearchBooks, movieDetail } from '../lib/search';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
@@ -34,6 +34,7 @@ import {
   TravelRecord,
 } from '../types';
 import { DateField } from './DateField';
+import { IsbnScan } from './IsbnScan';
 import { QrImport } from './QrImport';
 import { TitleSearch } from './TitleSearch';
 
@@ -147,6 +148,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [travel, setTravel] = useState(emptyTravel);
   const [fourcut, setFourcut] = useState(emptyFourcut);
   const [qrOpen, setQrOpen] = useState(false);
+  const [isbnOpen, setIsbnOpen] = useState(false);
   const [error, setError] = useState('');
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
   const [searching, setSearching] = useState(false);
@@ -263,6 +265,16 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             {kind === 'reading' && (
               <>
+                {Platform.OS !== 'web' && canSearchBooks && (
+                  <Pressable onPress={() => setIsbnOpen(true)} style={({ pressed }) => [styles.scanBtn, pressed && { opacity: 0.8 }]}>
+                    <View style={styles.barcode}>
+                      {[3, 1.5, 2.5, 1.5, 3, 1.5, 2].map((w, i) => (
+                        <View key={i} style={{ width: w, height: 16, backgroundColor: COLORS.orange }} />
+                      ))}
+                    </View>
+                    <Text style={styles.scanBtnText}>책 뒷면 바코드 찍어서 채우기</Text>
+                  </Pressable>
+                )}
                 <Field
                   label="책 제목 *"
                   value={reading.title}
@@ -300,6 +312,15 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   ))}
                 </View>
                 <Field label="남기고 싶은 문장 / 한 줄 감상" value={reading.memo} onChange={(v) => setReading({ ...reading, memo: v })} placeholder="돌아갈 곳이 있다는 건…" multiline />
+                <IsbnScan
+                  visible={isbnOpen}
+                  onClose={() => setIsbnOpen(false)}
+                  onFound={(b) => {
+                    setIsbnOpen(false);
+                    setSearching(false);
+                    setReading((r) => ({ ...r, title: b.title, author: b.author, publisher: b.publisher }));
+                  }}
+                />
               </>
             )}
 
@@ -719,6 +740,19 @@ const styles = StyleSheet.create({
   },
   frameChipOn: { borderColor: COLORS.orange, borderWidth: 2 },
   frameDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 1, borderColor: COLORS.line },
+  scanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.orange,
+    backgroundColor: COLORS.orangeSoft,
+  },
+  barcode: { flexDirection: 'row', gap: 1.5, alignItems: 'center' },
+  scanBtnText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   qrBox: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 14, gap: 12, alignItems: 'center' },
   qrHint: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 20 },
   qrPreview: { width: '100%', height: 220 },
