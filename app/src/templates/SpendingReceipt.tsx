@@ -45,7 +45,7 @@ function paperPath() {
 const PAPER = paperPath();
 
 export function layoutSpending(_r: SpendingRecord): TemplateLayout {
-  return { width: PW + PAD * 2, height: PH + PAD * 2 + 14, foldAt: gBot + 24 + PAD, displayRatio: 0.94 };
+  return { width: PW + PAD * 2, height: PH + PAD * 2 + 14, foldAt: gBot + 24 + PAD, displayRatio: 0.94, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
 export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; width: number }) {

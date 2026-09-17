@@ -34,8 +34,8 @@ const photosOf = (r: TravelRecord) => r.photos.filter((p): p is Photo => !!p).sl
 export function layoutTravel(r: TravelRecord): TemplateLayout {
   const n = photosOf(r).length;
   return n === 0
-    ? { width: W + PAD * 2, height: H_NO_PHOTO + PAD * 2 + 16, foldAt: 0, displayRatio: 1 }
-    : { width: W + PAD * 2, height: H + PAD * 2 + 16, foldAt: HH + PAD + 70, displayRatio: 1 };
+    ? { width: W + PAD * 2, height: H_NO_PHOTO + PAD * 2 + 16, foldAt: 0, displayRatio: 1, inset: { top: PAD, bottom: PAD + 16 } }
+    : { width: W + PAD * 2, height: H + PAD * 2 + 16, foldAt: HH + PAD + 70, displayRatio: 1, inset: { top: PAD, bottom: PAD + 16 } };
 }
 
 interface Slot {

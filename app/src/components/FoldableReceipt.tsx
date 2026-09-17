@@ -31,6 +31,8 @@ interface Props {
   record: RecoRecord;
   rollWidth: number;
   initiallyOpen?: boolean;
+  /** 영수증 롤로 이어 붙일 때: 기울이지 않고, 접지 않고, 아래 여백 없이 */
+  connected?: boolean;
   onLongPress?: (record: RecoRecord) => void;
 }
 
@@ -38,16 +40,16 @@ interface Props {
  * 롤 안의 기록 한 장. 접힌 상태로 윗부분만 보이고,
  * 아래 손잡이를 잡아당기거나 탭하면 종이가 펼쳐진다.
  */
-function FoldableReceiptBase({ record, rollWidth, initiallyOpen = false, onLongPress }: Props) {
+function FoldableReceiptBase({ record, rollWidth, initiallyOpen = false, connected = false, onLongPress }: Props) {
   const size = sizeOf(record, rollWidth);
   const { width, height } = size;
   // 접는 지점이 없는 짧은 카드(사진 없는 탑승권 등)는 항상 펼친 채로 둔다
-  const foldable = size.foldHeight > 0;
+  const foldable = size.foldHeight > 0 && !connected;
   const foldHeight = foldable ? size.foldHeight : height;
   const range = Math.max(1, height - foldHeight);
   const open = useSharedValue(initiallyOpen || !foldable ? 1 : 0);
   const dragStart = useSharedValue(0);
-  const tilt = useMemo(() => (seededRandom(record.id)() - 0.5) * 1.6, [record.id]);
+  const tilt = useMemo(() => (connected ? 0 : (seededRandom(record.id)() - 0.5) * 1.6), [record.id, connected]);
 
   const shownHeight = useDerivedValue(() => foldHeight + range * open.value);
 
@@ -129,7 +131,7 @@ function FoldableReceiptBase({ record, rollWidth, initiallyOpen = false, onLongP
           </Animated.View>
         </GestureDetector>
       )}
-      <View style={{ height: 22 }} />
+      {!connected && <View style={{ height: 22 }} />}
     </View>
   );
 }

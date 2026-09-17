@@ -45,6 +45,7 @@ export function layoutReading(r: ReadingRecord): TemplateLayout {
     height: BASE_H + titleExtra + memoExtra + PAD * 2 + 12,
     foldAt: 660 + titleExtra + PAD,
     displayRatio: 1,
+    inset: { top: PAD, bottom: PAD + 12 },
   };
 }
 

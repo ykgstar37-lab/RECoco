@@ -5,12 +5,13 @@ import Animated, { Easing, LinearTransition, useAnimatedStyle, useSharedValue, w
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { KIND_LABEL } from '../templates';
+import { KIND_LABEL, sizeOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord, RecordKind } from '../types';
 import { CATEGORIES } from './CategoryPicker';
 import { FlipCard } from './FlipCard';
 import { FoldableReceipt } from './FoldableReceipt';
+import { ReceiptStack } from './ReceiptStack';
 import { RecordDetail } from './RecordDetail';
 
 interface Props {
@@ -28,6 +29,7 @@ interface Props {
 export function RollScreen({ visible, records, date, onClearDate, onClose, onSave, onDelete }: Props) {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [kind, setKind] = useState<RecordKind | null>(null);
+  const [stackOpen, setStackOpen] = useState(false);
 
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
@@ -135,25 +137,72 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onSav
             {list.length === 0 && (
               <Text style={styles.empty}>{kindLabel ? `아직 뽑은 ${kindLabel} 영수증이 없어요.` : '아직 뽑은 영수증이 없어요.'}</Text>
             )}
-            {list.map((record) => (
-              <Animated.View key={record.id} layout={LinearTransition.springify().damping(18)} style={styles.item}>
-                <View style={[styles.itemHead, { width: paperW }]}>
-                  <Text style={styles.itemLabel}>
-                    {record.date.replace(/-/g, '.')} · {KIND_LABEL[record.kind]}
-                  </Text>
-                  <Pressable onPress={() => open(record)} hitSlop={8} style={styles.more}>
-                    <Text style={styles.moreText}>크게 보기</Text>
-                  </Pressable>
-                </View>
-                {record.kind === 'fourcut' ? (
-                  <FlipCard record={record} rollWidth={paperW} onLongPress={open} />
-                ) : (
-                  <FoldableReceipt record={record} rollWidth={paperW} onLongPress={open} />
-                )}
-              </Animated.View>
-            ))}
+            {list.map((record, i) => {
+              // 카테고리를 골랐을 때는 영수증끼리 딱 붙여 하나의 긴 롤처럼 잇는다 (네컷은 카드라 따로)
+              const connected = !!kind && record.kind !== 'fourcut';
+              const prev = list[i - 1];
+              const overlap =
+                connected && prev ? sizeOf(prev, paperW).insetBottom + sizeOf(record, paperW).insetTop - 1 : 0;
+              const dateText = record.date.replace(/-/g, '.');
+              return (
+                <Animated.View
+                  key={record.id}
+                  layout={LinearTransition.springify().damping(18)}
+                  style={[styles.item, connected && { marginTop: -overlap }]}>
+                  {connected ? (
+                    // 이음매 위에 올려둔 작은 절취선 라벨
+                    <View style={[styles.seam, i === 0 && styles.seamFirst]} pointerEvents="box-none">
+                      <Pressable onPress={() => open(record)} hitSlop={6} style={styles.seamChip}>
+                        <Text style={styles.seamText}>✂ {dateText}</Text>
+                        <Text style={styles.seamMore}>크게 보기</Text>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <View style={[styles.itemHead, { width: paperW }]}>
+                      <Text style={styles.itemLabel}>
+                        {dateText} · {KIND_LABEL[record.kind]}
+                      </Text>
+                      <Pressable onPress={() => open(record)} hitSlop={8} style={styles.more}>
+                        <Text style={styles.moreText}>크게 보기</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                  {record.kind === 'fourcut' ? (
+                    <FlipCard record={record} rollWidth={paperW} onLongPress={open} />
+                  ) : (
+                    <FoldableReceipt record={record} rollWidth={paperW} connected={connected} onLongPress={open} />
+                  )}
+                </Animated.View>
+              );
+            })}
           </ScrollView>
+
+          {/* 오른쪽 아래: 지금 보고 있는 영수증을 쌓아서 보기 */}
+          {list.length > 0 && (
+            <Pressable
+              onPress={() => setStackOpen(true)}
+              style={({ pressed }) => [styles.stackBtn, { bottom: insets.bottom + 20 }, pressed && { transform: [{ scale: 0.94 }] }]}
+              accessibilityLabel="쌓아보기">
+              <View style={styles.stackIcon}>
+                <View style={[styles.stackBar, { width: 16 }]} />
+                <View style={[styles.stackBar, { width: 20 }]} />
+                <View style={[styles.stackBar, { width: 14 }]} />
+              </View>
+              <Text style={styles.stackBtnText}>쌓아보기</Text>
+            </Pressable>
+          )}
         </Animated.View>
+        <ReceiptStack
+          visible={stackOpen}
+          records={list}
+          label={kindLabel ?? (date ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일` : '전체')}
+          onClose={() => setStackOpen(false)}
+          onOpen={(r) => {
+            // 모달 위에 모달을 바로 띄우면 iOS에서 막히므로, 쌓아보기를 닫고 연다
+            setStackOpen(false);
+            setTimeout(() => setDetailId(r.id), 380);
+          }}
+        />
         <RecordDetail
           key={detailId ?? 'none'}
           record={detail}
@@ -232,8 +281,42 @@ const styles = StyleSheet.create({
   tabText: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.sansBold },
   tabCount: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans },
   tabTextOn: { color: '#fff' },
-  list: { alignItems: 'center', paddingBottom: 60 },
+  list: { alignItems: 'center', paddingBottom: 110 },
   item: { alignItems: 'center', width: '100%', paddingHorizontal: 22 },
+  stackBtn: {
+    position: 'absolute',
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.orange,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 999,
+    shadowColor: '#7a2c00',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  stackIcon: { gap: 2.5, alignItems: 'center' },
+  stackBar: { height: 4, borderRadius: 2, backgroundColor: '#fff' },
+  stackBtnText: { color: '#fff', fontSize: 14, fontFamily: FONTS.sansBold },
+  seam: { position: 'absolute', top: -2, left: 0, right: 0, alignItems: 'center', zIndex: 2 },
+  seamFirst: { position: 'relative', top: 0, paddingTop: 14, paddingBottom: 6 },
+  seamChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: COLORS.line,
+  },
+  seamText: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans },
+  seamMore: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold },
   itemHead: {
     flexDirection: 'row',
     alignItems: 'center',

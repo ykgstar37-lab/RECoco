@@ -79,7 +79,7 @@ export function fourcutSize(r: FourcutRecord): { w: number; h: number; image: Ph
 
 export function layoutFourcut(r: FourcutRecord): TemplateLayout {
   const { w, h, displayRatio } = fourcutSize(r);
-  return { width: w + PAD * 2, height: h + PAD * 2 + 14, foldAt: 0, displayRatio };
+  return { width: w + PAD * 2, height: h + PAD * 2 + 14, foldAt: 0, displayRatio, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
 const cardPath = (w: number, h: number, r = 8) =>

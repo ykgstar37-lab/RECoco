@@ -31,7 +31,13 @@ export function sizeOf(record: RecoRecord, rollWidth: number) {
   const l = layoutOf(record);
   const width = rollWidth * l.displayRatio;
   const scale = width / l.width;
-  return { width, height: l.height * scale, foldHeight: l.foldAt * scale };
+  return {
+    width,
+    height: l.height * scale,
+    foldHeight: l.foldAt * scale,
+    insetTop: l.inset.top * scale,
+    insetBottom: l.inset.bottom * scale,
+  };
 }
 
 /** 기록의 "앞면" (인생네컷은 사진 면) */

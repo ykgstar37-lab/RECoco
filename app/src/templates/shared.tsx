@@ -10,6 +10,8 @@ export interface TemplateLayout {
   foldAt: number;
   /** 롤 폭 대비 표시 비율 (좁고 긴 인생네컷 등은 작게) */
   displayRatio: number;
+  /** 종이 바깥 여백(그림자 자리). 영수증끼리 딱 붙여 이을 때 이만큼 겹친다 */
+  inset: { top: number; bottom: number };
 }
 
 const TEXTURES = {

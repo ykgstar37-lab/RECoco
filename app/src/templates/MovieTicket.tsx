@@ -55,7 +55,7 @@ function computeLayout(r: MovieRecord) {
 
 export function layoutMovie(r: MovieRecord): TemplateLayout {
   const { extra } = computeLayout(r);
-  return { width: PW + PAD * 2, height: BASE_H + extra + PAD * 2 + 14, foldAt: 560 + extra + PAD, displayRatio: 0.9 };
+  return { width: PW + PAD * 2, height: BASE_H + extra + PAD * 2 + 14, foldAt: 560 + extra + PAD, displayRatio: 0.9, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
 export function MovieTicket({ record: r, width }: { record: MovieRecord; width: number }) {
