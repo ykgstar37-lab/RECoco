@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg from 'react-native-svg';
 
 import { newId, nowTime, today, won } from '../lib/format';
 import { pickPhotos } from '../lib/photos';
@@ -36,6 +37,7 @@ import {
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
 import { QrImport } from './QrImport';
+import { STICKERS, StickerArt, stickerOf } from './Stickers';
 import { TheaterField } from './TheaterField';
 import { TitleSearch } from './TitleSearch';
 
@@ -77,6 +79,12 @@ const MOVIE_PAPER_OPTIONS: { key: MoviePaper; label: string }[] = [
 ];
 
 const STATUSES: ReadingStatus[] = ['완독', '읽는 중', '잠시 멈춤'];
+// 상태마다 색: 다 읽음 초록 · 읽는 중 주황 · 멈춤 회색
+const STATUS_COLORS: Record<ReadingStatus, { main: string; soft: string }> = {
+  완독: { main: '#2e9e6a', soft: '#e2f4ea' },
+  '읽는 중': { main: COLORS.orange, soft: COLORS.orangeSoft },
+  '잠시 멈춤': { main: '#7b8190', soft: '#e9ebf0' },
+};
 
 const emptyReading = (): Omit<ReadingRecord, 'id' | 'createdAt'> => ({
   kind: 'reading',
@@ -306,11 +314,18 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                 <Field label="어디서 읽었나요? (서점·도서관·카페 등)" value={reading.place} onChange={(v) => setReading({ ...reading, place: v })} placeholder="교보문고 광화문점" />
                 <Label text="상태" />
                 <View style={styles.segment}>
-                  {STATUSES.map((s) => (
-                    <Pressable key={s} onPress={() => setReading({ ...reading, status: s })} style={[styles.seg, reading.status === s && styles.segOn]}>
-                      <Text style={[styles.segText, reading.status === s && styles.segTextOn]}>{s}</Text>
-                    </Pressable>
-                  ))}
+                  {STATUSES.map((s) => {
+                    const on = reading.status === s;
+                    const c = STATUS_COLORS[s];
+                    return (
+                      <Pressable key={s} onPress={() => setReading({ ...reading, status: s })} style={[styles.seg, on && { backgroundColor: c.soft }]}>
+                        <View style={styles.statusRow}>
+                          <View style={[styles.statusDot, { backgroundColor: c.main, opacity: on ? 1 : 0.55 }]} />
+                          <Text style={[styles.segText, on && { color: c.main, fontFamily: FONTS.sansBold }]}>{s}</Text>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
                 </View>
                 <Field label="남기고 싶은 문장 / 한 줄 감상" value={reading.memo} onChange={(v) => setReading({ ...reading, memo: v })} placeholder="돌아갈 곳이 있다는 건…" multiline />
                 <IsbnScan
@@ -400,9 +415,28 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                 </Row>
                 <Row>
                   <DateField label="날짜" value={spending.date} onChange={(v) => setSpending({ ...spending, date: v })} />
-                  <Field label="비고" value={spending.memo} onChange={(v) => setSpending({ ...spending, memo: v })} placeholder="☕" />
+                  <Field label="위치 (선택)" value={spending.address} onChange={(v) => setSpending({ ...spending, address: v })} placeholder="연남동" />
                 </Row>
-                <Field label="위치 (선택)" value={spending.address} onChange={(v) => setSpending({ ...spending, address: v })} placeholder="서울 마포구 연남동" />
+                <Label text="비고 스티커 (다시 누르면 빼기)" />
+                <View style={styles.stickers}>
+                  {STICKERS.map((st) => {
+                    const on = stickerOf(spending.memo)?.emoji === st.emoji;
+                    return (
+                      <Pressable
+                        key={st.emoji}
+                        onPress={() => setSpending({ ...spending, memo: on ? '' : st.emoji })}
+                        style={[styles.sticker, on && styles.stickerOn]}
+                        accessibilityLabel={`${st.label} 스티커`}>
+                        <Svg width={34} height={34} viewBox="0 0 48 48">
+                          <StickerArt emoji={st.emoji} />
+                        </Svg>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                {!stickerOf(spending.memo) && (
+                  <Field label="또는 짧게 적기" value={spending.memo} onChange={(v) => setSpending({ ...spending, memo: v })} placeholder="선물용" />
+                )}
                 <Label text="품목" />
                 {items.map((it, i) => (
                   <View key={i} style={styles.itemRow}>
@@ -678,6 +712,11 @@ const styles = StyleSheet.create({
   segOn: { backgroundColor: '#fff' },
   segText: { color: COLORS.sub, fontSize: 14, fontFamily: FONTS.sans },
   segTextOn: { color: COLORS.orange, fontFamily: FONTS.sansBold },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  stickers: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  sticker: { width: 52, height: 52, borderRadius: 14, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  stickerOn: { borderColor: COLORS.orange, backgroundColor: COLORS.orangeSoft },
   stars: { flexDirection: 'row', gap: 6 },
   star: { fontSize: 32, color: COLORS.line },
   starOn: { color: COLORS.orange },

@@ -6,6 +6,7 @@ import { handDate, seededRandom, won } from '../lib/format';
 import { fitLine } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
 import { SpendingRecord } from '../types';
+import { StickerArt, stickerOf } from '../components/Stickers';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
 const PW = 640;
@@ -175,7 +176,12 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
           {hand('biz-type', L + 150, sTop + sRow * 3 + 38, r.category, 32, midA - L - 156)}
           {hand('date', (L + 236) / 2, dHead + 38, handDate(r.date), 32, 180, 'middle')}
           {hand('total-top', 254, dHead + 38, `₩ ${won(total)}`, 32, 225)}
-          {hand('memo', (492 + R) / 2, dHead + 40, r.memo, 30, 96, 'middle')}
+          {/* 비고: 고른 스티커는 그림으로, 아니면 손글씨 */}
+          {stickerOf(r.memo) ? (
+            <StickerArt emoji={r.memo} x={(492 + R) / 2} y={(dHead + dBot) / 2} size={46} rotate={jitter() * 3} />
+          ) : (
+            hand('memo', (492 + R) / 2, dHead + 40, r.memo, 30, 96, 'middle')
+          )}
           {items.map((it, i) => {
             const y = hBot + rowH * (i + 1) - 12;
             return (
