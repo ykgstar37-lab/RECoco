@@ -46,10 +46,20 @@ function Hat({ id }: { id: OutfitId }) {
     case 'ribbon':
       return (
         <G>
-          <Path d="M266,80 C236,50 218,86 244,100 Z" fill="#f27ca0" />
-          <Path d="M270,80 C302,48 322,84 294,100 Z" fill="#f27ca0" />
-          <Path d="M262,84 L252,112 L264,106 Z M274,84 L286,112 L274,106 Z" fill="#e0628a" />
-          <Circle cx={268} cy={82} r={10} fill="#e0628a" />
+          {/* 꼬리: 끝이 V자로 파인 리본 끈 */}
+          <Path d="M262,88 C257,100 250,112 242,124 L252,121 L255,131 C263,118 268,104 268,90 Z" fill="#e0628a" />
+          <Path d="M274,88 C279,100 286,112 294,124 L284,121 L281,131 C273,118 268,104 268,90 Z" fill="#e0628a" />
+          {/* 통통한 고리 두 개 + 안쪽 접힌 그림자 */}
+          <Path d="M268,83 C254,63 224,57 219,73 C215,89 240,98 268,87 Z" fill="#f27ca0" />
+          <Path d="M268,83 C282,63 312,57 317,73 C321,89 296,98 268,87 Z" fill="#f27ca0" />
+          <Path d="M267,84 C256,76 241,74 238,80 C237,86 252,89 267,86 Z" fill="#d95a82" />
+          <Path d="M269,84 C280,76 295,74 298,80 C299,86 284,89 269,86 Z" fill="#d95a82" />
+          {/* 반짝이는 윗면 */}
+          <Path d="M230,70 C236,64 246,64 252,68" stroke="#ffc6d8" strokeWidth={3.5} strokeLinecap="round" fill="none" />
+          <Path d="M284,68 C290,64 300,64 306,70" stroke="#ffc6d8" strokeWidth={3.5} strokeLinecap="round" fill="none" />
+          {/* 매듭 */}
+          <Rect x={259} y={75} width={18} height={17} rx={6} fill="#e0628a" />
+          <Path d="M262,79 C266,77 270,77 274,79" stroke="#f59bb8" strokeWidth={2.5} strokeLinecap="round" fill="none" />
         </G>
       );
     case 'beanie':
