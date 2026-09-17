@@ -16,7 +16,7 @@ import Svg from 'react-native-svg';
 
 import { newId, nowTime, today, won } from '../lib/format';
 import { downloadPhoto, pickPhotos } from '../lib/photos';
-import { BookHit, canSearchBooks, canSearchMovies, movieDetail } from '../lib/search';
+import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
@@ -44,6 +44,7 @@ import { CouponScan, formatCoupon } from './CouponScan';
 import { CardSmsPaste } from './CardSmsPaste';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
+import { MovieSmsPaste } from './MovieSmsPaste';
 import { QrImport } from './QrImport';
 import { QuickFill } from './QuickFill';
 import { STICKERS, StickerArt, stickerOf } from './Stickers';
@@ -207,9 +208,20 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [smsOpen, setSmsOpen] = useState(false);
   const [passOpen, setPassOpen] = useState(false);
   const [couponOpen, setCouponOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const [error, setError] = useState('');
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
   const [searching, setSearching] = useState(false);
+
+  // 고른 영화로 제목·원제를 채우고, 러닝타임·관람등급은 상세 정보에서 (실패해도 제목은 채워진 채로)
+  const fillMovie = (m: MovieHit, keepTitle = false) => {
+    setSearching(false);
+    const originalTitle = m.originalTitle !== m.title ? m.originalTitle : '';
+    setMovie((x) => ({ ...x, title: keepTitle ? x.title : m.title, originalTitle }));
+    movieDetail(m.id)
+      .then((d) => setMovie((x) => ({ ...x, runtime: d.runtime || x.runtime, ageRating: d.ageRating || x.ageRating })))
+      .catch(() => {});
+  };
 
   // 고른 책으로 채우고, 표지는 받아서 앱에 저장 (실패하면 표지 없이)
   const fillBook = (b: BookHit) => {
@@ -423,6 +435,34 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
             {kind === 'movie' && (
               <>
                 {!canSearchMovies && <MissingKey what="영화 검색" />}
+                <QuickFill icon="ticket" title="예매 문자로 채우기" sub="예매 완료 문자·카톡 알림을 붙여넣으면 극장·일시·좌석이 자동으로" onPress={() => setBookingOpen(true)} />
+                <MovieSmsPaste
+                  visible={bookingOpen}
+                  onClose={() => setBookingOpen(false)}
+                  onFill={(b) => {
+                    setBookingOpen(false);
+                    setMovie((x) => ({
+                      ...x,
+                      title: b.title || x.title,
+                      theater: b.theater || x.theater,
+                      screen: b.screen || x.screen,
+                      format: b.format || x.format,
+                      date: b.date ?? x.date,
+                      time: b.time ?? x.time,
+                      seat: b.seat || x.seat,
+                      people: b.people || x.people,
+                    }));
+                    // 제목으로 영화를 찾아 원제·러닝타임·관람등급까지 (문자 속 제목은 그대로 둔다)
+                    if (b.title && canSearchMovies)
+                      searchMovies(b.title)
+                        .then((hits) => {
+                          const norm = (t: string) => t.replace(/\s/g, '');
+                          const best = hits.find((h) => norm(h.title) === norm(b.title)) ?? hits[0];
+                          if (best) fillMovie(best, true);
+                        })
+                        .catch(() => {});
+                  }}
+                />
                 <Field
                   label="영화 제목 *"
                   value={movie.title}
@@ -437,17 +477,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   query={movie.title}
                   active={searching}
                   onDismiss={() => setSearching(false)}
-                  onPick={(m) => {
-                    setSearching(false);
-                    const originalTitle = m.originalTitle !== m.title ? m.originalTitle : '';
-                    setMovie((x) => ({ ...x, title: m.title, originalTitle }));
-                    // 러닝타임·관람등급은 상세 정보에 있어서 한 번 더 부른다 (실패해도 제목은 채워진 채로)
-                    movieDetail(m.id)
-                      .then((d) =>
-                        setMovie((x) => ({ ...x, runtime: d.runtime || x.runtime, ageRating: d.ageRating || x.ageRating })),
-                      )
-                      .catch(() => {});
-                  }}
+                  onPick={(m) => fillMovie(m)}
                 />
                 <Field label="원제 (선택)" value={movie.originalTitle} onChange={(v) => setMovie({ ...movie, originalTitle: v })} placeholder="Odyssey" />
                 <TheaterField value={movie.theater} onChange={(v) => setMovie((m) => ({ ...m, theater: v }))} />
