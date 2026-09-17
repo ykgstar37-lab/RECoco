@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { newId, nowTime, today, won } from '../lib/format';
 import { pickPhotos } from '../lib/photos';
+import { movieDetail } from '../lib/search';
 import { COLORS, FONTS } from '../theme';
 import {
   FourcutFrame,
@@ -32,6 +33,7 @@ import {
 } from '../types';
 import { DateField } from './DateField';
 import { QrImport } from './QrImport';
+import { TitleSearch } from './TitleSearch';
 
 interface Props {
   visible: boolean;
@@ -138,6 +140,8 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [fourcut, setFourcut] = useState(emptyFourcut);
   const [qrOpen, setQrOpen] = useState(false);
   const [error, setError] = useState('');
+  // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -177,6 +181,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
     setSpending({ date: today(), store: '', category: '', address: '', memo: '' });
     setItems([{ name: '', qty: '1', price: '' }]);
     setError('');
+    setSearching(false);
   };
 
   const parsedItems: SpendingItem[] = items
@@ -236,6 +241,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                 onPress={() => {
                   setKind(k.kind as RecordKind);
                   setError('');
+                  setSearching(false);
                 }}
                 style={[styles.chip, selected && styles.chipOn, (!k.ready || (!!editing && !selected)) && styles.chipOff]}>
                 <Text style={[styles.chipText, selected && styles.chipTextOn]}>{k.label}</Text>
@@ -249,7 +255,25 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             {kind === 'reading' && (
               <>
-                <Field label="책 제목 *" value={reading.title} onChange={(v) => setReading({ ...reading, title: v })} placeholder="오디세이아" />
+                <Field
+                  label="책 제목 *"
+                  value={reading.title}
+                  onChange={(v) => {
+                    setReading({ ...reading, title: v });
+                    setSearching(true);
+                  }}
+                  placeholder="오디세이아"
+                />
+                <TitleSearch
+                  type="book"
+                  query={reading.title}
+                  active={searching}
+                  onDismiss={() => setSearching(false)}
+                  onPick={(b) => {
+                    setSearching(false);
+                    setReading((r) => ({ ...r, title: b.title, author: b.author, publisher: b.publisher }));
+                  }}
+                />
                 <Row>
                   <Field label="저자" value={reading.author} onChange={(v) => setReading({ ...reading, author: v })} placeholder="호메로스" />
                   <Field label="출판사" value={reading.publisher} onChange={(v) => setReading({ ...reading, publisher: v })} placeholder="현대지성" />
@@ -273,7 +297,32 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
 
             {kind === 'movie' && (
               <>
-                <Field label="영화 제목 *" value={movie.title} onChange={(v) => setMovie({ ...movie, title: v })} placeholder="오디세이" />
+                <Field
+                  label="영화 제목 *"
+                  value={movie.title}
+                  onChange={(v) => {
+                    setMovie({ ...movie, title: v });
+                    setSearching(true);
+                  }}
+                  placeholder="오디세이"
+                />
+                <TitleSearch
+                  type="movie"
+                  query={movie.title}
+                  active={searching}
+                  onDismiss={() => setSearching(false)}
+                  onPick={(m) => {
+                    setSearching(false);
+                    const originalTitle = m.originalTitle !== m.title ? m.originalTitle : '';
+                    setMovie((x) => ({ ...x, title: m.title, originalTitle }));
+                    // 러닝타임·관람등급은 상세 정보에 있어서 한 번 더 부른다 (실패해도 제목은 채워진 채로)
+                    movieDetail(m.id)
+                      .then((d) =>
+                        setMovie((x) => ({ ...x, runtime: d.runtime || x.runtime, ageRating: d.ageRating || x.ageRating })),
+                      )
+                      .catch(() => {});
+                  }}
+                />
                 <Field label="원제 (선택)" value={movie.originalTitle} onChange={(v) => setMovie({ ...movie, originalTitle: v })} placeholder="Odyssey" />
                 <Field label="어디서 봤나요?" value={movie.theater} onChange={(v) => setMovie({ ...movie, theater: v })} placeholder="CGV 강남점 / 롯데시네마 월드타워" />
                 <Row>
