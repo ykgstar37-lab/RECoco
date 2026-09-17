@@ -7,7 +7,7 @@ import { newId } from './format';
 
 const isNative = Platform.OS !== 'web';
 
-function photoDir() {
+export function photoDir() {
   const dir = new Directory(Paths.document, 'photos');
   if (!dir.exists) dir.create({ intermediates: true, idempotent: true });
   return dir;

@@ -300,7 +300,19 @@ export function HomeScreen() {
           setTimeout(() => setClosetOpen(true), Platform.OS === 'ios' ? 450 : 250);
         }}
       />
-      <Settings visible={settingsOpen} recordCount={records.length} onClose={() => setSettingsOpen(false)} onBought={bought} />
+      <Settings
+        visible={settingsOpen}
+        records={records}
+        onClose={() => setSettingsOpen(false)}
+        onImport={(incoming) => {
+          // 같은 영수증(id)은 건너뛰고 합친 뒤 날짜 최신순으로
+          const have = new Set(records.map((r) => r.id));
+          const added = incoming.filter((r) => !have.has(r.id));
+          if (added.length) update([...added, ...records].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)));
+          return added.length;
+        }}
+        onBought={bought}
+      />
       <RecordForm visible={formOpen} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
     </View>
   );

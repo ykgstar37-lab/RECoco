@@ -3,15 +3,15 @@ import { Circle, G, Path, Rect } from 'react-native-svg';
 
 export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones';
 
-// 모자는 꼭지 기준(225, 104)으로 그려두고, 머리를 푹 덮도록 키워서 코코 가운데로 옮긴다
-const FIT: Record<OutfitId, { k: number; x: number; y: number }> = {
-  ribbon: { k: 1.7, x: 250, y: 118 },
-  beanie: { k: 1.45, x: 203, y: 150 },
-  straw: { k: 1.3, x: 203, y: 142 },
-  beret: { k: 1.4, x: 200, y: 142 },
-  crown: { k: 1.35, x: 203, y: 146 },
-  party: { k: 1.45, x: 205, y: 152 },
-  headphones: { k: 1, x: 225, y: 104 },
+// 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
+const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
+  ribbon: { from: [268, 82], to: [274, 90], k: 1.5, r: 12, top: 40 },
+  beanie: { from: [225, 104], to: [203, 150], k: 1.45, top: 5 },
+  straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
+  beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
+  crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
+  party: { from: [236, 98], to: [208, 92], k: 1.1, r: 8, top: 4 },
+  headphones: { from: [225, 104], to: [225, 104], k: 1, top: 36 },
 };
 
 /** 머리를 덮는 모자는 만두 꼭지를 숨긴다 (리본·헤드폰은 꼭지가 보이는 게 귀엽다) */
@@ -25,18 +25,13 @@ export const COVERS_KNOB: Record<OutfitId, boolean> = {
   headphones: false,
 };
 
-/** 그림 안에서 모자 원본의 가장 위쪽 y */
-const RAW_TOP: Record<OutfitId, number> = { ribbon: 50, beanie: 4, straw: 38, beret: 20, crown: 8, party: 2, headphones: 36 };
-
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
-export const OUTFIT_TOP = Object.fromEntries(
-  (Object.keys(FIT) as OutfitId[]).map((id) => [id, Math.max(0, FIT[id].y - FIT[id].k * (104 - RAW_TOP[id]))]),
-) as Record<OutfitId, number>;
+export const OUTFIT_TOP = Object.fromEntries((Object.keys(FIT) as OutfitId[]).map((id) => [id, FIT[id].top])) as Record<OutfitId, number>;
 
 export function OutfitArt({ id }: { id: OutfitId }) {
-  const { k, x, y } = FIT[id];
+  const { from, to, k, r = 0 } = FIT[id];
   return (
-    <G transform={`translate(${x} ${y}) scale(${k}) translate(-225 -104)`}>
+    <G transform={`translate(${to[0]} ${to[1]}) rotate(${r}) scale(${k}) translate(${-from[0]} ${-from[1]})`}>
       <Hat id={id} />
     </G>
   );
@@ -97,10 +92,10 @@ function Hat({ id }: { id: OutfitId }) {
     case 'party':
       return (
         <G>
-          <Path d="M184,98 L236,12 L290,102 C262,92 212,90 184,98 Z" fill="#6cc3a0" />
-          <Path d="M204,66 L250,40 L258,52 L199,76 Z M192,88 L270,64 L278,78 L188,96 Z" fill="#fff5d6" />
-          <Path d="M184,98 C212,90 262,92 290,102" stroke="#4fa885" strokeWidth={6} strokeLinecap="round" fill="none" />
-          <Circle cx={236} cy={13} r={11} fill="#f2c14e" />
+          <Path d="M170,98 L236,30 L302,102 C262,92 210,90 170,98 Z" fill="#6cc3a0" />
+          <Path d="M196,70 L204,62 L250,44 L257,52 Z M176,92 L183,84 L272,68 L279,76 Z" fill="#fff5d6" />
+          <Path d="M170,98 C210,90 262,92 302,102" stroke="#4fa885" strokeWidth={6} strokeLinecap="round" fill="none" />
+          <Circle cx={236} cy={30} r={11} fill="#f2c14e" />
         </G>
       );
     case 'headphones':
