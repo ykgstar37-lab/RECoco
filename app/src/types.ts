@@ -17,6 +17,7 @@ export interface ReadingRecord extends BaseRecord {
   status: ReadingStatus;
   place: string; // 어디서 읽었는지/샀는지 (예: 교보문고 광화문점, 동네 도서관)
   memo: string;
+  cover?: Photo | null; // 책 표지 (검색으로 고르면 자동, 갤러리에서도)
 }
 
 export interface MovieRecord extends BaseRecord {

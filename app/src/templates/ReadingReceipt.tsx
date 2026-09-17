@@ -1,6 +1,6 @@
 // 독서 영수증: 서점 키오스크의 "도서 위치 안내" 감열지 출력물
 import type { ComponentProps } from 'react';
-import Svg, { Circle, G, Line, Path, Polygon, Rect, Text } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Polygon, Rect, Text } from 'react-native-svg';
 
 import { pad2, parseDate, seededRandom } from '../lib/format';
 import { FontMetric, fitLine, fitLines, measure } from '../lib/text';
@@ -17,6 +17,14 @@ const VX = 162; // 값 열
 const VW = PW - VX - 38;
 const PAPER = '#f6f6f3';
 
+// 표지가 있으면 도서 정보 칸 왼쪽에 표지, 라벨·값은 오른쪽으로
+const COVER = { x: 42, y: 384, w: 148, h: 226 };
+const CLX = COVER.x + COVER.w + 26;
+const CVX = CLX + 96;
+
+/** 도서 정보 칸의 라벨·값 위치 */
+const infoCols = (r: ReadingRecord) => (r.cover ? { lx: CLX, vx: CVX, vw: PW - CVX - 38, size: 21 } : { lx: LX, vx: VX, vw: VW, size: 23 });
+
 const ZONES = [
   { code: 'A', name: '문학', keys: ['문학', '소설', '시', '에세이', '산문', '동화'] },
   { code: 'B', name: '인문', keys: ['인문', '철학', '역사', '고전', '종교', '심리'] },
@@ -30,7 +38,7 @@ const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f
 const metricOf = (f: keyof typeof FONTS): FontMetric => (f.startsWith('mono') ? 'mono' : 'sans');
 
 function computeLayout(r: ReadingRecord) {
-  const title = fitLines(r.title.trim() || '제목 없음', VW, 24, 19, 3, 'sans');
+  const title = fitLines(r.title.trim() || '제목 없음', infoCols(r).vw, 24, 19, 3, 'sans');
   const titleExtra = (title.lines.length - 1) * 34;
   const memoText = r.memo.trim();
   const memo = memoText ? fitLines(memoText, VW, 22, 19, 6, 'sans') : null;
@@ -63,6 +71,7 @@ function BookMark({ x, y }: { x: number; y: number }) {
 export function ReadingReceipt({ record: r, width }: { record: ReadingRecord; width: number }) {
   const L = layoutReading(r);
   const { title, titleExtra, memo, memoExtra } = computeLayout(r);
+  const info = infoCols(r);
   const PH = BASE_H + titleExtra + memoExtra;
   const paper = serratedRect(PW, PH);
 
@@ -126,19 +135,43 @@ export function ReadingReceipt({ record: r, width }: { record: ReadingRecord; wi
         <T x={PW / 2} y={326} fontSize={22} textAnchor="middle" children="고객님이 읽으신 도서의 위치를 안내합니다." />
         <Line x1={40} y1={360} x2={PW - 40} y2={360} stroke="#444" strokeDasharray="6 4" />
 
-        {/* ── 도서 정보 ── */}
-        <T x={LX} y={405} fontSize={23} children="출력일시" />
-        <T x={VX} y={405} fontSize={23} children={printedAt} />
-        <T x={LX} y={446} fontSize={23} children="도서명" />
+        {/* ── 도서 정보 (표지가 있으면 왼쪽에 표지) ── */}
+        {r.cover && (
+          <G>
+            <Defs>
+              <ClipPath id={`cover-${r.id}`}>
+                <Rect x={COVER.x} y={COVER.y} width={COVER.w} height={COVER.h} rx={5} />
+              </ClipPath>
+            </Defs>
+            <Rect x={COVER.x + 5} y={COVER.y + 6} width={COVER.w} height={COVER.h} rx={5} fill="#000" opacity={0.12} />
+            <Rect x={COVER.x} y={COVER.y} width={COVER.w} height={COVER.h} rx={5} fill="#e4e4e0" />
+            <Image
+              href={{ uri: r.cover.uri }}
+              x={COVER.x}
+              y={COVER.y}
+              width={COVER.w}
+              height={COVER.h}
+              preserveAspectRatio="xMidYMid slice"
+              clipPath={`url(#cover-${r.id})`}
+            />
+            <Rect x={COVER.x} y={COVER.y} width={COVER.w} height={COVER.h} rx={5} fill="none" stroke={INK} strokeWidth={1.2} opacity={0.5} />
+          </G>
+        )}
+        <T x={info.lx} y={405} fontSize={info.size} children="출력일시" />
+        {(() => {
+          const fit = fitLine(printedAt, info.vw, info.size, 15, 'sans');
+          return <T x={info.vx} y={405} fontSize={fit.size} children={fit.text} />;
+        })()}
+        <T x={info.lx} y={446} fontSize={info.size} children="도서명" />
         {title.lines.map((line, i) => (
-          <T key={i} f="sansBold" x={VX} y={446 + i * 34} fontSize={title.size} children={line} />
+          <T key={i} f="sansBold" x={info.vx} y={446 + i * 34} fontSize={title.size} children={line} />
         ))}
         {rows.map(([k, v, f], i) => {
-          const fit = fitLine(v, VW, 23, 17, metricOf(f));
+          const fit = fitLine(v, info.vw, info.size, 16, metricOf(f));
           return (
             <G key={k}>
-              <T x={LX} y={487 + y1 + i * 41} fontSize={23} children={k} />
-              <T f={f} x={VX} y={487 + y1 + i * 41} fontSize={fit.size} children={fit.text} />
+              <T x={info.lx} y={487 + y1 + i * 41} fontSize={info.size} children={k} />
+              <T f={f} x={info.vx} y={487 + y1 + i * 41} fontSize={fit.size} children={fit.text} />
             </G>
           );
         })}

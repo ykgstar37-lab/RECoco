@@ -15,8 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
 import { newId, nowTime, today, won } from '../lib/format';
-import { pickPhotos } from '../lib/photos';
-import { canSearchBooks, canSearchMovies, movieDetail } from '../lib/search';
+import { downloadPhoto, pickPhotos } from '../lib/photos';
+import { BookHit, canSearchBooks, canSearchMovies, movieDetail } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
@@ -211,6 +211,16 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
   const [searching, setSearching] = useState(false);
 
+  // 고른 책으로 채우고, 표지는 받아서 앱에 저장 (실패하면 표지 없이)
+  const fillBook = (b: BookHit) => {
+    setSearching(false);
+    setReading((r) => ({ ...r, title: b.title, author: b.author, publisher: b.publisher, cover: null }));
+    if (b.cover)
+      downloadPhoto(b.cover)
+        .then((cover) => setReading((r) => (r.title === b.title ? { ...r, cover } : r)))
+        .catch(() => {});
+  };
+
   useEffect(() => {
     if (!visible) return;
     if (!editing) {
@@ -349,11 +359,31 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   query={reading.title}
                   active={searching}
                   onDismiss={() => setSearching(false)}
-                  onPick={(b) => {
-                    setSearching(false);
-                    setReading((r) => ({ ...r, title: b.title, author: b.author, publisher: b.publisher }));
-                  }}
+                  onPick={fillBook}
                 />
+                <View style={styles.coverRow}>
+                  <Pressable
+                    onPress={async () => {
+                      const [p] = await pickPhotos(1);
+                      if (p) setReading((r) => ({ ...r, cover: p }));
+                    }}
+                    style={styles.cover}
+                    accessibilityLabel="책 표지 고르기">
+                    {reading.cover ? (
+                      <>
+                        <Image source={{ uri: reading.cover.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setReading((r) => ({ ...r, cover: null }))}>
+                          <Text style={styles.slotRemoveText}>×</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <Text style={styles.slotText}>+{'\n'}표지</Text>
+                    )}
+                  </Pressable>
+                  <Text style={styles.coverHelp}>
+                    {reading.cover ? '영수증 왼쪽에 표지가 찍혀요.\n눌러서 다른 사진으로 바꿀 수 있어요.' : '책을 검색하거나 바코드로 찾으면 표지가 자동으로 들어가요.\n직접 사진을 골라도 돼요.'}
+                  </Text>
+                </View>
                 <Row>
                   <Field label="저자" value={reading.author} onChange={(v) => setReading({ ...reading, author: v })} placeholder="호메로스" />
                   <Field label="출판사" value={reading.publisher} onChange={(v) => setReading({ ...reading, publisher: v })} placeholder="현대지성" />
@@ -384,8 +414,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   onClose={() => setIsbnOpen(false)}
                   onFound={(b) => {
                     setIsbnOpen(false);
-                    setSearching(false);
-                    setReading((r) => ({ ...r, title: b.title, author: b.author, publisher: b.publisher }));
+                    fillBook(b);
                   }}
                 />
               </>
@@ -947,6 +976,20 @@ const styles = StyleSheet.create({
   },
   frameChipOn: { borderColor: COLORS.orange, borderWidth: 2 },
   frameDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 1, borderColor: COLORS.line },
+  coverRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cover: {
+    width: 64,
+    height: 92,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.line,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coverHelp: { flex: 1, color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
   giftPhoto: {
     width: 96,
     height: 96,

@@ -44,6 +44,7 @@ module.exports = () => {
     { name: '선물_받은_노랑', record: gift },
     { name: '선물_보낸_사진_민트', record: { ...gift, id: 'sample-gift-2', direction: 'given', person: '엄마', item: '꽃다발', brand: '', price: 0, message: '생일 축하해요 엄마, 늘 고마워요.', photo: photo(2), card: 'mint' } },
     { name: '독서_영수증', record: reading },
+    { name: '독서_영수증_표지', record: { ...reading, id: 'sample-reading-cover', cover: { uri: url('p2.jpg'), width: 800, height: 600 } } },
     { name: '독서_영수증_긴글', record: readingLong },
     { name: '영화_티켓', record: movie },
     { name: '영화_티켓_흰색', record: { ...movie, id: 'sample-movie-white', paper: 'white' } },

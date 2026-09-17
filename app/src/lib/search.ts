@@ -12,6 +12,8 @@ export interface BookHit {
   publisher: string;
   year: string;
   thumbnail: string;
+  /** 영수증에 넣을 큰 표지 (썸네일 주소 안의 원본 이미지) */
+  cover: string;
 }
 
 export interface MovieHit {
@@ -29,6 +31,12 @@ export interface MovieDetail {
   ageRating: string;
 }
 
+// 카카오 썸네일(120×174) 주소의 fname 에 원본 표지 주소가 들어 있다
+function bigCover(thumbnail: string) {
+  const m = /[?&]fname=([^&]+)/.exec(thumbnail);
+  return m ? decodeURIComponent(m[1]).replace(/^http:/, 'https:') : thumbnail;
+}
+
 const toBook = (d: any): BookHit => ({
   id: d.isbn || d.url,
   title: d.title,
@@ -36,6 +44,7 @@ const toBook = (d: any): BookHit => ({
   publisher: d.publisher,
   year: (d.datetime as string).slice(0, 4),
   thumbnail: d.thumbnail,
+  cover: d.thumbnail ? bigCover(d.thumbnail) : '',
 });
 
 export async function searchBooks(query: string, signal?: AbortSignal): Promise<BookHit[]> {
