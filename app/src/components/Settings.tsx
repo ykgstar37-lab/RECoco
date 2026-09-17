@@ -142,7 +142,7 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
               <Text style={styles.rowLabel}>버그 신고하기</Text>
               <Text style={styles.rowValue}>›</Text>
             </Pressable>
-            <Text style={styles.help}>이상한 점이 있으면 알려주세요. 메일 앱으로 보내져요.</Text>
+            <Text style={styles.help}>이상한 점이 있으면 알려주세요. 스크린샷도 함께 보낼 수 있어요.</Text>
           </Group>
 
           <Group title="정보">
