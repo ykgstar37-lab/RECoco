@@ -6,7 +6,7 @@
     "preview": "node preview/build.js",
     "textures": "node gen_textures.js",
     "character": "node preview/character.js",
-    "icons": "node preview/character.js --icons"
+    "icons": "node preview/icons.js"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

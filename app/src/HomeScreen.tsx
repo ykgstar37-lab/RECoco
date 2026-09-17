@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
   // 로고 원본(523×119) 비율 그대로
-  logo: { height: 38, width: (38 * 523) / 119, marginLeft: -3, marginBottom: 4 },
+  logo: { height: 30, width: (30 * 523) / 119, marginLeft: -2, marginBottom: 2 },
   count: { fontSize: 13, color: 'rgba(255,255,255,0.85)', fontFamily: FONTS.sans, marginTop: 2 },
   addBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   addBtnText: { color: COLORS.orange, fontSize: 28, lineHeight: 32, fontFamily: FONTS.sansBold },

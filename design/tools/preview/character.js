@@ -1,4 +1,4 @@
-// 마스코트 "코코" 표정별 PNG + 앱 아이콘 생성
+// 마스코트 "코코" 표정별 PNG 생성
 // 사용법 (design/tools 에서): npm run character
 const path = require('path');
 const fs = require('fs');
@@ -42,27 +42,6 @@ const png = (svg, width) => new Resvg(svg, { fitTo: { mode: 'width', value: widt
       await out.png().toFile(file);
       console.log('rendered', file);
     }
-  }
-  if (process.argv[2] === '--icons') {
-    const ORANGE = '#ff7a2f';
-    // iOS 아이콘: 주황 배경 + 흰 코코 (메인 화면과 같은 조합)
-    await sharp({ create: { width: 1024, height: 1024, channels: 4, background: ORANGE } })
-      .composite([{ input: png(renderCoco('idle', 'white'), 740), gravity: 'center' }])
-      .png()
-      .toFile(path.join(APP, 'assets', 'icon.png'));
-    // 안드로이드 적응형 아이콘: 가운데 66% 안전영역에 맞춰 작게
-    await sharp({ create: { width: 1024, height: 1024, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-      .composite([{ input: png(renderCoco('idle', 'white'), 580), gravity: 'center' }])
-      .png()
-      .toFile(path.join(APP, 'assets', 'android-icon-foreground.png'));
-    await sharp({ create: { width: 1024, height: 1024, channels: 4, background: ORANGE } }).png().toFile(path.join(APP, 'assets', 'android-icon-background.png'));
-    // 스플래시는 흰 배경 → 주황 코코
-    await sharp(png(renderCoco('idle', 'orange'), 600)).toFile(path.join(APP, 'assets', 'splash-icon.png'));
-    await sharp({ create: { width: 48, height: 48, channels: 4, background: ORANGE } })
-      .composite([{ input: png(renderCoco('idle', 'white'), 40), gravity: 'center' }])
-      .png()
-      .toFile(path.join(APP, 'assets', 'favicon.png'));
-    console.log('app icons updated');
   }
 })().catch((e) => {
   console.error(e);
