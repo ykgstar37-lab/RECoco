@@ -16,7 +16,7 @@ import { Settings } from './components/Settings';
 import { Shop } from './components/Shop';
 import { WeekStamps, dateKey } from './components/WeekStamps';
 import { loadHaptics, tick } from './lib/haptics';
-import { OUTFITS, addOwned, initShop, useShop, wearOutfit } from './lib/shop';
+import { OUTFITS, PAID_CATEGORIES, addOwned, buy, categoryUnlocked, initShop, purchaseErrorMessage, useShop, wearOutfit } from './lib/shop';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord, RecordKind } from './types';
@@ -75,7 +75,16 @@ export function HomeScreen() {
     setPicking(true);
   };
 
-  const pickCategory = (kind: RecordKind) => {
+  const pickCategory = async (kind: RecordKind) => {
+    if (!categoryUnlocked(kind, owned)) {
+      try {
+        await buy(PAID_CATEGORIES[kind]!.productId);
+      } catch (e) {
+        setPicking(false);
+        say(purchaseErrorMessage(e), 3000);
+        return;
+      }
+    }
     setFormKind(kind);
     setPicking(false);
     setFocusKind(null);
@@ -112,11 +121,13 @@ export function HomeScreen() {
   const handleEdit = useCallback((next: RecoRecord) => update(records.map((r) => (r.id === next.id ? next : r))), [records, update]);
   const handleDelete = useCallback((record: RecoRecord) => update(records.filter((r) => r.id !== record.id)), [records, update]);
 
-  const pokeCoco = () => {
-    setPoke(POKES[Math.floor(Math.random() * POKES.length)]);
+  // 코코가 잠깐 한마디 하고 원래 대사로 돌아온다
+  const say = (text: string, ms = 1800) => {
+    setPoke(text);
     if (pokeTimer.current) clearTimeout(pokeTimer.current);
-    pokeTimer.current = setTimeout(() => setPoke(null), 1800);
+    pokeTimer.current = setTimeout(() => setPoke(null), ms);
   };
+  const pokeCoco = () => say(POKES[Math.floor(Math.random() * POKES.length)]);
 
   const todayCount = counts[dateKey(new Date())] ?? 0;
   const focusHint = CATEGORIES.find((c) => c.kind === focusKind)?.hint;

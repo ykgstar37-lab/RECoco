@@ -16,5 +16,7 @@ export function shortLabel(r: RecoRecord) {
     }
     case 'spending':
       return r.store.trim() || '소비';
+    case 'gift':
+      return r.item.trim() || '선물';
   }
 }

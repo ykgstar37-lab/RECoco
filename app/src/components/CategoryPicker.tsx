@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 
 import { tick } from '../lib/haptics';
+import { categoryUnlocked, useShop } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { RecordKind } from '../types';
 
@@ -11,6 +12,7 @@ export const CATEGORIES: { kind: RecordKind; label: string; hint: string }[] = [
   { kind: 'spending', label: '소비', hint: '오늘 뭐 샀어?' },
   { kind: 'travel', label: '여행', hint: '어디 다녀왔어?' },
   { kind: 'fourcut', label: '인생네컷', hint: '누구랑 찍었어?' },
+  { kind: 'gift', label: '선물', hint: '누구랑 선물 주고받았어?' },
 ];
 
 interface Props {
@@ -24,6 +26,7 @@ interface Props {
  * 손가락을 대면 그 카테고리가 도드라지고(코코가 질문), 떼면 기록 화면으로 간다.
  */
 export function CategoryPicker({ focused, onFocus, onPick }: Props) {
+  const { owned } = useShop();
   return (
     <View style={styles.wrap}>
       <View style={styles.row}>
@@ -41,7 +44,10 @@ export function CategoryPicker({ focused, onFocus, onPick }: Props) {
                 }}
                 onPress={() => onPick(c.kind)}
                 style={[styles.pill, on && styles.pillOn]}>
-                <Text style={[styles.pillText, on && styles.pillTextOn]}>{c.label}</Text>
+                <Text style={[styles.pillText, on && styles.pillTextOn]}>
+                  {categoryUnlocked(c.kind, owned) ? '' : '🔒 '}
+                  {c.label}
+                </Text>
               </Pressable>
             </Animated.View>
           );

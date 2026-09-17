@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
 import type { OutfitId } from '../components/Outfits';
-import type { PaperTheme } from '../types';
+import type { PaperTheme, RecordKind } from '../types';
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
@@ -45,6 +45,16 @@ export const THEMES: ThemeItem[] = [
 
 export const themeUnlocked = (id: PaperTheme | undefined, owned: string[]) =>
   !id || owned.includes(THEMES.find((t) => t.id === id)?.productId ?? '');
+
+/** 새 카테고리 (기본 5개는 무료) */
+export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; productId: string; price: number }>> = {
+  gift: { name: '선물', desc: '받은·보낸 선물을 모바일 교환권처럼', productId: 'recoco.category.gift', price: 1500 },
+};
+
+export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {
+  const paid = PAID_CATEGORIES[kind];
+  return !paid || owned.includes(paid.productId);
+};
 
 export interface ShopState {
   owned: string[]; // 구매한 productId

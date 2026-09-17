@@ -36,7 +36,13 @@ module.exports = () => {
   };
   const fc = (layout, frame, extra = {}) => ({ ...fourBase, id: `sample-fourcut-${layout}-${frame}`, layout, frame, ...extra });
   const fourQr = { ...fourBase, id: 'sample-fourcut-qr', source: 'qr', layout: 'strip', frameImage: { uri: url('booth-strip.jpg'), width: 600, height: 1800 }, photos: [] };
+  const gift = {
+    id: 'sample-gift', createdAt: '2026-09-14T12:00:00', kind: 'gift', date: '2026-09-14', direction: 'received', person: '지민',
+    item: '달밤커피 아이스 아메리카노 2잔', brand: '달밤커피', price: 9000, message: '시험 끝난 거 축하해! 커피 마시면서 푹 쉬어 ☺', photo: null, card: 'yellow',
+  };
   return [
+    { name: '선물_받은_노랑', record: gift },
+    { name: '선물_보낸_사진_민트', record: { ...gift, id: 'sample-gift-2', direction: 'given', person: '엄마', item: '꽃다발', brand: '', price: 0, message: '생일 축하해요 엄마, 늘 고마워요.', photo: photo(2), card: 'mint' } },
     { name: '독서_영수증', record: reading },
     { name: '독서_영수증_긴글', record: readingLong },
     { name: '영화_티켓', record: movie },

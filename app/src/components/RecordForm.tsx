@@ -17,12 +17,15 @@ import Svg from 'react-native-svg';
 import { newId, nowTime, today, won } from '../lib/format';
 import { pickPhotos } from '../lib/photos';
 import { canSearchBooks, movieDetail } from '../lib/search';
+import { PAID_CATEGORIES, buy, categoryUnlocked, purchaseErrorMessage, useShop } from '../lib/shop';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
   FourcutFrame,
   FourcutLayout,
   FourcutRecord,
+  GiftCard,
+  GiftRecord,
   MoviePaper,
   MovieRecord,
   PaperTheme,
@@ -60,6 +63,7 @@ const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
   { kind: 'spending', label: '소비', ready: true },
   { kind: 'travel', label: '여행', ready: true },
   { kind: 'fourcut', label: '인생네컷', ready: true },
+  { kind: 'gift', label: '선물', ready: true },
 ];
 
 const FRAMES: { key: FourcutFrame; label: string; color: string }[] = [
@@ -80,6 +84,31 @@ const MOVIE_PAPER_OPTIONS: { key: MoviePaper; label: string }[] = [
   { key: 'pink', label: '분홍' },
   { key: 'white', label: '흰색' },
 ];
+
+const GIFT_CARDS: { key: GiftCard; label: string; color: string }[] = [
+  { key: 'yellow', label: '노랑', color: '#ffe36b' },
+  { key: 'pink', label: '분홍', color: '#ffc9d9' },
+  { key: 'mint', label: '민트', color: '#c3ecd9' },
+  { key: 'sky', label: '하늘', color: '#cfe2fb' },
+];
+
+const GIFT_DIRECTIONS: [GiftRecord['direction'], string][] = [
+  ['received', '받은 선물'],
+  ['given', '보낸 선물'],
+];
+
+const emptyGift = (): Omit<GiftRecord, 'id' | 'createdAt'> => ({
+  kind: 'gift',
+  date: today(),
+  direction: 'received',
+  person: '',
+  item: '',
+  brand: '',
+  price: 0,
+  message: '',
+  photo: null,
+  card: 'yellow',
+});
 
 const STATUSES: ReadingStatus[] = ['완독', '읽는 중', '잠시 멈춤'];
 // 상태마다 색: 다 읽음 초록 · 읽는 중 주황 · 멈춤 회색
@@ -167,6 +196,8 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [items, setItems] = useState<ItemDraft[]>([{ name: '', qty: '1', price: '' }]);
   const [travel, setTravel] = useState(emptyTravel);
   const [fourcut, setFourcut] = useState(emptyFourcut);
+  const [gift, setGift] = useState(emptyGift);
+  const { owned } = useShop();
   const [qrOpen, setQrOpen] = useState(false);
   const [isbnOpen, setIsbnOpen] = useState(false);
   const [error, setError] = useState('');
@@ -200,12 +231,16 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
       case 'fourcut':
         setFourcut({ ...emptyFourcut(), ...rest, photos: [0, 1, 2, 3].map((i) => rest.photos[i] ?? null) });
         break;
+      case 'gift':
+        setGift(rest);
+        break;
     }
   }, [visible, initialKind, editing]);
 
   const reset = () => {
     setTravel(emptyTravel());
     setFourcut(emptyFourcut());
+    setGift(emptyGift());
     setReading(emptyReading());
     setMovie(emptyMovie());
     setSpending(emptySpending());
@@ -239,6 +274,9 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
     } else if (kind === 'travel') {
       if (!travel.from.trim() || !travel.to.trim()) return setError('출발지와 도착지를 골라주세요. (예: 인천 → 도쿄)');
       record = { ...base, ...travel } as TravelRecord;
+    } else if (kind === 'gift') {
+      if (!gift.item.trim()) return setError('어떤 선물인지 적어주세요.');
+      record = { ...base, ...gift } as GiftRecord;
     } else {
       if (fourcut.source === 'qr' && !fourcut.frameImage) {
         return setError('QR로 사진을 가져오거나, "사진 4장 고르기"로 바꿔주세요.');
@@ -264,17 +302,29 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.kindsScroll} contentContainerStyle={styles.kinds}>
           {KINDS.map((k) => {
             const selected = k.kind === kind;
+            const locked = !categoryUnlocked(k.kind, owned);
             return (
               <Pressable
                 key={k.kind}
                 disabled={!k.ready || (!!editing && k.kind !== kind)}
-                onPress={() => {
-                  setKind(k.kind as RecordKind);
+                onPress={async () => {
                   setError('');
                   setSearching(false);
+                  if (locked) {
+                    // 새 카테고리는 사고 나서 연다
+                    try {
+                      await buy(PAID_CATEGORIES[k.kind]!.productId);
+                    } catch (e) {
+                      return setError(purchaseErrorMessage(e));
+                    }
+                  }
+                  setKind(k.kind as RecordKind);
                 }}
                 style={[styles.chip, selected && styles.chipOn, (!k.ready || (!!editing && !selected)) && styles.chipOff]}>
-                <Text style={[styles.chipText, selected && styles.chipTextOn]}>{k.label}</Text>
+                <Text style={[styles.chipText, selected && styles.chipTextOn]}>
+                  {locked ? '🔒 ' : ''}
+                  {k.label}
+                </Text>
                 {!k.ready && <Text style={styles.soon}>준비 중</Text>}
               </Pressable>
             );
@@ -601,6 +651,68 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
               </>
             )}
 
+            {kind === 'gift' && (
+              <>
+                <View style={styles.segment}>
+                  {GIFT_DIRECTIONS.map(([key, text]) => (
+                    <Pressable key={key} onPress={() => setGift({ ...gift, direction: key })} style={[styles.seg, gift.direction === key && styles.segOn]}>
+                      <Text style={[styles.segText, gift.direction === key && styles.segTextOn]}>{text}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Row>
+                  <Field
+                    label={gift.direction === 'received' ? '보낸 사람' : '받는 사람'}
+                    value={gift.person}
+                    onChange={(v) => setGift({ ...gift, person: v })}
+                    placeholder="지민"
+                  />
+                  <DateField label={gift.direction === 'received' ? '받은 날' : '보낸 날'} value={gift.date} onChange={(v) => setGift({ ...gift, date: v })} />
+                </Row>
+                <Field label="어떤 선물? *" value={gift.item} onChange={(v) => setGift({ ...gift, item: v })} placeholder="아이스 아메리카노 2잔" />
+                <Row>
+                  <Field label="브랜드·교환처" value={gift.brand} onChange={(v) => setGift({ ...gift, brand: v })} placeholder="달밤커피" />
+                  <Field
+                    label="금액 (선택)"
+                    value={gift.price ? String(gift.price) : ''}
+                    onChange={(v) => setGift({ ...gift, price: parseInt(v.replace(/[^0-9]/g, ''), 10) || 0 })}
+                    keyboardType="number-pad"
+                    placeholder="9000"
+                  />
+                </Row>
+                <Field label="메시지" value={gift.message} onChange={(v) => setGift({ ...gift, message: v })} placeholder="시험 끝난 거 축하해!" multiline />
+                <Label text="선물 사진 (선택)" />
+                <View style={styles.row}>
+                  <Pressable
+                    onPress={async () => {
+                      const [p] = await pickPhotos(1);
+                      if (p) setGift((g) => ({ ...g, photo: p }));
+                    }}
+                    style={styles.giftPhoto}>
+                    {gift.photo ? (
+                      <>
+                        <Image source={{ uri: gift.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setGift((g) => ({ ...g, photo: null }))}>
+                          <Text style={styles.slotRemoveText}>×</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <Text style={styles.slotText}>+</Text>
+                    )}
+                  </Pressable>
+                </View>
+                <Label text="카드 색" />
+                <View style={styles.row}>
+                  {GIFT_CARDS.map((c) => (
+                    <Pressable key={c.key} onPress={() => setGift({ ...gift, card: c.key })} style={[styles.frameChip, gift.card === c.key && styles.frameChipOn]}>
+                      <View style={[styles.frameDot, { backgroundColor: c.color }]} />
+                      <Text style={styles.segText}>{c.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            )}
+
             {!!error && <Text style={styles.error}>{error}</Text>}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -795,6 +907,18 @@ const styles = StyleSheet.create({
   },
   frameChipOn: { borderColor: COLORS.orange, borderWidth: 2 },
   frameDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 1, borderColor: COLORS.line },
+  giftPhoto: {
+    width: 96,
+    height: 96,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.line,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scanBtn: {
     flexDirection: 'row',
     alignItems: 'center',

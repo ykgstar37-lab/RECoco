@@ -1,4 +1,4 @@
-export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut';
+export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift';
 
 interface BaseRecord {
   id: string;
@@ -106,4 +106,20 @@ export interface FourcutRecord extends BaseRecord {
   theme?: PaperTheme; // 뒷면 종이 (없으면 기본 크림 줄노트)
 }
 
-export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord;
+export type GiftCard = 'yellow' | 'pink' | 'mint' | 'sky';
+
+/** 선물: 받은/준 선물을 모바일 교환권처럼 */
+export interface GiftRecord extends BaseRecord {
+  kind: 'gift';
+  date: string; // YYYY-MM-DD
+  direction: 'received' | 'given';
+  person: string; // 보낸 사람 또는 받는 사람
+  item: string; // 상품 이름
+  brand: string; // 교환처·브랜드 (선택)
+  price: number; // 0 이면 표시 안 함
+  message: string;
+  photo: Photo | null;
+  card: GiftCard;
+}
+
+export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord;

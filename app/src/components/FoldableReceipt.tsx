@@ -23,6 +23,7 @@ const PAPER_EDGE: Record<RecoRecord['kind'], string> = {
   spending: '#ede9dc',
   travel: '#e8e8e5',
   fourcut: '#efe9dc',
+  gift: '#ecebe8',
 };
 
 const SPRING = { damping: 18, stiffness: 150, mass: 0.9 };
