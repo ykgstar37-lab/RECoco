@@ -40,6 +40,7 @@ import {
 } from '../types';
 import { AirportField } from './AirportField';
 import { BoardingPassScan } from './BoardingPassScan';
+import { CouponScan, formatCoupon } from './CouponScan';
 import { CardSmsPaste } from './CardSmsPaste';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
@@ -205,6 +206,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [isbnOpen, setIsbnOpen] = useState(false);
   const [smsOpen, setSmsOpen] = useState(false);
   const [passOpen, setPassOpen] = useState(false);
+  const [couponOpen, setCouponOpen] = useState(false);
   const [error, setError] = useState('');
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
   const [searching, setSearching] = useState(false);
@@ -671,6 +673,20 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
 
             {kind === 'gift' && (
               <>
+                <QuickFill
+                  icon="barcode"
+                  title={gift.couponCode ? `교환권 번호 ${formatCoupon(gift.couponCode)}` : '교환권 바코드 찍기'}
+                  sub={gift.couponCode ? '다시 누르면 새로 찍어요' : '진짜 교환권 번호가 영수증 바코드 아래에 찍혀요'}
+                  onPress={() => setCouponOpen(true)}
+                />
+                <CouponScan
+                  visible={couponOpen}
+                  onClose={() => setCouponOpen(false)}
+                  onFound={(code) => {
+                    setCouponOpen(false);
+                    setGift((g) => ({ ...g, couponCode: code }));
+                  }}
+                />
                 <View style={styles.segment}>
                   {GIFT_DIRECTIONS.map(([key, text]) => (
                     <Pressable key={key} onPress={() => setGift({ ...gift, direction: key })} style={[styles.seg, gift.direction === key && styles.segOn]}>

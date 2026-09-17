@@ -120,6 +120,7 @@ export interface GiftRecord extends BaseRecord {
   message: string;
   photo: Photo | null;
   card: GiftCard;
+  couponCode?: string; // 찍어 온 진짜 교환권 번호 (없으면 무작위)
 }
 
 export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord;

@@ -66,7 +66,7 @@ export function GiftCoupon({ record: r, width }: { record: GiftRecord; width: nu
 
   const rnd = seededRandom(r.id);
   const digits = (n: number) => Array.from({ length: n }, () => Math.floor(rnd() * 10)).join('');
-  const code = `${digits(4)} ${digits(4)} ${digits(4)}`;
+  const code = r.couponCode ? r.couponCode.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ') : `${digits(4)} ${digits(4)} ${digits(4)}`;
   const order = digits(10);
   const d = parseDate(r.date);
   const until = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 93);
@@ -147,7 +147,7 @@ export function GiftCoupon({ record: r, width }: { record: GiftRecord; width: nu
         <Line x1={NOTCH + 14} y1={cut} x2={PW - NOTCH - 14} y2={cut} stroke={LINE} strokeWidth={3} strokeDasharray="10 8" />
 
         {/* 교환권 */}
-        <Barcode seed={r.id} x={(PW - 440) / 2} y={cut + 44} width={440} height={96} color={INK} />
+        <Barcode seed={r.couponCode || r.id} x={(PW - 440) / 2} y={cut + 44} width={440} height={96} color={INK} />
         <T f="mono" x={PW / 2} y={cut + 176} fontSize={26} textAnchor="middle" letterSpacing={3} children={code} />
         <Line x1={40} y1={cut + 206} x2={PW - 40} y2={cut + 206} stroke={LINE} strokeWidth={2} />
         {info.map(([k, v], i) => (
