@@ -3,7 +3,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { COLORS, FONTS } from '../theme';
 
-type Icon = 'barcode' | 'card';
+type Icon = 'barcode' | 'card' | 'ticket';
 
 /** 폼 맨 위 "빠르게 채우기" 버튼: 아이콘 타일 + 제목·설명 + 화살표 */
 export function QuickFill({ icon, title, sub, onPress }: { icon: Icon; title: string; sub: string; onPress: () => void }) {
@@ -24,6 +24,14 @@ export function QuickFill({ icon, title, sub, onPress }: { icon: Icon; title: st
 }
 
 function QuickIcon({ icon }: { icon: Icon }) {
+  if (icon === 'ticket') {
+    return (
+      <Svg width={26} height={26} viewBox="0 0 26 26">
+        <Path d="M3,7 Q3,5 5,5 H21 Q23,5 23,7 V10 Q20.5,10 20.5,13 Q20.5,16 23,16 V19 Q23,21 21,21 H5 Q3,21 3,19 V16 Q5.5,16 5.5,13 Q5.5,10 3,10 Z" fill={COLORS.orange} />
+        <Path d="M9.5,13 L17,13 M14.5,10.5 L17,13 L14.5,15.5" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </Svg>
+    );
+  }
   if (icon === 'card') {
     return (
       <Svg width={26} height={26} viewBox="0 0 26 26">

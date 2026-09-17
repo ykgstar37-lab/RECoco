@@ -39,6 +39,7 @@ import {
   TravelRecord,
 } from '../types';
 import { AirportField } from './AirportField';
+import { BoardingPassScan } from './BoardingPassScan';
 import { CardSmsPaste } from './CardSmsPaste';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
@@ -203,6 +204,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [qrOpen, setQrOpen] = useState(false);
   const [isbnOpen, setIsbnOpen] = useState(false);
   const [smsOpen, setSmsOpen] = useState(false);
+  const [passOpen, setPassOpen] = useState(false);
   const [error, setError] = useState('');
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
   const [searching, setSearching] = useState(false);
@@ -538,6 +540,23 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
 
             {kind === 'travel' && (
               <>
+                <QuickFill icon="ticket" title="탑승권 바코드로 채우기" sub="모바일·종이 탑승권을 찍으면 공항·편명·좌석이 자동으로" onPress={() => setPassOpen(true)} />
+                <BoardingPassScan
+                  visible={passOpen}
+                  onClose={() => setPassOpen(false)}
+                  onFound={(bp) => {
+                    setPassOpen(false);
+                    setTravel((t) => ({
+                      ...t,
+                      from: bp.from,
+                      to: bp.to,
+                      name: bp.name || t.name,
+                      flight: bp.flight || t.flight,
+                      seat: bp.seat || t.seat,
+                      date: bp.date ?? t.date,
+                    }));
+                  }}
+                />
                 <Row>
                   <AirportField label="출발 *" value={travel.from} onChange={(v) => setTravel((t) => ({ ...t, from: v }))} placeholder="인천 / ICN" />
                   <AirportField label="도착 *" value={travel.to} onChange={(v) => setTravel((t) => ({ ...t, to: v }))} placeholder="도쿄 / HND" />
