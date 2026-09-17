@@ -1,4 +1,3 @@
-import { layoutOf } from '../templates';
 import { RecoRecord } from '../types';
 
 // 자주 가는 공항 코드 → 도시 이름 (없으면 코드 그대로)
@@ -26,39 +25,4 @@ export function shortLabel(r: RecoRecord) {
     case 'spending':
       return r.store.trim() || '소비';
   }
-}
-
-/**
- * 영수증을 세로로 이어 붙였을 때의 길이(cm).
- * 감열지 폭을 5.8cm(58mm 영수증)로 보고, 각 양식의 세로/가로 비율로 계산한다.
- */
-export function rollLengthCm(records: RecoRecord[]) {
-  const PAPER_WIDTH_CM = 5.8;
-  return records.reduce((sum, r) => {
-    const l = layoutOf(r);
-    const paperW = l.width - l.inset.top * 2;
-    const paperH = l.height - l.inset.top - l.inset.bottom;
-    return sum + (paperH / paperW) * PAPER_WIDTH_CM;
-  }, 0);
-}
-
-export function formatLength(cm: number) {
-  if (cm < 100) return `${cm.toFixed(1)}cm`;
-  return `${(cm / 100).toFixed(2)}m`;
-}
-
-/** 길이를 익숙한 것에 비유 */
-export function lengthCompare(cm: number) {
-  const things: [number, string][] = [
-    [15, '스마트폰'],
-    [30, '30cm 자'],
-    [100, '우산'],
-    [165, '사람 키'],
-    [300, '코끼리 키'],
-    [900, '버스 한 대'],
-  ];
-  let best = things[0];
-  for (const t of things) if (cm >= t[0] * 0.8) best = t;
-  const times = cm / best[0];
-  return times < 1.15 ? `${best[1]}만큼` : `${best[1]} ${times.toFixed(1)}개만큼`;
 }
