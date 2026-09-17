@@ -1,6 +1,7 @@
 import { memo } from 'react';
 
 import { RecoRecord } from '../types';
+import { FoodHouse, layoutFoodHouse } from './FoodHouse';
 import { FoodOrder, layoutFood } from './FoodOrder';
 import { FourcutBack, FourcutFront, layoutFourcut } from './Fourcut';
 import { GiftCoupon, layoutGift } from './GiftCoupon';
@@ -28,7 +29,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'gift':
       return layoutGift(record);
     case 'food':
-      return layoutFood(record);
+      return record.design === 'house' ? layoutFoodHouse(record) : layoutFood(record);
   }
 }
 
@@ -62,7 +63,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
     case 'gift':
       return <GiftCoupon record={record} width={width} />;
     case 'food':
-      return <FoodOrder record={record} width={width} />;
+      return record.design === 'house' ? <FoodHouse record={record} width={width} /> : <FoodOrder record={record} width={width} />;
   }
 });
 

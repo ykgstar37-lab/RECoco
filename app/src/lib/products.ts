@@ -51,11 +51,12 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
         ]
       : kind === 'food'
         ? [
-            { record: sampleFood(), caption: '카페' },
+            { record: sampleFood(), caption: '주문서' },
             {
               record: {
                 ...sampleFood(),
                 id: 'preview-food-meal',
+                design: 'house',
                 place: '골목 칼국수',
                 area: '망원동',
                 type: 'meal',
@@ -69,7 +70,7 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                 revisit: 'maybe',
                 memo: '',
               },
-              caption: '식당',
+              caption: '집 모양',
             },
           ]
         : [];

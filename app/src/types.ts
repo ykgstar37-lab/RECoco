@@ -126,6 +126,9 @@ export interface GiftRecord extends BaseRecord {
 
 export type FoodType = 'cafe' | 'meal' | 'dessert' | 'bar';
 
+/** order: 맛집 주문서, house: 집 모양 */
+export type FoodDesign = 'order' | 'house';
+
 export interface FoodMenu {
   name: string;
   stars: number; // 0~5
@@ -144,6 +147,7 @@ export interface FoodRecord extends BaseRecord {
   revisit: 'yes' | 'maybe' | 'no';
   memo: string; // 한 줄 후기
   photo: Photo | null;
+  design?: FoodDesign; // 없으면 주문서
 }
 
 export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord;

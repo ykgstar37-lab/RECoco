@@ -22,6 +22,7 @@ import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
+  FoodDesign,
   FoodMenu,
   FoodRecord,
   FoodType,
@@ -123,6 +124,11 @@ const emptyGift = (): Omit<GiftRecord, 'id' | 'createdAt'> => ({
 
 const MAX_MENUS = 6;
 
+const FOOD_DESIGNS: { key: FoodDesign; label: string }[] = [
+  { key: 'order', label: '주문서' },
+  { key: 'house', label: '집 모양' },
+];
+
 const emptyFood = (): Omit<FoodRecord, 'id' | 'createdAt'> => ({
   kind: 'food',
   date: today(),
@@ -135,6 +141,7 @@ const emptyFood = (): Omit<FoodRecord, 'id' | 'createdAt'> => ({
   revisit: 'yes',
   memo: '',
   photo: null,
+  design: 'order',
 });
 
 const STATUSES: ReadingStatus[] = ['완독', '읽는 중', '잠시 멈춤'];
@@ -900,35 +907,48 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                     <Text style={styles.addItemText}>+ 메뉴 추가</Text>
                   </Pressable>
                 )}
-                <Row>
-                  <Field
-                    label="모두 얼마? (선택)"
-                    value={food.total ? String(food.total) : ''}
-                    onChange={(v) => setFood({ ...food, total: parseInt(v.replace(/[^0-9]/g, ''), 10) || 0 })}
-                    keyboardType="number-pad"
-                    placeholder="12500"
-                  />
-                  <View style={styles.field}>
-                    <Label text="사진 (선택)" />
-                    <Pressable
-                      onPress={async () => {
-                        const [p] = await pickPhotos(1);
-                        if (p) setFood((f) => ({ ...f, photo: p }));
-                      }}
-                      style={styles.foodPhoto}>
-                      {food.photo ? (
-                        <>
-                          <Image source={{ uri: food.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-                          <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setFood((f) => ({ ...f, photo: null }))}>
-                            <Text style={styles.slotRemoveText}>×</Text>
-                          </Pressable>
-                        </>
-                      ) : (
-                        <Text style={styles.slotText}>+ 사진</Text>
-                      )}
-                    </Pressable>
-                  </View>
-                </Row>
+                <Field
+                  label="모두 얼마? (선택)"
+                  value={food.total ? String(food.total) : ''}
+                  onChange={(v) => setFood({ ...food, total: parseInt(v.replace(/[^0-9]/g, ''), 10) || 0 })}
+                  keyboardType="number-pad"
+                  placeholder="12500"
+                />
+                <Label text="영수증 모양" />
+                <View style={styles.row}>
+                  {FOOD_DESIGNS.map((d) => {
+                    const on = (food.design ?? 'order') === d.key;
+                    return (
+                      <Pressable key={d.key} onPress={() => setFood({ ...food, design: d.key })} style={[styles.frameChip, on && styles.frameChipOn]}>
+                        <Text style={styles.segText}>{d.label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Label text="사진 (선택)" />
+                <View style={styles.coverRow}>
+                  <Pressable
+                    onPress={async () => {
+                      const [p] = await pickPhotos(1);
+                      if (p) setFood((f) => ({ ...f, photo: p }));
+                    }}
+                    style={styles.giftPhoto}
+                    accessibilityLabel="사진 고르기">
+                    {food.photo ? (
+                      <>
+                        <Image source={{ uri: food.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setFood((f) => ({ ...f, photo: null }))}>
+                          <Text style={styles.slotRemoveText}>×</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <Text style={styles.slotText}>+</Text>
+                    )}
+                  </Pressable>
+                  <Text style={styles.coverHelp}>
+                    {food.design === 'house' ? '집 창문에 사진이 들어가요.\n없으면 창문에 가게 그림이 그려져요.' : '주문서 가운데에 테이프로 붙여져요.'}
+                  </Text>
+                </View>
                 <Label text="또 갈래요?" />
                 <View style={styles.segment}>
                   {REVISIT.map(([key, text]) => (
@@ -1160,17 +1180,6 @@ const styles = StyleSheet.create({
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   menuStars: { flexDirection: 'row' },
   menuStar: { fontSize: 20, color: COLORS.line, paddingHorizontal: 1 },
-  foodPhoto: {
-    height: Platform.OS === 'ios' ? 42 : 38,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.line,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   giftPhoto: {
     width: 96,
     height: 96,
