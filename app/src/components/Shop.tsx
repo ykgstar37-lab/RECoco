@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { won } from '../lib/format';
-import { BUNDLE, OUTFITS, purchase, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { OUTFITS, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { CocoArt } from './Coco';
 
@@ -15,11 +15,10 @@ interface Props {
   onOpenCloset: () => void;
 }
 
-/** 상점: 전부 해금 묶음, 코코 모자(옷장으로), 곧 나올 새 카테고리·영수증 테마 */
+/** 상점: 코코 모자(눌러서 옷장에서 입어보고 사기), 곧 나올 새 카테고리·영수증 테마 */
 export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
-  const hasBundle = owned.includes(BUNDLE.productId);
   const paidHats = OUTFITS.filter((o) => o.unlock.type === 'paid');
 
   useEffect(() => {
@@ -50,29 +49,24 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
         </View>
 
         <ScrollView contentContainerStyle={styles.body}>
-          <View style={styles.hero}>
-            <CocoArt size={120} tone="white" mood="happy" outfit="crown" id="shop-hero" />
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={styles.heroTitle}>전부 해금</Text>
-              <Text style={styles.heroSub}>코코 모자 전부 + 앞으로 나올 새 카테고리·영수증 테마까지</Text>
+          <Section title="코코 모자" sub={`하나에 ${won(1000)}원 · 기록하면 받는 모자도 있어요`}>
+            <View style={styles.hats}>
+              {paidHats.map((o) => {
+                const have = isUnlocked(o, owned, 0);
+                return (
+                  <Pressable key={o.id} onPress={onOpenCloset} style={({ pressed }) => [styles.hatCell, pressed && { opacity: 0.7 }]}>
+                    <View style={styles.hat}>
+                      <CocoArt size={60} tone="white" outfit={o.id} id={`shop-${o.id}`} />
+                    </View>
+                    <Text style={styles.hatName} numberOfLines={1}>
+                      {o.name}
+                    </Text>
+                    <Text style={[styles.hatPrice, have && { color: COLORS.orange }]}>{have ? '보유' : o.unlock.type === 'paid' ? `${won(o.unlock.price)}원` : ''}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
-          </View>
-          <Pressable
-            disabled={hasBundle || busy}
-            onPress={() => run(async () => onBought(await purchase(BUNDLE.productId)))}
-            style={({ pressed }) => [styles.buy, hasBundle && styles.buyOff, pressed && { opacity: 0.85 }]}>
-            <Text style={[styles.buyText, hasBundle && styles.buyTextOff]}>{hasBundle ? '이미 전부 해금했어요' : `${won(BUNDLE.price)}원에 전부 해금`}</Text>
-          </Pressable>
-
-          <Section title="코코 모자" sub={`${paidHats.length}종 · 하나에 ${won(1000)}원 · 기록하면 받는 모자도 있어요`}>
-            <Pressable onPress={onOpenCloset} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>
-              <View style={styles.hats}>
-                {paidHats.map((o) => (
-                  <View key={o.id} style={styles.hat}>
-                    <CocoArt size={54} tone="white" outfit={o.id} id={`shop-${o.id}`} />
-                  </View>
-                ))}
-              </View>
+            <Pressable onPress={onOpenCloset} hitSlop={8}>
               <Text style={styles.rowLink}>옷장에서 입어보기 ›</Text>
             </Pressable>
           </Section>
@@ -114,20 +108,16 @@ const styles = StyleSheet.create({
   close: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   closeText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   body: { paddingHorizontal: 18, paddingBottom: 32, gap: 14 },
-  hero: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: COLORS.orange, borderRadius: 22, padding: 16, paddingLeft: 10 },
-  heroTitle: { color: '#fff', fontSize: 20, fontFamily: FONTS.sansHeavy },
-  heroSub: { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontFamily: FONTS.sans, lineHeight: 19 },
-  buy: { backgroundColor: COLORS.ink, borderRadius: 14, paddingVertical: 15, alignItems: 'center' },
-  buyOff: { backgroundColor: COLORS.surface },
-  buyText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
-  buyTextOff: { color: COLORS.sub },
   section: { backgroundColor: COLORS.surface, borderRadius: 18, padding: 16, gap: 10 },
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   sectionTitle: { color: COLORS.ink, fontSize: 16, fontFamily: FONTS.sansHeavy },
   sectionSub: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, flexShrink: 1 },
-  row: { gap: 10 },
-  hats: { flexDirection: 'row', gap: 8 },
+  // 한 줄에 4칸
+  hats: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, rowGap: 10 },
+  hatCell: { width: '25%', paddingHorizontal: 4, alignItems: 'center' },
   hat: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4 },
+  hatName: { color: COLORS.ink, fontSize: 12, fontFamily: FONTS.sansBold, marginTop: 5 },
+  hatPrice: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: 1 },
   rowLink: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   soon: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, lineHeight: 20 },
   restore: { alignSelf: 'center', paddingVertical: 6 },

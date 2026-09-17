@@ -4,6 +4,7 @@
   "description": "영수증 템플릿 미리보기 렌더러와 종이 질감 생성기",
   "scripts": {
     "preview": "node preview/build.js",
+    "svg": "node preview/build.js --svg",
     "textures": "node gen_textures.js",
     "character": "node preview/character.js",
     "icons": "node preview/icons.js"

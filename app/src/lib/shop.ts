@@ -1,4 +1,4 @@
-// 부분 유료화: 코코 옷(보상 해금/개별 구매) + 새 카테고리(개별 구매) + 전부 묶음
+// 부분 유료화: 코코 옷(보상 해금/개별 구매) + 새 카테고리·영수증 테마(개별 구매, 예정)
 // 실제 결제(App Store·Google Play)는 개발 빌드에서 붙인다. 지금은 개발 모드에서만 바로 구매 처리.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -27,9 +27,6 @@ export const OUTFITS: OutfitItem[] = [
   { id: 'trapper', name: '털 방한모', unlock: { type: 'paid', productId: 'recoco.outfit.trapper', price: 1000 } },
 ];
 
-/** 옷과 앞으로 나올 새 카테고리까지 전부 */
-export const BUNDLE = { productId: 'recoco.bundle.all', price: 4400 };
-
 export interface ShopState {
   owned: string[]; // 구매한 productId
   outfit: OutfitId | null; // 입고 있는 옷
@@ -44,7 +41,6 @@ export const saveOwned = (owned: string[]) => AsyncStorage.setItem(OWNED_KEY, JS
 export const saveOutfit = (outfit: OutfitId | null) => (outfit ? AsyncStorage.setItem(OUTFIT_KEY, outfit) : AsyncStorage.removeItem(OUTFIT_KEY));
 
 export function isUnlocked(item: OutfitItem, owned: string[], recordCount: number) {
-  if (owned.includes(BUNDLE.productId)) return true;
   return item.unlock.type === 'reward' ? recordCount >= item.unlock.records : owned.includes(item.unlock.productId);
 }
 

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { won } from '../lib/format';
 import { tick } from '../lib/haptics';
-import { BUNDLE, OUTFITS, OutfitItem, isUnlocked, purchase, purchaseErrorMessage } from '../lib/shop';
+import { OUTFITS, OutfitItem, isUnlocked, purchase, purchaseErrorMessage } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { Coco, CocoArt } from './Coco';
 import { OutfitId } from './Outfits';
@@ -35,7 +35,6 @@ export function Closet({ visible, owned, recordCount, outfit, onClose, onWear, o
 
   const item = OUTFITS.find((o) => o.id === trying) ?? null;
   const unlocked = !item || isUnlocked(item, owned, recordCount);
-  const hasBundle = owned.includes(BUNDLE.productId);
 
   const buy = async (productId: string) => {
     if (busy) return;
@@ -94,15 +93,6 @@ export function Closet({ visible, owned, recordCount, outfit, onClose, onWear, o
             ))}
           </View>
 
-          {!hasBundle && (
-            <Pressable onPress={() => buy(BUNDLE.productId)} style={({ pressed }) => [styles.bundle, pressed && { opacity: 0.85 }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.bundleTitle}>전부 해금</Text>
-                <Text style={styles.bundleSub}>모자 전부 + 앞으로 나올 새 카테고리까지</Text>
-              </View>
-              <Text style={styles.bundlePrice}>{won(BUNDLE.price)}원</Text>
-            </Pressable>
-          )}
           {!!notice && <Text style={styles.notice}>{notice}</Text>}
         </ScrollView>
 
@@ -185,19 +175,6 @@ const styles = StyleSheet.create({
   tileArt: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4 },
   tileLabel: { color: COLORS.ink, fontSize: 12, fontFamily: FONTS.sansBold, marginTop: 6 },
   tileStatus: { color: COLORS.sub, fontSize: 10, fontFamily: FONTS.sans, marginTop: 1 },
-  bundle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: COLORS.orange,
-    backgroundColor: COLORS.orangeSoft,
-  },
-  bundleTitle: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansHeavy },
-  bundleSub: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 2 },
-  bundlePrice: { color: COLORS.orange, fontSize: 17, fontFamily: FONTS.sansHeavy },
   notice: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center' },
   action: { marginHorizontal: 16, marginBottom: 8, backgroundColor: COLORS.orange, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   actionOff: { backgroundColor: COLORS.surface },
