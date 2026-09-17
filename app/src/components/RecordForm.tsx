@@ -39,6 +39,7 @@ import {
   TravelRecord,
 } from '../types';
 import { AirportField } from './AirportField';
+import { CardSmsPaste } from './CardSmsPaste';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
 import { QrImport } from './QrImport';
@@ -200,6 +201,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const { owned } = useShop();
   const [qrOpen, setQrOpen] = useState(false);
   const [isbnOpen, setIsbnOpen] = useState(false);
+  const [smsOpen, setSmsOpen] = useState(false);
   const [error, setError] = useState('');
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
   const [searching, setSearching] = useState(false);
@@ -458,6 +460,21 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
 
             {kind === 'spending' && (
               <>
+                <Pressable onPress={() => setSmsOpen(true)} style={({ pressed }) => [styles.scanBtn, pressed && { opacity: 0.8 }]}>
+                  <Text style={styles.smsIcon}>💳</Text>
+                  <Text style={styles.scanBtnText}>카드 결제 문자 붙여넣어서 채우기</Text>
+                </Pressable>
+                <CardSmsPaste
+                  visible={smsOpen}
+                  onClose={() => setSmsOpen(false)}
+                  onFill={(pay) => {
+                    setSmsOpen(false);
+                    setSpending((sp) => ({ ...sp, store: pay.store || sp.store, date: pay.date ?? sp.date }));
+                    // 품목이 비어 있으면 결제 한 줄로 채우고, 이미 적어둔 게 있으면 아래에 더한다
+                    const line = { name: pay.time ? `${pay.time} 카드 결제` : '카드 결제', qty: '1', price: String(pay.amount) };
+                    setItems((all) => (all.every((it) => !it.name.trim() && !it.price.trim()) ? [line] : [...all, line]));
+                  }}
+                />
                 <Row>
                   <Field label="어디서? (상호) *" value={spending.store} onChange={(v) => setSpending({ ...spending, store: v })} placeholder="달밤커피" />
                   <Field label="종류" value={spending.category} onChange={(v) => setSpending({ ...spending, category: v })} placeholder="카페" />
@@ -919,6 +936,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.orangeSoft,
   },
   barcode: { flexDirection: 'row', gap: 1.5, alignItems: 'center' },
+  smsIcon: { fontSize: 16 },
   scanBtnText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   qrBox: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 14, gap: 12, alignItems: 'center' },
   qrHint: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 20 },
