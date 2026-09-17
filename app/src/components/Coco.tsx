@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, w
 import Svg, { ClipPath, Circle, Defs, Ellipse, G, Path } from 'react-native-svg';
 
 import { bump } from '../lib/haptics';
+import { OutfitArt, OutfitId } from './Outfits';
 
 export type CocoMood = 'idle' | 'happy' | 'print' | 'wow' | 'squish' | 'blink';
 export type CocoTone = 'orange' | 'white';
@@ -94,7 +95,19 @@ function Mouth({ mood, tone, clipId }: { mood: CocoMood; tone: CocoTone; clipId:
 }
 
 /** 코코 그림만 (정적) */
-export function CocoArt({ size, mood = 'idle', tone = 'orange', id = 'coco' }: { size: number; mood?: CocoMood; tone?: CocoTone; id?: string }) {
+export function CocoArt({
+  size,
+  mood = 'idle',
+  tone = 'orange',
+  id = 'coco',
+  outfit,
+}: {
+  size: number;
+  mood?: CocoMood;
+  tone?: CocoTone;
+  id?: string;
+  outfit?: OutfitId | null;
+}) {
   const c = TONES[tone];
   return (
     <Svg width={size} height={size * COCO_RATIO} viewBox={`0 0 ${VB_W} ${VB_H}`}>
@@ -106,6 +119,7 @@ export function CocoArt({ size, mood = 'idle', tone = 'orange', id = 'coco' }: {
       <Ellipse cx={292} cy={228} rx={24} ry={13} fill={c.blush} opacity={0.85} />
       <Eyes mood={mood} />
       <Mouth mood={mood} tone={tone} clipId={`${id}-mouth`} />
+      {outfit && <OutfitArt id={outfit} />}
     </Svg>
   );
 }
@@ -119,6 +133,7 @@ export function Coco({
   tone = 'orange',
   id = 'coco',
   interactive = false,
+  outfit,
   onPress,
 }: {
   size: number;
@@ -126,6 +141,7 @@ export function Coco({
   tone?: CocoTone;
   id?: string;
   interactive?: boolean;
+  outfit?: OutfitId | null;
   onPress?: () => void;
 }) {
   const [blink, setBlink] = useState(false);
@@ -172,7 +188,7 @@ export function Coco({
   const face: CocoMood = pressed ? 'squish' : blink && (mood === 'idle' || mood === 'print') ? 'blink' : mood;
   const art = (
     <Animated.View style={[{ width: size, height: size * COCO_RATIO, transformOrigin: 'bottom' }, style]}>
-      <CocoArt size={size} mood={face} tone={tone} id={id} />
+      <CocoArt size={size} mood={face} tone={tone} id={id} outfit={outfit} />
     </Animated.View>
   );
   if (!interactive) return art;

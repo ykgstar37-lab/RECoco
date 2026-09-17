@@ -3,13 +3,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 
 import { CATEGORIES, CategoryPicker } from './components/CategoryPicker';
+import { Closet } from './components/Closet';
 import { COCO_RATIO, Coco } from './components/Coco';
+import { OUTFIT_TOP, OutfitId } from './components/Outfits';
 import { PrintJob } from './components/Printer';
 import { RecordForm } from './components/RecordForm';
 import { RollScreen } from './components/RollScreen';
 import { WeekStamps, dateKey } from './components/WeekStamps';
+import { OUTFITS, loadShop, saveOutfit, saveOwned } from './lib/shop';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord, RecordKind } from './types';
@@ -18,7 +22,7 @@ const LOGO_WHITE = require('../assets/logo/recoco-logo-white.png');
 
 const HEADLINE_H = 70; // 대사 두 줄 높이
 const MIN_TOP_GAP = 36; // 상단 바와 대사 사이 최소 여백
-const COCO_TOP_EMPTY = 34 / 320; // 코코 그림에서 꼭지 위쪽 빈 공간 비율
+const COCO_TOP_EMPTY = 34 / 320; // 코코 그림에서 꼭지 위쪽 빈 공간 비율 (모자를 쓰면 더 줄어듦)
 
 // 코코를 누를 때마다 바뀌는 한마디
 const POKES = ['간지러워!', '말랑말랑~', '헤헤 또 눌러봐', '영수증 뽑아줄까?', '기록은 내가 챙길게', '만두 아니고 코코야!'];
@@ -39,10 +43,28 @@ export function HomeScreen() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [stage, setStage] = useState({ width: 0, height: 0 });
   const pokeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [closetOpen, setClosetOpen] = useState(false);
+  const [owned, setOwned] = useState<string[]>([]);
+  const [outfit, setOutfit] = useState<OutfitId | null>(null);
+  const [gift, setGift] = useState<string | null>(null);
 
   useEffect(() => {
     loadRecords().then(setRecords);
+    loadShop().then((s) => {
+      setOwned(s.owned);
+      setOutfit(s.outfit);
+    });
   }, []);
+
+  const wear = (next: OutfitId | null) => {
+    setOutfit(next);
+    saveOutfit(next).catch(() => {});
+  };
+  const bought = (productId: string) => {
+    const next = owned.includes(productId) ? owned : [...owned, productId];
+    setOwned(next);
+    saveOwned(next).catch(() => {});
+  };
 
   const update = useCallback((next: RecoRecord[]) => {
     setRecords(next);
@@ -83,8 +105,14 @@ export function HomeScreen() {
       const sundayRecord = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
       setWeekOffset(Math.min(0, Math.round((sundayRecord.getTime() - sundayToday.getTime()) / (7 * 86400000))));
     }
+    // 영수증 장수가 보상 기준에 닿으면 모자 선물
+    const reward = OUTFITS.find((o) => o.unlock.type === 'reward' && o.unlock.records === records.length + 1);
+    setGift(reward ? `${reward.name} 받았다!\n옷장에서 씌워줘` : null);
     setCheer(true);
-    setTimeout(() => setCheer(false), 3500);
+    setTimeout(() => {
+      setCheer(false);
+      setGift(null);
+    }, reward ? 5000 : 3500);
     update([record, ...records]);
   };
 
@@ -99,22 +127,26 @@ export function HomeScreen() {
 
   const todayCount = counts[dateKey(new Date())] ?? 0;
   const focusHint = CATEGORIES.find((c) => c.kind === focusKind)?.hint;
-  const headline = cheer
-    ? '영수증 나왔다!\n도장 쾅 찍어줄게'
-    : picking
-      ? (focusHint ?? '오늘은\n뭘 기록할까?')
-      : poke
-        ? poke
-        : todayCount > 0
-          ? `오늘 벌써\n${todayCount}장이나 남겼어!`
-          : '오늘 하루도\n영수증으로 남겨볼까?';
+  const headline = gift
+    ? gift
+    : cheer
+      ? '영수증 나왔다!\n도장 쾅 찍어줄게'
+      : picking
+        ? (focusHint ?? '오늘은\n뭘 기록할까?')
+        : poke
+          ? poke
+          : todayCount > 0
+            ? `오늘 벌써\n${todayCount}장이나 남겼어!`
+            : '오늘 하루도\n영수증으로 남겨볼까?';
 
+  // 모자를 쓰면 그림 위쪽 빈 공간이 줄어든다
+  const topEmpty = outfit ? Math.min(COCO_TOP_EMPTY, OUTFIT_TOP[outfit] / 320) : COCO_TOP_EMPTY;
   // 코코는 (대사 + 위쪽 여백)을 뺀 세로 공간을 꽉 채우고, 양옆은 화면 밖으로 살짝 잘릴 만큼 크게
   const cocoSize = stage.width
-    ? Math.min((stage.width - 80) * 1.32, (stage.height - HEADLINE_H - MIN_TOP_GAP) / (COCO_RATIO * (1 - COCO_TOP_EMPTY)))
+    ? Math.min((stage.width - 80) * 1.32, (stage.height - HEADLINE_H - MIN_TOP_GAP) / (COCO_RATIO * (1 - topEmpty)))
     : 0;
   // 그림 위쪽의 빈 공간(꼭지 위)만큼 대사를 코코 쪽으로 내려서 딱 붙인다
-  const hug = -cocoSize * COCO_RATIO * COCO_TOP_EMPTY;
+  const hug = -cocoSize * COCO_RATIO * topEmpty;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom + 8 }]}>
@@ -125,13 +157,22 @@ export function HomeScreen() {
           <Image source={LOGO_WHITE} style={styles.logo} resizeMode="contain" accessibilityLabel={BRAND.ko} />
           <Text style={styles.count}>모은 영수증 {records.length}장</Text>
         </View>
-        <Pressable
-          onPress={picking ? () => setPicking(false) : openPicker}
-          disabled={!!printing}
-          accessibilityLabel={picking ? '카테고리 닫기' : '기록 추가'}
-          style={({ pressed }) => [styles.addBtn, pressed && { transform: [{ scale: 0.92 }] }]}>
-          <Text style={[styles.addBtnText, picking && { transform: [{ rotate: '45deg' }] }]}>＋</Text>
-        </Pressable>
+        <View style={styles.headerBtns}>
+          <Pressable
+            onPress={() => setClosetOpen(true)}
+            disabled={!!printing}
+            accessibilityLabel="코코 옷장"
+            style={({ pressed }) => [styles.closetBtn, pressed && { transform: [{ scale: 0.92 }] }]}>
+            <HatIcon />
+          </Pressable>
+          <Pressable
+            onPress={picking ? () => setPicking(false) : openPicker}
+            disabled={!!printing}
+            accessibilityLabel={picking ? '카테고리 닫기' : '기록 추가'}
+            style={({ pressed }) => [styles.addBtn, pressed && { transform: [{ scale: 0.92 }] }]}>
+            <Text style={[styles.addBtnText, picking && { transform: [{ rotate: '45deg' }] }]}>＋</Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* 상단 바와 대사 사이는 비워두고, 대사와 코코는 붙여서 아래쪽에 모은다 */}
@@ -147,6 +188,7 @@ export function HomeScreen() {
             mood={cheer || focusKind ? 'happy' : picking ? 'wow' : 'idle'}
             interactive
             onPress={picking ? undefined : pokeCoco}
+            outfit={outfit}
             id="coco-home"
           />
         )}
@@ -181,7 +223,7 @@ export function HomeScreen() {
         )}
       </View>
 
-      {printing && <PrintJob record={printing} rollWidth={Math.min((stage.width - 80) * 0.72, 360) || 280} onDone={handleTorn} onCancel={() => setPrinting(null)} />}
+      {printing && <PrintJob record={printing} rollWidth={Math.min((stage.width - 80) * 0.72, 360) || 280} onDone={handleTorn} onCancel={() => setPrinting(null)} outfit={outfit} />}
 
       <RollScreen
         visible={rollOpen}
@@ -191,6 +233,15 @@ export function HomeScreen() {
         onClose={() => setRollOpen(false)}
         onSave={handleEdit}
         onDelete={handleDelete}
+      />
+      <Closet
+        visible={closetOpen}
+        owned={owned}
+        recordCount={records.length}
+        outfit={outfit}
+        onClose={() => setClosetOpen(false)}
+        onWear={wear}
+        onBought={bought}
       />
       <RecordForm visible={formOpen} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
     </View>
@@ -209,6 +260,15 @@ const styles = StyleSheet.create({
   // 로고 원본(523×119) 비율 그대로
   logo: { height: 30, width: (30 * 523) / 119, marginLeft: -2, marginBottom: 2 },
   count: { fontSize: 13, color: 'rgba(255,255,255,0.85)', fontFamily: FONTS.sans, marginTop: 2 },
+  headerBtns: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  closetBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   addBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   addBtnText: { color: COLORS.orange, fontSize: 28, lineHeight: 32, fontFamily: FONTS.sansBold },
   headline: {
@@ -235,3 +295,13 @@ const styles = StyleSheet.create({
   rollBtnText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   rollBtnArrow: { color: '#fff', fontSize: 26, lineHeight: 26, fontFamily: FONTS.sansBold },
 });
+
+/** 옷장 버튼: 단순한 모자 실루엣 */
+function HatIcon() {
+  return (
+    <Svg width={26} height={22} viewBox="0 0 26 22">
+      <Path d="M5,15 C4,7 8,3 13,3 C18,3 22,7 21,15 Z" fill="#fff" />
+      <Path d="M1.5,16.5 C6,13.5 20,13.5 24.5,16.5 C20,19.5 6,19.5 1.5,16.5 Z" fill="#fff" />
+    </Svg>
+  );
+}

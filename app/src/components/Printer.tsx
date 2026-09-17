@@ -20,6 +20,7 @@ import { RecordPaper, sizeOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { COCO_BODY_BOTTOM, COCO_RATIO, Coco, CocoMood } from './Coco';
+import { OutfitId } from './Outfits';
 
 type Phase = 'printing' | 'ready' | 'torn';
 const TEAR_DISTANCE = 130;
@@ -31,10 +32,11 @@ interface JobProps {
   rollWidth: number;
   onDone: (record: RecoRecord) => void;
   onCancel: () => void;
+  outfit?: OutfitId | null;
 }
 
 /** 코코가 새 기록을 뽑아내고, 사용자가 아래로 잡아당겨 뜯어내는 과정 */
-export function PrintJob({ record, rollWidth, onDone, onCancel }: JobProps) {
+export function PrintJob({ record, rollWidth, onDone, onCancel, outfit }: JobProps) {
   const { width: screenW } = useWindowDimensions();
   const { width, height } = sizeOf(record, rollWidth);
   const [phase, setPhase] = useState<Phase>('printing');
@@ -143,7 +145,7 @@ export function PrintJob({ record, rollWidth, onDone, onCancel }: JobProps) {
         </GestureDetector>
       </View>
       <Animated.View pointerEvents="none" style={[styles.coco, { top: COCO_TOP, left: (screenW - cocoSize) / 2, transformOrigin: 'top' }, cocoStyle]}>
-        <Coco size={cocoSize} mood={mood} tone="white" id="coco-print" />
+        <Coco size={cocoSize} mood={mood} tone="white" id="coco-print" outfit={outfit} />
       </Animated.View>
 
       {phase !== 'torn' && (
