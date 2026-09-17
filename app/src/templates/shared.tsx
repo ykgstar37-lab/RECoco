@@ -1,4 +1,4 @@
-import { ClipPath, Defs, G, Image, Path, Pattern, Rect } from 'react-native-svg';
+import { ClipPath, Defs, G, Image, Line, Path, Pattern, Rect } from 'react-native-svg';
 
 import { seededRandom } from '../lib/format';
 
@@ -124,3 +124,38 @@ export function Barcode({
     </G>
   );
 }
+
+/** 모눈종이 무늬: step 간격 격자, major 칸마다 조금 진한 선 */
+export function GridLines({
+  x,
+  y,
+  width,
+  height,
+  step,
+  color,
+  majorColor,
+  major = 5,
+}: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  step: number;
+  color: string;
+  majorColor: string;
+  major?: number;
+}) {
+  const cols = Math.floor(width / step);
+  const rows = Math.floor(height / step);
+  return (
+    <G>
+      {Array.from({ length: cols + 1 }, (_, i) => (
+        <Line key={`v${i}`} x1={x + i * step} y1={y} x2={x + i * step} y2={y + rows * step} stroke={i % major ? color : majorColor} strokeWidth={i % major ? 0.8 : 1.2} />
+      ))}
+      {Array.from({ length: rows + 1 }, (_, i) => (
+        <Line key={`h${i}`} x1={x} y1={y + i * step} x2={x + cols * step} y2={y + i * step} stroke={i % major ? color : majorColor} strokeWidth={i % major ? 0.8 : 1.2} />
+      ))}
+    </G>
+  );
+}
+

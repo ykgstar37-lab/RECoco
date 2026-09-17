@@ -1,8 +1,10 @@
 // 부분 유료화: 코코 옷(보상 해금/개별 구매) + 새 카테고리·영수증 테마(개별 구매, 예정)
 // 실제 결제(App Store·Google Play)는 개발 빌드에서 붙인다. 지금은 개발 모드에서만 바로 구매 처리.
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSyncExternalStore } from 'react';
 
 import type { OutfitId } from '../components/Outfits';
+import type { PaperTheme } from '../types';
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
@@ -27,6 +29,23 @@ export const OUTFITS: OutfitItem[] = [
   { id: 'trapper', name: '털 방한모', unlock: { type: 'paid', productId: 'recoco.outfit.trapper', price: 1000 } },
 ];
 
+export interface ThemeItem {
+  id: PaperTheme;
+  name: string;
+  desc: string;
+  productId: string;
+  price: number;
+}
+
+/** 영수증 테마: 하나 사면 소비 영수증과 인생네컷 뒷면 모두에 쓸 수 있다 */
+export const THEMES: ThemeItem[] = [
+  { id: 'plain', name: '흰 무지', desc: '깨끗한 흰 종이에 연한 회색 선', productId: 'recoco.theme.plain', price: 1000 },
+  { id: 'grid', name: '모눈종이', desc: '연두빛 모눈이 깔린 노트 종이', productId: 'recoco.theme.grid', price: 1000 },
+];
+
+export const themeUnlocked = (id: PaperTheme | undefined, owned: string[]) =>
+  !id || owned.includes(THEMES.find((t) => t.id === id)?.productId ?? '');
+
 export interface ShopState {
   owned: string[]; // 구매한 productId
   outfit: OutfitId | null; // 입고 있는 옷
@@ -42,6 +61,44 @@ export const saveOutfit = (outfit: OutfitId | null) => (outfit ? AsyncStorage.se
 
 export function isUnlocked(item: OutfitItem, owned: string[], recordCount: number) {
   return item.unlock.type === 'reward' ? recordCount >= item.unlock.records : owned.includes(item.unlock.productId);
+}
+
+// ── 앱 전체가 같이 보는 구매·옷 상태 ──
+let state: ShopState = { owned: [], outfit: null };
+const listeners = new Set<() => void>();
+const emit = () => listeners.forEach((l) => l());
+
+export async function initShop() {
+  state = await loadShop();
+  emit();
+}
+
+export function useShop() {
+  return useSyncExternalStore(
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    () => state,
+  );
+}
+
+export function addOwned(productId: string) {
+  if (state.owned.includes(productId)) return;
+  state = { ...state, owned: [...state.owned, productId] };
+  saveOwned(state.owned).catch(() => {});
+  emit();
+}
+
+export function wearOutfit(outfit: OutfitId | null) {
+  state = { ...state, outfit };
+  saveOutfit(outfit).catch(() => {});
+  emit();
+}
+
+/** 사고 나서 상태에 반영까지 */
+export async function buy(productId: string) {
+  addOwned(await purchase(productId));
 }
 
 export class PurchaseUnavailable extends Error {}

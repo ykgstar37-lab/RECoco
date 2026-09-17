@@ -42,6 +42,8 @@ module.exports = () => {
     { name: '영화_티켓', record: movie },
     { name: '영화_티켓_흰색', record: { ...movie, id: 'sample-movie-white', paper: 'white' } },
     { name: '소비_영수증', record: spending },
+    { name: '소비_영수증_테마_흰무지', record: { ...spending, id: 'sample-spending-plain', theme: 'plain' } },
+    { name: '소비_영수증_테마_모눈', record: { ...spending, id: 'sample-spending-grid', theme: 'grid' } },
     { name: '여행_사진0장', record: tr(0), px: 1100 },
     { name: '여행_사진1장', record: tr(1), px: 1100 },
     { name: '여행_사진2장', record: tr(2), px: 1100 },
@@ -53,6 +55,8 @@ module.exports = () => {
     { name: '인생네컷_가로2x2_블랙', record: fc('wide', 'black', { photos: [photo(1), null, photo(3), photo(4)] }), px: 1000 },
     { name: '인생네컷_QR완성본', record: fourQr, px: 500 },
     { name: '인생네컷_뒤_스트립', record: fc('strip', 'white'), side: 'back', px: 500 },
+    { name: '인생네컷_뒤_스트립_테마_흰무지', record: fc('strip', 'white', { theme: 'plain' }), side: 'back', px: 500 },
+    { name: '인생네컷_뒤_스트립_테마_모눈', record: fc('strip', 'white', { theme: 'grid' }), side: 'back', px: 500 },
     { name: '인생네컷_뒤_2x2', record: fc('grid', 'sky'), side: 'back', px: 700 },
     { name: '인생네컷_뒤_가로', record: fc('wide', 'black'), side: 'back', px: 1000 },
   ];

@@ -8,7 +8,7 @@ import { CATEGORIES, CategoryPicker } from './components/CategoryPicker';
 import { Closet } from './components/Closet';
 import { COCO_RATIO, Coco } from './components/Coco';
 import { BagIcon, DotsIcon, GearIcon, HatIcon } from './components/MenuIcons';
-import { OUTFIT_TOP, OutfitId } from './components/Outfits';
+import { OUTFIT_TOP } from './components/Outfits';
 import { PrintJob } from './components/Printer';
 import { RecordForm } from './components/RecordForm';
 import { RollScreen } from './components/RollScreen';
@@ -16,7 +16,7 @@ import { Settings } from './components/Settings';
 import { Shop } from './components/Shop';
 import { WeekStamps, dateKey } from './components/WeekStamps';
 import { loadHaptics, tick } from './lib/haptics';
-import { OUTFITS, loadShop, saveOutfit, saveOwned } from './lib/shop';
+import { OUTFITS, addOwned, initShop, useShop, wearOutfit } from './lib/shop';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord, RecordKind } from './types';
@@ -50,28 +50,14 @@ export function HomeScreen() {
   const [closetOpen, setClosetOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [owned, setOwned] = useState<string[]>([]);
-  const [outfit, setOutfit] = useState<OutfitId | null>(null);
+  const { owned, outfit } = useShop();
   const [gift, setGift] = useState<string | null>(null);
 
   useEffect(() => {
     loadRecords().then(setRecords);
     loadHaptics().catch(() => {});
-    loadShop().then((s) => {
-      setOwned(s.owned);
-      setOutfit(s.outfit);
-    });
+    initShop().catch(() => {});
   }, []);
-
-  const wear = (next: OutfitId | null) => {
-    setOutfit(next);
-    saveOutfit(next).catch(() => {});
-  };
-  const bought = (productId: string) => {
-    const next = owned.includes(productId) ? owned : [...owned, productId];
-    setOwned(next);
-    saveOwned(next).catch(() => {});
-  };
 
   const update = useCallback((next: RecoRecord[]) => {
     setRecords(next);
@@ -286,14 +272,14 @@ export function HomeScreen() {
         recordCount={records.length}
         outfit={outfit}
         onClose={() => setClosetOpen(false)}
-        onWear={wear}
-        onBought={bought}
+        onWear={wearOutfit}
+        onBought={addOwned}
       />
       <Shop
         visible={shopOpen}
         owned={owned}
         onClose={() => setShopOpen(false)}
-        onBought={bought}
+        onBought={addOwned}
         onOpenCloset={() => {
           setShopOpen(false);
           // 시트가 내려간 뒤 옷장을 연다
@@ -311,7 +297,7 @@ export function HomeScreen() {
           if (added.length) update([...added, ...records].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)));
           return added.length;
         }}
-        onBought={bought}
+        onBought={addOwned}
       />
       <RecordForm visible={formOpen} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
     </View>

@@ -5,8 +5,8 @@ import Svg, { Circle, ClipPath, Defs, G, Image, Line, LinearGradient, Path, Rect
 import { parseDate, seededRandom, withParticle } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
-import { FourcutFrame, FourcutLayout, FourcutRecord, Photo } from '../types';
-import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { FourcutFrame, FourcutLayout, FourcutRecord, PaperTheme, Photo } from '../types';
+import { GridLines, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
 const PAD = 16;
 
@@ -215,6 +215,13 @@ const INK = '#2b2622';
 const SUB = '#8a8074';
 const RULE = '#cfc5b3';
 
+// 뒷면 종이 테마: 기본 크림 줄노트 / 흰 무지(선 없이) / 모눈종이
+const BACK_SKINS: Record<PaperTheme | 'default', { paper: string; border: string; ruled?: string; grid?: { color: string; major: string } }> = {
+  default: { paper: '#f7f2e8', border: '#e2d9c8', ruled: '#e6ddcc' },
+  plain: { paper: '#ffffff', border: '#ececef' },
+  grid: { paper: '#fcfdf9', border: '#d3e4d8', grid: { color: '#e4efe8', major: '#cfe2d5' } },
+};
+
 export function FourcutBack({ record: r, width }: { record: FourcutRecord; width: number }) {
   const L = layoutFourcut(r);
   const { w, h } = fourcutSize(r);
@@ -224,6 +231,7 @@ export function FourcutBack({ record: r, width }: { record: FourcutRecord; width
   const VW = w / s;
   const V = h / s;
   const card = cardPath(w, h, 8);
+  const skin = BACK_SKINS[r.theme ?? 'default'];
 
   const d = parseDate(r.date);
   const no = String(1 + Math.floor(seededRandom(r.id)() * 998)).padStart(3, '0');
@@ -262,9 +270,10 @@ export function FourcutBack({ record: r, width }: { record: FourcutRecord; width
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
         <PaperShadow d={card} strength={1.4} />
-        <Path d={card} fill="#f7f2e8" />
+        <Path d={card} fill={skin.paper} />
         <G transform={`scale(${s})`}>
-          <Rect x={12} y={12} width={VW - 24} height={V - 24} rx={4} fill="none" stroke="#e2d9c8" strokeWidth={1.2} />
+          {skin.grid && <GridLines x={12} y={12} width={VW - 24} height={V - 24} step={16} color={skin.grid.color} majorColor={skin.grid.major} />}
+          <Rect x={12} y={12} width={VW - 24} height={V - 24} rx={4} fill="none" stroke={skin.border} strokeWidth={1.2} />
           <T f="mono" x={26} y={42} fontSize={11} fill={SUB} letterSpacing={1} children={`FOUR CUTS · ${dateDots}`} />
           <T f="mono" x={VW - 26} y={42} fontSize={11} fill={SUB} textAnchor="end" letterSpacing={1} children={`NO. ${no}`} />
 
@@ -280,9 +289,10 @@ export function FourcutBack({ record: r, width }: { record: FourcutRecord; width
           <T f="sansBold" x={colX + colW / 2} y={diaryHead} fontSize={14} fill={INK} textAnchor="middle" letterSpacing={2} children="오늘의 하루" />
 
           {/* 줄 노트처럼 밑줄을 채우고 그 위에 일기를 쓴다 */}
-          {Array.from({ length: ruled }, (_, i) => (
-            <Line key={i} x1={colX + 30} y1={diaryTop + 20 + i * 30} x2={colX + colW - 30} y2={diaryTop + 20 + i * 30} stroke="#e6ddcc" strokeWidth={1} />
-          ))}
+          {!!skin.ruled &&
+            Array.from({ length: ruled }, (_, i) => (
+              <Line key={i} x1={colX + 30} y1={diaryTop + 20 + i * 30} x2={colX + colW - 30} y2={diaryTop + 20 + i * 30} stroke={skin.ruled} strokeWidth={1} />
+            ))}
           {diary.lines.map((line, i) => (
             <T key={i} x={colX + 32} y={diaryTop + 14 + i * 30} fontSize={diary.size} fill={INK} children={line} />
           ))}

@@ -52,7 +52,11 @@ export interface SpendingRecord extends BaseRecord {
   address: string;
   items: SpendingItem[];
   memo: string;
+  theme?: PaperTheme; // 없으면 기본 간이영수증
 }
+
+/** 유료 영수증 테마 (종이·무늬만 바뀜) */
+export type PaperTheme = 'plain' | 'grid';
 
 /** 앱 안에 복사해 둔 사진 */
 export interface Photo {
@@ -99,6 +103,7 @@ export interface FourcutRecord extends BaseRecord {
   layout: FourcutLayout;
   frame: FourcutFrame;
   sourceUrl: string; // QR 링크 (있으면)
+  theme?: PaperTheme; // 뒷면 종이 (없으면 기본 크림 줄노트)
 }
 
 export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord;

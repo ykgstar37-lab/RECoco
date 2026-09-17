@@ -3,9 +3,10 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { won } from '../lib/format';
-import { OUTFITS, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { OUTFITS, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { CocoArt } from './Coco';
+import { ThemeSwatch } from './ThemePicker';
 
 interface Props {
   visible: boolean;
@@ -15,7 +16,7 @@ interface Props {
   onOpenCloset: () => void;
 }
 
-/** 상점: 코코 모자(눌러서 옷장에서 입어보고 사기), 곧 나올 새 카테고리·영수증 테마 */
+/** 상점: 코코 모자(눌러서 옷장에서 입어보고 사기), 영수증 테마, 곧 나올 새 카테고리 */
 export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -75,8 +76,27 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
             <Text style={styles.soon}>독서·영화·소비·여행·인생네컷은 계속 무료예요.{'\n'}새로운 기록 양식을 준비하고 있어요.</Text>
           </Section>
 
-          <Section title="영수증 테마" sub="곧 나와요">
-            <Text style={styles.soon}>같은 기록을 다른 느낌의 종이·양식으로 뽑을 수 있게 준비하고 있어요.</Text>
+          <Section title="영수증 테마" sub="소비 영수증 · 인생네컷 뒷면에 쓸 수 있어요">
+            {THEMES.map((t) => {
+              const have = owned.includes(t.productId);
+              return (
+                <View key={t.id} style={styles.themeRow}>
+                  <ThemeSwatch theme={t.id} base="spending" size={34} />
+                  <ThemeSwatch theme={t.id} base="fourcut" size={34} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.themeName}>{t.name}</Text>
+                    <Text style={styles.themeDesc}>{t.desc}</Text>
+                  </View>
+                  <Pressable
+                    disabled={have || busy}
+                    onPress={() => run(() => buy(t.productId))}
+                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
+                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(t.price)}원`}</Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+            <Text style={styles.soon}>산 테마는 기록을 쓸 때 "종이"에서 고르면 돼요.</Text>
           </Section>
 
           <Pressable onPress={() => run(async () => (await restorePurchases()).forEach(onBought))} hitSlop={8} style={styles.restore}>
@@ -119,6 +139,13 @@ const styles = StyleSheet.create({
   hatName: { color: COLORS.ink, fontSize: 12, fontFamily: FONTS.sansBold, marginTop: 5 },
   hatPrice: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: 1 },
   rowLink: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
+  themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  themeName: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
+  themeDesc: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 1 },
+  buyBtn: { backgroundColor: COLORS.orange, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
+  buyBtnOff: { backgroundColor: COLORS.line },
+  buyText: { color: '#fff', fontSize: 13, fontFamily: FONTS.sansBold },
+  buyTextOff: { color: COLORS.sub },
   soon: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, lineHeight: 20 },
   restore: { alignSelf: 'center', paddingVertical: 6 },
   restoreText: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textDecorationLine: 'underline' },

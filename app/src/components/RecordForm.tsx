@@ -25,6 +25,7 @@ import {
   FourcutRecord,
   MoviePaper,
   MovieRecord,
+  PaperTheme,
   Photo,
   ReadingRecord,
   ReadingStatus,
@@ -40,6 +41,7 @@ import { IsbnScan } from './IsbnScan';
 import { QrImport } from './QrImport';
 import { STICKERS, StickerArt, stickerOf } from './Stickers';
 import { TheaterField } from './TheaterField';
+import { ThemePicker } from './ThemePicker';
 import { TitleSearch } from './TitleSearch';
 
 interface Props {
@@ -116,6 +118,14 @@ const emptyMovie = (): Omit<MovieRecord, 'id' | 'createdAt'> => ({
   paper: 'pink' as MoviePaper,
 });
 
+const emptySpending = (): { date: string; store: string; category: string; address: string; memo: string; theme?: PaperTheme } => ({
+  date: today(),
+  store: '',
+  category: '',
+  address: '',
+  memo: '',
+});
+
 const emptyTravel = (): Omit<TravelRecord, 'id' | 'createdAt'> => ({
   kind: 'travel',
   date: today(),
@@ -153,7 +163,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
   const [kind, setKind] = useState<RecordKind>(initialKind ?? 'reading');
   const [reading, setReading] = useState(emptyReading);
   const [movie, setMovie] = useState(emptyMovie);
-  const [spending, setSpending] = useState({ date: today(), store: '', category: '', address: '', memo: '' });
+  const [spending, setSpending] = useState(emptySpending);
   const [items, setItems] = useState<ItemDraft[]>([{ name: '', qty: '1', price: '' }]);
   const [travel, setTravel] = useState(emptyTravel);
   const [fourcut, setFourcut] = useState(emptyFourcut);
@@ -181,7 +191,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
         setMovie(rest);
         break;
       case 'spending':
-        setSpending({ date: rest.date, store: rest.store, category: rest.category, address: rest.address, memo: rest.memo });
+        setSpending({ date: rest.date, store: rest.store, category: rest.category, address: rest.address, memo: rest.memo, theme: rest.theme });
         setItems(rest.items.map((it) => ({ name: it.name, qty: String(it.qty), price: String(it.price) })));
         break;
       case 'travel':
@@ -198,7 +208,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
     setFourcut(emptyFourcut());
     setReading(emptyReading());
     setMovie(emptyMovie());
-    setSpending({ date: today(), store: '', category: '', address: '', memo: '' });
+    setSpending(emptySpending());
     setItems([{ name: '', qty: '1', price: '' }]);
     setError('');
     setSearching(false);
@@ -473,6 +483,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   </Pressable>
                 )}
                 <Text style={styles.total}>합계 ₩ {won(total)}</Text>
+                <ThemePicker label="영수증 종이" base="spending" value={spending.theme} onChange={(theme) => setSpending((sp) => ({ ...sp, theme }))} />
               </>
             )}
 
@@ -565,6 +576,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   </>
                 )}
                 <Label text="뒷면 — 오늘의 하루" />
+                <ThemePicker label="뒷면 종이" base="fourcut" value={fourcut.theme} onChange={(theme) => setFourcut((f) => ({ ...f, theme }))} />
                 <Field label="오늘의 제목" value={fourcut.title} onChange={(v) => setFourcut({ ...fourcut, title: v })} placeholder="여름의 마지막 네컷" />
                 <Row>
                   <Field label="어디서" value={fourcut.place} onChange={(v) => setFourcut({ ...fourcut, place: v })} placeholder="연남동" />

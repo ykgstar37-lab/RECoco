@@ -1,20 +1,25 @@
-// 소비 영수증: 손으로 쓴 간이영수증 (한 번 접었다 편 종이)
+// 소비 영수증: 손으로 쓴 간이영수증 (한 번 접었다 편 종이). 테마에 따라 종이·선 색이 바뀐다
 import type { ReactNode } from 'react';
 import Svg, { G, Line, Path, Rect, Text } from 'react-native-svg';
 
 import { handDate, seededRandom, won } from '../lib/format';
 import { fitLine } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
-import { SpendingRecord } from '../types';
+import { PaperTheme, SpendingRecord } from '../types';
 import { StickerArt, stickerOf } from '../components/Stickers';
-import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { GridLines, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
 const PW = 640;
 const PH = 1340;
 const PAD = 16;
 const L = 46;
 const R = 598;
-const INK = '#5a7ea6';
+// 기본은 파란 인쇄 간이영수증, 흰 무지는 연한 회색 선, 모눈종이는 연두 격자 위 초록 선
+const SKINS: Record<PaperTheme | 'default', { paper: string; ink: string; fold: boolean; grid?: { color: string; major: string } }> = {
+  default: { paper: '#faf8f1', ink: '#5a7ea6', fold: true },
+  plain: { paper: '#ffffff', ink: '#a3a3ab', fold: false },
+  grid: { paper: '#fbfdf8', ink: '#5f8f74', fold: false, grid: { color: '#e1eee5', major: '#c9e0d0' } },
+};
 const PEN = '#23232b';
 const MAX_ROWS = 15;
 
@@ -51,6 +56,8 @@ export function layoutSpending(_r: SpendingRecord): TemplateLayout {
 
 export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; width: number }) {
   const lay = layoutSpending(r);
+  const skin = SKINS[r.theme ?? 'default'];
+  const INK = skin.ink;
   const rnd = seededRandom(r.id);
   const jitter = () => (rnd() - 0.5) * 2.4;
 
@@ -92,7 +99,8 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
     <Svg width={width} height={(width * lay.height) / lay.width} viewBox={`0 0 ${lay.width} ${lay.height}`}>
       <G transform={`translate(${PAD} ${PAD}) rotate(-0.6 ${PW / 2} ${PH / 2})`}>
         <PaperShadow d={PAPER} />
-        <Path d={PAPER} fill="#faf8f1" />
+        <Path d={PAPER} fill={skin.paper} />
+        {skin.grid && <GridLines x={10} y={14} width={PW - 20} height={PH - 24} step={20} color={skin.grid.color} majorColor={skin.grid.major} />}
 
         <G stroke={INK} fill="none" strokeLinecap="square">
           {line(L, 104, L + 110, 104, 1.1)}
@@ -197,10 +205,14 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
           {hand('total', R - 14, iBot + 38, won(total), 34, 200, 'end')}
         </G>
 
-        {/* 한 번 접었다 편 자국 */}
-        <Path d={`M0,${PH * 0.37} C${PW * 0.3},${PH * 0.35} ${PW * 0.62},${PH * 0.39} ${PW},${PH * 0.365}`} stroke="#fff" strokeWidth={2.2} opacity={0.5} fill="none" />
-        <Path d={`M0,${PH * 0.37 + 2.2} C${PW * 0.3},${PH * 0.35 + 2.2} ${PW * 0.62},${PH * 0.39 + 2.2} ${PW},${PH * 0.365 + 2.2}`} stroke="#6b5f48" strokeWidth={1} opacity={0.12} fill="none" />
-        <PaperOverlay id={`sp-${r.id}`} d={PAPER} width={PW} height={PH} wrinkle="hand" surface="grain" />
+        {/* 한 번 접었다 편 자국 (기본 종이만) */}
+        {skin.fold && (
+          <>
+            <Path d={`M0,${PH * 0.37} C${PW * 0.3},${PH * 0.35} ${PW * 0.62},${PH * 0.39} ${PW},${PH * 0.365}`} stroke="#fff" strokeWidth={2.2} opacity={0.5} fill="none" />
+            <Path d={`M0,${PH * 0.37 + 2.2} C${PW * 0.3},${PH * 0.35 + 2.2} ${PW * 0.62},${PH * 0.39 + 2.2} ${PW},${PH * 0.365 + 2.2}`} stroke="#6b5f48" strokeWidth={1} opacity={0.12} fill="none" />
+          </>
+        )}
+        <PaperOverlay id={`sp-${r.id}`} d={PAPER} width={PW} height={PH} wrinkle="hand" surface="grain" wrinkleOpacity={skin.fold ? 1 : 0.45} />
       </G>
     </Svg>
   );
