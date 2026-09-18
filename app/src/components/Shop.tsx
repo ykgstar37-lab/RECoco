@@ -118,8 +118,10 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                   <ThemeSwatch theme={t.id} base="spending" size={34} />
                   <View style={{ flex: 1 }}>
                     <View style={styles.nameRow}>
-                      <Text style={styles.themeName}>{t.name}</Text>
-                      <CategoryTags tags={THEME_TAGS} />
+                      <Text style={styles.themeName} numberOfLines={1}>
+                        {t.name}
+                      </Text>
+                      <CategoryTags tags={THEME_TAGS} tight />
                     </View>
                     <Text style={styles.themeDesc}>{t.desc}</Text>
                     <Text style={styles.peek}>미리보기 ›</Text>
@@ -140,8 +142,10 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                   <FoodDesignSwatch design={d.id} size={34} />
                   <View style={{ flex: 1 }}>
                     <View style={styles.nameRow}>
-                      <Text style={styles.themeName}>{d.name}</Text>
-                      <CategoryTags tags={[KIND_LABEL.food]} />
+                      <Text style={styles.themeName} numberOfLines={1}>
+                        {d.name}
+                      </Text>
+                      <CategoryTags tags={[KIND_LABEL.food]} tight />
                     </View>
                     <Text style={styles.themeDesc}>{d.desc}</Text>
                     <Text style={styles.peek}>미리보기 ›</Text>
@@ -163,8 +167,10 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                   {forConcert ? <ConcertDesignSwatch design={d.id as ConcertDesign} size={34} /> : <ShowDesignSwatch design={d.id as ShowDesign} size={34} />}
                   <View style={{ flex: 1 }}>
                     <View style={styles.nameRow}>
-                      <Text style={styles.themeName}>{d.name}</Text>
-                      <CategoryTags tags={d.kinds.map((k) => KIND_LABEL[k])} />
+                      <Text style={styles.themeName} numberOfLines={1}>
+                        {d.name}
+                      </Text>
+                      <CategoryTags tags={d.kinds.map((k) => KIND_LABEL[k])} tight />
                     </View>
                     <Text style={styles.themeDesc}>{d.desc}</Text>
                     <Text style={styles.peek}>미리보기 ›</Text>
@@ -236,10 +242,10 @@ const styles = StyleSheet.create({
   },
   rowLink: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   categoryIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#ffe36b', alignItems: 'center', justifyContent: 'center' },
-  nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   peek: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3 },
   themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  themeName: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
+  themeName: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold, flexShrink: 1 },
   themeDesc: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 1 },
   buyBtn: { backgroundColor: COLORS.orange, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
   buyBtnOff: { backgroundColor: COLORS.line },

@@ -91,13 +91,15 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
   );
 }
 
-/** 이름 옆에 붙는 작은 원형 카테고리 태그 */
-export function CategoryTags({ tags }: { tags: string[] }) {
+/** 이름 옆에 붙는 작은 원형 카테고리 태그 (상점 목록은 이름과 한 줄에 들어가야 해서 tight) */
+export function CategoryTags({ tags, tight }: { tags: string[]; tight?: boolean }) {
   return (
-    <View style={styles.tags}>
+    <View style={[styles.tags, tight && styles.tagsTight]}>
       {tags.map((t) => (
-        <View key={t} style={styles.tag}>
-          <Text style={styles.tagText}>{t}</Text>
+        <View key={t} style={[styles.tag, tight && styles.tagTight]}>
+          <Text style={[styles.tagText, tight && styles.tagTextTight]} numberOfLines={1}>
+            {t}
+          </Text>
         </View>
       ))}
     </View>
@@ -121,8 +123,11 @@ const styles = StyleSheet.create({
   help: { color: COLORS.placeholder, fontSize: 12, fontFamily: FONTS.sans, textAlign: 'center' },
   notice: { color: COLORS.danger, fontSize: 13, fontFamily: FONTS.sansBold, textAlign: 'center' },
   tags: { flexDirection: 'row', gap: 4 },
+  tagsTight: { gap: 3, flexShrink: 0 },
   tag: { borderWidth: 1.2, borderColor: COLORS.orange, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 1.5, backgroundColor: '#fff' },
+  tagTight: { borderWidth: 1, paddingHorizontal: 5, paddingVertical: 1 },
   tagText: { color: COLORS.orange, fontSize: 10.5, fontFamily: FONTS.sansBold },
+  tagTextTight: { fontSize: 9.5 },
   buy: { marginHorizontal: 16, marginBottom: 8, backgroundColor: COLORS.orange, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   buyOff: { backgroundColor: COLORS.surface },
   buyText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },

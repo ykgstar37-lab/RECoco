@@ -1,12 +1,16 @@
-// 콘서트 영수증 테마 "스탠딩 팔찌": 공연장에서 채워주는 천 팔찌 (잠금 고리 + 아티스트 이름 반복 + 바코드)
+// 영수증 테마 "스탠딩 팔찌": 공연장에서 채워주는 천 팔찌 (잠금 고리 + 아티스트 이름 반복 + 바코드)
+// 콘서트와 공연·전시가 같이 쓴다 (낱말과 금액 줄만 카테고리에 맞춰 바뀐다)
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Line, Path, Rect, Text } from 'react-native-svg';
 
-import { dotDateWithDay, seededRandom, won } from '../lib/format';
+import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
-import { ConcertRecord } from '../types';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { TicketRecord, ticketKindOf } from './ticketKind';
+
+/** 이 팔찌를 쓸 수 있는 기록 (콘서트 · 공연전시) */
+export type WristBandRecord = TicketRecord;
 
 const PW = 600;
 const PAD = 16;
@@ -23,19 +27,20 @@ const TOP = 40; // 고리 위 여백
 const LOCK_H = 96;
 const INFO_TOP = 196;
 
-function computeLayout(r: ConcertRecord) {
+function computeLayout(r: WristBandRecord) {
+  const k = ticketKindOf(r);
   const rows = [
     ['DATE', `${dotDateWithDay(r.date)}${r.time ? `  ${r.time}` : ''}`],
-    ['VENUE', r.place.trim() || '공연장'],
-    ['ADMISSION', r.seat.trim() || `${r.people}명`],
-    ...(r.price > 0 ? [['PRICE', `₩ ${won(r.price)}`]] : []),
+    ['VENUE', r.place.trim() || k.place],
+    ['ADMISSION', k.seatValue],
+    ...(k.price ? [['PRICE', k.price]] : []),
   ] as [string, string][];
   const infoBot = INFO_TOP + 300 + rows.length * 62;
   const height = infoBot + 300;
   return { rows, infoBot, height };
 }
 
-export function layoutConcertBand(r: ConcertRecord): TemplateLayout {
+export function layoutWristBand(r: WristBandRecord): TemplateLayout {
   const { height } = computeLayout(r);
   return { width: PW + PAD * 2, height: height + PAD * 2 + 14, foldAt: 0, displayRatio: 0.72, inset: { top: PAD, bottom: PAD + 14 } };
 }
@@ -53,15 +58,16 @@ function bandPath(h: number) {
   ].join(' ');
 }
 
-export function ConcertBand({ record: r, width }: { record: ConcertRecord; width: number }) {
-  const L = layoutConcertBand(r);
+export function WristBand({ record: r, width }: { record: WristBandRecord; width: number }) {
+  const L = layoutWristBand(r);
+  const k = ticketKindOf(r);
   const { rows, infoBot, height } = computeLayout(r);
   const shape = bandPath(height);
   const id = `band-${r.id}`;
   const rnd = seededRandom(r.id);
   const serial = String(Math.floor(rnd() * 99999999)).padStart(8, '0');
-  const artist = fitLine(r.artist.trim() || r.title.trim() || 'LIVE', BAND_W - 30, 34, 20, 'sansHeavy');
-  const title = fitLine(r.title.trim() || '공연', BAND_W - 30, 26, 16, 'sansBold');
+  const artist = fitLine(r.artist.trim() || r.title.trim() || k.chant, BAND_W - 30, 34, 20, 'sansHeavy');
+  const title = fitLine(r.title.trim() || k.title, BAND_W - 30, 26, 16, 'sansBold');
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
@@ -88,14 +94,14 @@ export function ConcertBand({ record: r, width }: { record: ConcertRecord; width
         </G>
 
         {/* 머리 */}
-        <T f="monoBold" x={PW / 2} y={TOP + LOCK_H + 56} fontSize={15} letterSpacing={6} textAnchor="middle" fill={NEON} children="STANDING" />
+        <T f="monoBold" x={PW / 2} y={TOP + LOCK_H + 56} fontSize={15} letterSpacing={6} textAnchor="middle" fill={NEON} children={k.band === 'CONCERT' ? 'STANDING' : k.band} />
         <T f="sansHeavy" x={PW / 2} y={INFO_TOP + 60} fontSize={artist.size} textAnchor="middle" fill="#fff" children={artist.text} />
         <T f="sansBold" x={PW / 2} y={INFO_TOP + 100} fontSize={title.size} textAnchor="middle" fill="#fff" opacity={0.66} children={title.text} />
 
         {/* 네온 선 사이 반복 무늬 */}
         <Line x1={BAND_X + 20} y1={INFO_TOP + 130} x2={BAND_X + BAND_W - 20} y2={INFO_TOP + 130} stroke={NEON} strokeWidth={2} />
         {[0, 1, 2].map((i) => (
-          <T key={i} f="monoBold" x={PW / 2} y={INFO_TOP + 174 + i * 40} fontSize={17} letterSpacing={7} textAnchor="middle" fill="#fff" opacity={0.22} children="LIVE · LIVE · LIVE" />
+          <T key={i} f="monoBold" x={PW / 2} y={INFO_TOP + 174 + i * 40} fontSize={17} letterSpacing={7} textAnchor="middle" fill="#fff" opacity={0.22} children={`${k.chant} · ${k.chant} · ${k.chant}`} />
         ))}
         <Line x1={BAND_X + 20} y1={INFO_TOP + 296} x2={BAND_X + BAND_W - 20} y2={INFO_TOP + 296} stroke={NEON} strokeWidth={2} />
 

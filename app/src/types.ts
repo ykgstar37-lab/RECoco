@@ -168,8 +168,8 @@ export interface FoodRecord extends BaseRecord {
 
 export type ShowType = 'play' | 'exhibition';
 
-/** ticket: 기본 크림 입장권, poster: 포스터 입장권 (여기까지 무료) / holo: 홀로그램 기록표, kpop: 핑크 포토 티켓 */
-export type ShowDesign = 'ticket' | 'poster' | 'holo' | 'kpop';
+/** ticket: 기본 크림 입장권, poster: 포스터 입장권 (여기까지 무료) / holo: 홀로그램 기록표, kpop: 핑크 포토 티켓, band: 스탠딩 팔찌 (뒤 둘은 콘서트와 같이 씀) */
+export type ShowDesign = 'ticket' | 'poster' | 'holo' | 'kpop' | 'band';
 
 /** 공연·전시: 뮤지컬·연극·전시 입장권 */
 export interface ShowRecord extends BaseRecord {

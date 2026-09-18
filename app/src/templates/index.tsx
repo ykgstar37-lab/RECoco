@@ -1,7 +1,6 @@
 import { memo } from 'react';
 
 import { RecoRecord } from '../types';
-import { ConcertBand, layoutConcertBand } from './ConcertBand';
 import { ConcertRetro, layoutConcertRetro } from './ConcertRetro';
 import { ConcertTicket, layoutConcert } from './ConcertTicket';
 import { FoodHouse, layoutFoodHouse } from './FoodHouse';
@@ -17,6 +16,7 @@ import { ShowRetro, layoutShowRetro } from './ShowRetro';
 import { ShowTicket, layoutShow } from './ShowTicket';
 import { TemplateLayout } from './shared';
 import { TravelPass, layoutTravel } from './TravelPass';
+import { WristBand, layoutWristBand } from './WristBand';
 
 export type { TemplateLayout };
 export { FourcutBack, FourcutFront };
@@ -40,14 +40,16 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'show':
       return record.design === 'kpop'
         ? layoutPhotoTicket(record)
-        : record.design === 'holo'
-          ? layoutShowHolo(record)
-          : record.design === 'poster'
-            ? layoutShow(record)
-            : layoutShowRetro(record);
+        : record.design === 'band'
+          ? layoutWristBand(record)
+          : record.design === 'holo'
+            ? layoutShowHolo(record)
+            : record.design === 'poster'
+              ? layoutShow(record)
+              : layoutShowRetro(record);
     case 'concert':
       return record.design === 'band'
-        ? layoutConcertBand(record)
+        ? layoutWristBand(record)
         : record.design === 'kpop'
           ? layoutPhotoTicket(record)
           : record.design === 'retro'
@@ -90,6 +92,8 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
     case 'show':
       return record.design === 'kpop' ? (
         <PhotoTicket record={record} width={width} />
+      ) : record.design === 'band' ? (
+        <WristBand record={record} width={width} />
       ) : record.design === 'holo' ? (
         <ShowHolo record={record} width={width} />
       ) : record.design === 'poster' ? (
@@ -99,7 +103,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
       );
     case 'concert':
       return record.design === 'band' ? (
-        <ConcertBand record={record} width={width} />
+        <WristBand record={record} width={width} />
       ) : record.design === 'kpop' ? (
         <PhotoTicket record={record} width={width} />
       ) : record.design === 'retro' ? (

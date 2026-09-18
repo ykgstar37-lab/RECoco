@@ -298,8 +298,8 @@ export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | u
         ))}
       </Svg>
     );
-  // 핑크 포토 티켓은 콘서트와 같은 모양이라 견본도 같이 쓴다
-  if (design === 'kpop') return <ConcertDesignSwatch design="kpop" size={size} />;
+  // 핑크 포토 티켓·스탠딩 팔찌는 콘서트와 같은 모양이라 견본도 같이 쓴다
+  if (design === 'kpop' || design === 'band') return <ConcertDesignSwatch design={design} size={size} />;
   // 기본: 크림 레트로 입장권
   return (
     <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">

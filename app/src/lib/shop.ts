@@ -68,13 +68,9 @@ export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) 
   !id || FREE_FOOD_DESIGNS.some((d) => d.id === id) || owned.includes(FOOD_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 /** 콘서트·공연전시가 같이 쓰는 모양: 한 번 사면 두 카테고리 모두에서 고를 수 있다 */
-const PHOTO_TICKET = {
-  name: '핑크 포토 티켓',
-  desc: '분홍 줄무늬에 사진이 큼직하게 박힌 티켓',
-  productId: 'recoco.theme.photo-ticket',
-  price: 1000,
-  kinds: ['concert', 'show'] as RecordKind[],
-};
+const BOTH = ['concert', 'show'] as RecordKind[];
+const PHOTO_TICKET = { name: '핑크 포토 티켓', desc: '분홍 줄무늬에 사진이 큼직하게 박힌 티켓', productId: 'recoco.theme.photo-ticket', price: 1000, kinds: BOTH };
+const WRIST_BAND = { name: '스탠딩 팔찌', desc: '공연장에서 채워주는 손목 팔찌', productId: 'recoco.theme.wristband', price: 1000, kinds: BOTH };
 
 export interface ConcertDesignItem {
   id: Exclude<ConcertDesign, 'ticket'>;
@@ -94,7 +90,7 @@ export const FREE_CONCERT_DESIGNS: { id: ConcertDesign; name: string }[] = [
 ];
 
 export const CONCERT_DESIGNS: ConcertDesignItem[] = [
-  { id: 'band', name: '스탠딩 팔찌', desc: '공연장에서 채워주는 손목 팔찌', productId: 'recoco.theme.concert-band', price: 1000, kinds: ['concert'] },
+  { id: 'band', ...WRIST_BAND },
   { id: 'kpop', ...PHOTO_TICKET },
 ];
 
@@ -118,6 +114,7 @@ export const FREE_SHOW_DESIGNS: { id: ShowDesign; name: string }[] = [
 
 export const SHOW_DESIGNS: ShowDesignItem[] = [
   { id: 'holo', name: '홀로그램 기록표', desc: '파란 홀로그램 종이에 칸칸이 적는 관람 기록표', productId: 'recoco.theme.show-holo', price: 1000, kinds: ['show'] },
+  { id: 'band', ...WRIST_BAND },
   { id: 'kpop', ...PHOTO_TICKET },
 ];
 

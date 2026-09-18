@@ -3,30 +3,14 @@
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
-import { dotDateWithDay, seededRandom, won } from '../lib/format';
+import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
-import { SHOW_TYPES } from './ShowTicket';
+import { TicketRecord, ticketKindOf } from './ticketKind';
 import { PAPER_FONTS as FONTS } from '../theme';
-import { ConcertRecord, ShowRecord } from '../types';
 
-/** 이 티켓을 쓸 수 있는 기록 */
-export type PhotoTicketRecord = ConcertRecord | ShowRecord;
-
-/** 카테고리마다 다른 것: 가운데 띠 글자와 마지막 줄 */
-function flavorOf(r: PhotoTicketRecord) {
-  if (r.kind === 'concert')
-    return {
-      band: 'CONCERT',
-      seatKey: 'SEAT',
-      seatValue: [r.seat.trim() || `${r.people}명`, r.price > 0 ? `₩ ${won(r.price)}` : ''].filter(Boolean).join('   '),
-      fallbackTitle: '콘서트',
-    };
-  const t = SHOW_TYPES[r.type] ?? SHOW_TYPES.play;
-  return r.type === 'exhibition'
-    ? { band: 'EXHIBITION', seatKey: 'GUEST', seatValue: `${r.people}명 관람`, fallbackTitle: t.label }
-    : { band: 'STAGE', seatKey: 'SEAT', seatValue: r.seat.trim() || `${r.people}명`, fallbackTitle: t.label };
-}
+/** 이 티켓을 쓸 수 있는 기록 (콘서트 · 공연전시) */
+export type PhotoTicketRecord = TicketRecord;
 
 const PW = 560;
 const PAD = 16;
@@ -78,17 +62,17 @@ export function PhotoTicket({ record: r, width }: { record: PhotoTicketRecord; w
   const { photoH, headBot, artist, artistTop, bigTop, photoTop, photoBot, infoTop, memo, infoBot, height } = computeLayout(r);
   const shape = toothPath(height);
   const id = `photo-${r.id}`;
-  const flavor = flavorOf(r);
+  const flavor = ticketKindOf(r);
   // 띠 글자가 길면(EXHIBITION) 조금 줄여서 CONCERT 와 비슷한 폭으로 앉힌다
   const band = flavor.band.length > 8 ? { size: 28, gap: 7 } : { size: 34, gap: 10 };
   const rnd = seededRandom(r.id);
   const serial = String(Math.floor(rnd() * 999999999999)).padStart(12, '0');
-  const title = fitLine(r.title.trim() || flavor.fallbackTitle, PW - M * 2 - 20, 24, 16, 'sansBold');
+  const title = fitLine(r.title.trim() || flavor.title, PW - M * 2 - 20, 24, 16, 'sansBold');
 
   const info: [string, string][] = [
     ['DATE', `${dotDateWithDay(r.date)}${r.time ? `  ${r.time}` : ''}`],
-    ['VENUE', r.place.trim() || (r.kind === 'show' && r.type === 'exhibition' ? '전시장' : '공연장')],
-    [flavor.seatKey, flavor.seatValue],
+    ['VENUE', r.place.trim() || flavor.place],
+    [flavor.seatKey, [flavor.seatValue, flavor.price].filter(Boolean).join('   ')],
   ];
 
   return (

@@ -54,7 +54,6 @@ import { AirportField } from './AirportField';
 import { BoardingPassPaste } from './BoardingPassPaste';
 import { BoardingPassScan } from './BoardingPassScan';
 import { CouponPaste } from './CouponPaste';
-import { CouponScan, formatCoupon } from './CouponScan';
 import { CardSmsPaste } from './CardSmsPaste';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
@@ -316,7 +315,6 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   const [smsOpen, setSmsOpen] = useState(false);
   const [passOpen, setPassOpen] = useState(false);
   const [passShotOpen, setPassShotOpen] = useState(false);
-  const [couponOpen, setCouponOpen] = useState(false);
   const [couponShotOpen, setCouponShotOpen] = useState(false);
   // 교환권 캡처에서 찾아낸 상품 그림 자리 (원본 전체로 돌렸다가 다시 돌아올 수 있게 들고 있는다)
   const [giftCrop, setGiftCrop] = useState<PhotoCrop | null>(null);
@@ -1021,34 +1019,12 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
 
             {kind === 'gift' && (
               <>
-                <QuickFill
-                  icon="barcode"
-                  title={gift.couponCode ? `교환권 번호 ${formatCoupon(gift.couponCode)}` : '교환권 바코드 찍기'}
-                  sub={gift.couponCode ? '다시 누르면 새로 찍어요' : '진짜 교환권 번호가 영수증 바코드 아래에 찍혀요'}
-                  onPress={() => setCouponOpen(true)}
-                />
                 <QuickFill icon="card" title="교환권 캡처로 채우기" sub="교환권 화면을 캡처하면 상품·보낸 사람·번호까지" onPress={() => setCouponShotOpen(true)} />
                 <CouponPaste
                   visible={couponShotOpen}
                   onClose={() => setCouponShotOpen(false)}
                   onFill={(g, photo) => {
                     setCouponShotOpen(false);
-                    if (photo) setGiftCrop(photo.crop ?? null);
-                    setGift((x) => ({
-                      ...x,
-                      item: g.item || x.item,
-                      brand: g.brand || x.brand,
-                      person: g.person || x.person,
-                      couponCode: g.code || x.couponCode,
-                      photo: photo ?? x.photo,
-                    }));
-                  }}
-                />
-                <CouponScan
-                  visible={couponOpen}
-                  onClose={() => setCouponOpen(false)}
-                  onFound={(g, photo) => {
-                    setCouponOpen(false);
                     if (photo) setGiftCrop(photo.crop ?? null);
                     setGift((x) => ({
                       ...x,
