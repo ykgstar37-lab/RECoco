@@ -2,7 +2,6 @@ import { memo } from 'react';
 
 import { RecoRecord } from '../types';
 import { ConcertBand, layoutConcertBand } from './ConcertBand';
-import { ConcertKpop, layoutConcertKpop } from './ConcertKpop';
 import { ConcertRetro, layoutConcertRetro } from './ConcertRetro';
 import { ConcertTicket, layoutConcert } from './ConcertTicket';
 import { FoodHouse, layoutFoodHouse } from './FoodHouse';
@@ -10,6 +9,7 @@ import { FoodOrder, layoutFood } from './FoodOrder';
 import { FourcutBack, FourcutFront, layoutFourcut } from './Fourcut';
 import { GiftCoupon, layoutGift } from './GiftCoupon';
 import { MovieTicket, layoutMovie } from './MovieTicket';
+import { PhotoTicket, layoutPhotoTicket } from './PhotoTicket';
 import { ReadingReceipt, layoutReading } from './ReadingReceipt';
 import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
 import { ShowHolo, layoutShowHolo } from './ShowHolo';
@@ -38,12 +38,18 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'food':
       return record.design === 'house' ? layoutFoodHouse(record) : layoutFood(record);
     case 'show':
-      return record.design === 'holo' ? layoutShowHolo(record) : record.design === 'poster' ? layoutShow(record) : layoutShowRetro(record);
+      return record.design === 'kpop'
+        ? layoutPhotoTicket(record)
+        : record.design === 'holo'
+          ? layoutShowHolo(record)
+          : record.design === 'poster'
+            ? layoutShow(record)
+            : layoutShowRetro(record);
     case 'concert':
       return record.design === 'band'
         ? layoutConcertBand(record)
         : record.design === 'kpop'
-          ? layoutConcertKpop(record)
+          ? layoutPhotoTicket(record)
           : record.design === 'retro'
             ? layoutConcertRetro(record)
             : layoutConcert(record);
@@ -82,7 +88,9 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
     case 'food':
       return record.design === 'house' ? <FoodHouse record={record} width={width} /> : <FoodOrder record={record} width={width} />;
     case 'show':
-      return record.design === 'holo' ? (
+      return record.design === 'kpop' ? (
+        <PhotoTicket record={record} width={width} />
+      ) : record.design === 'holo' ? (
         <ShowHolo record={record} width={width} />
       ) : record.design === 'poster' ? (
         <ShowTicket record={record} width={width} />
@@ -93,7 +101,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
       return record.design === 'band' ? (
         <ConcertBand record={record} width={width} />
       ) : record.design === 'kpop' ? (
-        <ConcertKpop record={record} width={width} />
+        <PhotoTicket record={record} width={width} />
       ) : record.design === 'retro' ? (
         <ConcertRetro record={record} width={width} />
       ) : (

@@ -4,11 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, THEME_TAGS, categoryProduct, concertDesignProduct, foodDesignProduct, showDesignProduct, themeProduct } from '../lib/products';
-import { CONCERT_DESIGNS, FOOD_DESIGNS, OUTFITS, PAID_CATEGORIES, SHOW_DESIGNS, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { PreviewProduct, THEME_TAGS, categoryProduct, designProduct, foodDesignProduct, themeProduct } from '../lib/products';
+import { DESIGN_SHELF, FOOD_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
-import { RecordKind } from '../types';
+import { ConcertDesign, RecordKind, ShowDesign } from '../types';
 import { CocoArt } from './Coco';
 import { CategoryTags, ProductPreview } from './ProductPreview';
 import { StickerArt } from './Stickers';
@@ -155,37 +155,16 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                 </Pressable>
               );
             })}
-            {CONCERT_DESIGNS.map((d) => {
+            {DESIGN_SHELF.map((d) => {
               const have = owned.includes(d.productId);
+              const forConcert = d.kinds.includes('concert');
               return (
-                <Pressable key={d.id} onPress={() => setPreview(concertDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
-                  <ConcertDesignSwatch design={d.id} size={34} />
+                <Pressable key={d.productId} onPress={() => setPreview(designProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
+                  {forConcert ? <ConcertDesignSwatch design={d.id as ConcertDesign} size={34} /> : <ShowDesignSwatch design={d.id as ShowDesign} size={34} />}
                   <View style={{ flex: 1 }}>
                     <View style={styles.nameRow}>
                       <Text style={styles.themeName}>{d.name}</Text>
-                      <CategoryTags tags={[KIND_LABEL.concert]} />
-                    </View>
-                    <Text style={styles.themeDesc}>{d.desc}</Text>
-                    <Text style={styles.peek}>미리보기 ›</Text>
-                  </View>
-                  <Pressable
-                    disabled={have || busy}
-                    onPress={() => run(() => buy(d.productId))}
-                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(d.price)}원`}</Text>
-                  </Pressable>
-                </Pressable>
-              );
-            })}
-            {SHOW_DESIGNS.map((d) => {
-              const have = owned.includes(d.productId);
-              return (
-                <Pressable key={d.id} onPress={() => setPreview(showDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
-                  <ShowDesignSwatch design={d.id} size={34} />
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.themeName}>{d.name}</Text>
-                      <CategoryTags tags={[KIND_LABEL.show]} />
+                      <CategoryTags tags={d.kinds.map((k) => KIND_LABEL[k])} />
                     </View>
                     <Text style={styles.themeDesc}>{d.desc}</Text>
                     <Text style={styles.peek}>미리보기 ›</Text>

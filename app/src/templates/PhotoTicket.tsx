@@ -1,12 +1,32 @@
-// 콘서트 영수증 테마 "K-POP 포토 티켓": 분홍/검정 블록, ADMIT ONE, 사진 칸, 큰 CONCERT 글자, 아래 바코드
+// 영수증 테마 "핑크 포토 티켓": 분홍/검정 블록, ADMIT ONE, 사진 칸, 큰 글자 띠, 아래 바코드
+// 콘서트와 공연·전시가 같이 쓴다 (가운데 띠 글자와 마지막 줄만 카테고리에 맞춰 바뀐다)
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
 import { dotDateWithDay, seededRandom, won } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { SHOW_TYPES } from './ShowTicket';
 import { PAPER_FONTS as FONTS } from '../theme';
-import { ConcertRecord } from '../types';
+import { ConcertRecord, ShowRecord } from '../types';
+
+/** 이 티켓을 쓸 수 있는 기록 */
+export type PhotoTicketRecord = ConcertRecord | ShowRecord;
+
+/** 카테고리마다 다른 것: 가운데 띠 글자와 마지막 줄 */
+function flavorOf(r: PhotoTicketRecord) {
+  if (r.kind === 'concert')
+    return {
+      band: 'CONCERT',
+      seatKey: 'SEAT',
+      seatValue: [r.seat.trim() || `${r.people}명`, r.price > 0 ? `₩ ${won(r.price)}` : ''].filter(Boolean).join('   '),
+      fallbackTitle: '콘서트',
+    };
+  const t = SHOW_TYPES[r.type] ?? SHOW_TYPES.play;
+  return r.type === 'exhibition'
+    ? { band: 'EXHIBITION', seatKey: 'GUEST', seatValue: `${r.people}명 관람`, fallbackTitle: t.label }
+    : { band: 'STAGE', seatKey: 'SEAT', seatValue: r.seat.trim() || `${r.people}명`, fallbackTitle: t.label };
+}
 
 const PW = 560;
 const PAD = 16;
@@ -22,7 +42,7 @@ const TOOTH = 14;
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fontFamily={FONTS[f]} {...p} />;
 
-function computeLayout(r: ConcertRecord) {
+function computeLayout(r: PhotoTicketRecord) {
   const photoH = r.photo ? Math.round(Math.min(420, Math.max(280, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 300;
   const headBot = 236;
   const artistTop = headBot + 56;
@@ -37,7 +57,7 @@ function computeLayout(r: ConcertRecord) {
   return { photoH, headBot, artist, artistTop, bigTop, photoTop, photoBot, infoTop, memo, infoBot, height };
 }
 
-export function layoutConcertKpop(r: ConcertRecord): TemplateLayout {
+export function layoutPhotoTicket(r: PhotoTicketRecord): TemplateLayout {
   const { height } = computeLayout(r);
   return { width: PW + PAD * 2, height: height + PAD * 2 + 14, foldAt: 0, displayRatio: 0.86, inset: { top: PAD, bottom: PAD + 14 } };
 }
@@ -53,19 +73,22 @@ function toothPath(h: number) {
   return `${d} Z`;
 }
 
-export function ConcertKpop({ record: r, width }: { record: ConcertRecord; width: number }) {
-  const L = layoutConcertKpop(r);
+export function PhotoTicket({ record: r, width }: { record: PhotoTicketRecord; width: number }) {
+  const L = layoutPhotoTicket(r);
   const { photoH, headBot, artist, artistTop, bigTop, photoTop, photoBot, infoTop, memo, infoBot, height } = computeLayout(r);
   const shape = toothPath(height);
-  const id = `kpop-${r.id}`;
+  const id = `photo-${r.id}`;
+  const flavor = flavorOf(r);
+  // 띠 글자가 길면(EXHIBITION) 조금 줄여서 CONCERT 와 비슷한 폭으로 앉힌다
+  const band = flavor.band.length > 8 ? { size: 28, gap: 7 } : { size: 34, gap: 10 };
   const rnd = seededRandom(r.id);
   const serial = String(Math.floor(rnd() * 999999999999)).padStart(12, '0');
-  const title = fitLine(r.title.trim() || '콘서트', PW - M * 2 - 20, 24, 16, 'sansBold');
+  const title = fitLine(r.title.trim() || flavor.fallbackTitle, PW - M * 2 - 20, 24, 16, 'sansBold');
 
   const info: [string, string][] = [
     ['DATE', `${dotDateWithDay(r.date)}${r.time ? `  ${r.time}` : ''}`],
-    ['VENUE', r.place.trim() || '공연장'],
-    ['SEAT', [r.seat.trim() || `${r.people}명`, r.price > 0 ? `₩ ${won(r.price)}` : ''].filter(Boolean).join('   ')],
+    ['VENUE', r.place.trim() || (r.kind === 'show' && r.type === 'exhibition' ? '전시장' : '공연장')],
+    [flavor.seatKey, flavor.seatValue],
   ];
 
   return (
@@ -102,9 +125,9 @@ export function ConcertKpop({ record: r, width }: { record: ConcertRecord; width
         ))}
         <T f="sansBold" x={PW / 2} y={artistTop + (artist.lines.length - 1) * TITLE_LINE + 64} fontSize={title.size} textAnchor="middle" fill={PINK_DEEP} children={title.text} />
 
-        {/* 검정 블록: CONCERT */}
+        {/* 검정 블록: CONCERT / STAGE / EXHIBITION */}
         <Rect x={0} y={bigTop - 14} width={PW} height={64} fill={DARK} />
-        <T f="sansHeavy" x={PW / 2} y={bigTop + 30} fontSize={34} letterSpacing={10} textAnchor="middle" fill="#fff" children="CONCERT" />
+        <T f="sansHeavy" x={PW / 2} y={bigTop + 30} fontSize={band.size} letterSpacing={band.gap} textAnchor="middle" fill="#fff" children={flavor.band} />
 
         {/* 사진 */}
         {r.photo ? (
@@ -145,7 +168,7 @@ export function ConcertKpop({ record: r, width }: { record: ConcertRecord; width
         {/* 바코드 */}
         <Rect x={0} y={infoBot} width={PW} height={height - infoBot} fill={DARK} />
         <Rect x={M} y={infoBot + 24} width={PW - M * 2} height={64} rx={3} fill="#fff" />
-        <Barcode seed={`${r.id}-kpop`} x={M + 10} y={infoBot + 30} width={PW - M * 2 - 20} height={52} color={DARK} />
+        <Barcode seed={`${r.id}-photo`} x={M + 10} y={infoBot + 30} width={PW - M * 2 - 20} height={52} color={DARK} />
         <T f="mono" x={PW / 2} y={infoBot + 116} fontSize={16} letterSpacing={4} textAnchor="middle" fill="#fff" children={serial} />
 
         <PaperOverlay id={id} d={shape} width={PW} height={height} wrinkle="none" surface="grain" />

@@ -1,6 +1,6 @@
 // 상점 미리보기에 보여줄 상품 정보: 이름·설명·가격·쓰는 곳 태그·예시 기록
 import { KIND_LABEL } from '../templates';
-import { RecoRecord, RecordKind } from '../types';
+import { ConcertDesign, RecoRecord, RecordKind, ShowDesign } from '../types';
 import { sampleConcert, sampleFood, sampleFourcut, sampleGift, sampleShow, sampleSpending } from './previewSamples';
 import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
 
@@ -72,20 +72,18 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
 
 export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignProduct(FOOD_DESIGNS.find((d) => d.id === id)!);
 
-export function concertDesignProduct(d: ConcertDesignItem): PreviewProduct {
-  return {
-    title: d.name,
-    desc: d.desc,
-    productId: d.productId,
-    price: d.price,
-    tags: [KIND_LABEL.concert],
-    samples: [
-      { record: { ...sampleConcert(), id: `preview-concert-${d.id}`, design: d.id }, caption: d.name },
-      {
+/** 콘서트·공연전시 영수증 모양 하나의 미리보기 (두 카테고리가 같이 쓰면 양쪽 예시를 다 보여준다) */
+export function designProduct(d: ConcertDesignItem | ShowDesignItem): PreviewProduct {
+  const samples: PreviewSample[] = [];
+  const both = d.kinds.length > 1;
+  if (d.kinds.includes('concert')) {
+    samples.push({ record: { ...sampleConcert(), id: `preview-${d.id}-concert`, design: d.id as ConcertDesign }, caption: both ? KIND_LABEL.concert : d.name });
+    if (!both)
+      samples.push({
         record: {
           ...sampleConcert(),
-          id: `preview-concert-${d.id}-2`,
-          design: d.id,
+          id: `preview-${d.id}-concert2`,
+          design: d.id as ConcertDesign,
           artist: '달빛소년단',
           title: '월드투어 서울',
           place: 'KSPO DOME',
@@ -94,28 +92,20 @@ export function concertDesignProduct(d: ConcertDesignItem): PreviewProduct {
           memo: '앵콜 때 은박지 폭죽이 터졌다.',
         },
         caption: '다른 공연',
-      },
-    ],
-  };
+      });
+  }
+  if (d.kinds.includes('show')) {
+    samples.push({ record: { ...sampleShow('play'), id: `preview-${d.id}-play`, design: d.id as ShowDesign }, caption: '뮤지컬·연극' });
+    samples.push({ record: { ...sampleShow('exhibition'), id: `preview-${d.id}-ex`, design: d.id as ShowDesign }, caption: '전시' });
+  }
+  return { title: d.name, desc: d.desc, productId: d.productId, price: d.price, tags: d.kinds.map((k) => KIND_LABEL[k]), samples };
 }
 
-export const concertDesignProductById = (id: ConcertDesignItem['id']) => concertDesignProduct(CONCERT_DESIGNS.find((d) => d.id === id)!);
+export const concertDesignProduct = designProduct;
+export const showDesignProduct = designProduct;
 
-export function showDesignProduct(d: ShowDesignItem): PreviewProduct {
-  return {
-    title: d.name,
-    desc: d.desc,
-    productId: d.productId,
-    price: d.price,
-    tags: [KIND_LABEL.show],
-    samples: [
-      { record: { ...sampleShow('play'), id: `preview-show-${d.id}`, design: d.id }, caption: '뮤지컬·연극' },
-      { record: { ...sampleShow('exhibition'), id: `preview-show-${d.id}-ex`, design: d.id }, caption: '전시' },
-    ],
-  };
-}
-
-export const showDesignProductById = (id: ShowDesignItem['id']) => showDesignProduct(SHOW_DESIGNS.find((d) => d.id === id)!);
+export const concertDesignProductById = (id: ConcertDesignItem['id']) => designProduct(CONCERT_DESIGNS.find((d) => d.id === id)!);
+export const showDesignProductById = (id: ShowDesignItem['id']) => designProduct(SHOW_DESIGNS.find((d) => d.id === id)!);
 
 export function categoryProduct(kind: RecordKind): PreviewProduct | null {
   const c = PAID_CATEGORIES[kind];

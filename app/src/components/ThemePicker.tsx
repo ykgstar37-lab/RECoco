@@ -178,7 +178,7 @@ export function FoodDesignPicker({ value, onChange }: { value: FoodDesign | unde
   );
 }
 
-/** 콘서트 티켓 모양 견본 (레트로 / 팔찌 / K-POP) */
+/** 콘서트 티켓 모양 견본 (레트로 / 팔찌 / 핑크 포토) */
 export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesign | undefined; size?: number }) {
   if (design === 'retro')
     return (
@@ -298,6 +298,8 @@ export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | u
         ))}
       </Svg>
     );
+  // 핑크 포토 티켓은 콘서트와 같은 모양이라 견본도 같이 쓴다
+  if (design === 'kpop') return <ConcertDesignSwatch design="kpop" size={size} />;
   // 기본: 크림 레트로 입장권
   return (
     <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">

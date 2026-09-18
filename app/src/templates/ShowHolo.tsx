@@ -19,6 +19,8 @@ const GOLD = '#ffd84d';
 
 const ROW = 74;
 const TOOTH = 16;
+const TITLE_HEAD = 40; // 제목 칸에서 "Title." 딱지가 쓰는 윗자리
+const TITLE_LINE = 52; // 제목 한 줄이 쓰는 높이
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fontFamily={FONTS[f]} {...p} />;
@@ -27,7 +29,7 @@ function computeLayout(r: ShowRecord) {
   const t = SHOW_TYPES[r.type] ?? SHOW_TYPES.play;
   const title = fitLines(r.title.trim() || '제목 없음', PW - M * 2 - 30, 44, 26, 2, 'sansHeavy');
   const titleTop = 128;
-  const titleBoxH = 40 + title.lines.length * 52;
+  const titleBoxH = TITLE_HEAD + title.lines.length * TITLE_LINE;
   const photoTop = titleTop + titleBoxH + 14;
   const photoH = r.photo ? Math.round(Math.min(380, Math.max(240, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 0;
   const rowsTop = photoTop + (r.photo ? photoH + 14 : 0);
@@ -118,8 +120,18 @@ export function ShowHolo({ record: r, width }: { record: ShowRecord; width: numb
         {/* 제목 칸 */}
         {box(M, titleTop, PW - M * 2, titleBoxH, 'title')}
         <T f="mono" x={M + 14} y={titleTop + 26} fontSize={15} fill="#fff" opacity={0.7} children="Title." />
+        {/* 제목은 Title. 딱지 아래 남은 자리(줄마다 TITLE_LINE)의 한가운데에 앉힌다 */}
         {title.lines.map((line, i) => (
-          <T key={i} f="sansHeavy" x={PW / 2} y={titleTop + 44 + (i + 1) * 46} fontSize={title.size} textAnchor="middle" fill={GOLD} children={line} />
+          <T
+            key={i}
+            f="sansHeavy"
+            x={PW / 2}
+            y={titleTop + TITLE_HEAD + i * TITLE_LINE + (TITLE_LINE + title.size * 0.72) / 2}
+            fontSize={title.size}
+            textAnchor="middle"
+            fill={GOLD}
+            children={line}
+          />
         ))}
 
         {/* 사진 */}
