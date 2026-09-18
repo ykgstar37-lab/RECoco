@@ -19,6 +19,7 @@ import { downloadPhoto, pickPhotos } from '../lib/photos';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
+import { SHOW_TYPES } from '../templates/ShowTicket';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
@@ -38,6 +39,8 @@ import {
   ReadingStatus,
   RecoRecord,
   RecordKind,
+  ShowRecord,
+  ShowType,
   SpendingItem,
   SpendingRecord,
   TravelRecord,
@@ -78,6 +81,7 @@ const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
   { kind: 'fourcut', label: '인생네컷', ready: true },
   { kind: 'gift', label: '선물', ready: true },
   { kind: 'food', label: '카페·맛집', ready: true },
+  { kind: 'show', label: '공연·전시', ready: true },
 ];
 
 const FRAMES: { key: FourcutFrame; label: string; color: string }[] = [
@@ -139,6 +143,21 @@ const emptyFood = (): Omit<FoodRecord, 'id' | 'createdAt'> => ({
   memo: '',
   photo: null,
   design: 'order',
+});
+
+const emptyShow = (): Omit<ShowRecord, 'id' | 'createdAt'> => ({
+  kind: 'show',
+  date: today(),
+  time: nowTime(),
+  type: 'concert',
+  title: '',
+  artist: '',
+  place: '',
+  seat: '',
+  people: 1,
+  stars: 4,
+  memo: '',
+  photo: null,
 });
 
 const STATUSES: ReadingStatus[] = ['완독', '읽는 중', '잠시 멈춤'];
@@ -232,6 +251,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   const [fourcut, setFourcut] = useState(emptyFourcut);
   const [gift, setGift] = useState(emptyGift);
   const [food, setFood] = useState(emptyFood);
+  const [show, setShow] = useState(emptyShow);
   const [foodSmsOpen, setFoodSmsOpen] = useState(false);
   const { owned } = useShop();
   const [qrOpen, setQrOpen] = useState(false);
@@ -302,6 +322,9 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
       case 'food':
         setFood({ ...rest, menus: rest.menus.length ? rest.menus : [{ name: '', stars: 4 }] });
         break;
+      case 'show':
+        setShow(rest);
+        break;
     }
   }, [visible, initialKind, editing]);
 
@@ -310,6 +333,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
     setFourcut(emptyFourcut());
     setGift(emptyGift());
     setFood(emptyFood());
+    setShow(emptyShow());
     setReading(emptyReading());
     setMovie(emptyMovie());
     setSpending(emptySpending());
@@ -358,6 +382,9 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
       if (!food.place.trim()) return setError('어느 가게인지 적어주세요.');
       const menus = food.menus.filter((m) => m.name.trim()).map((m) => ({ ...m, name: m.name.trim() }));
       record = { ...base, ...food, menus } as FoodRecord;
+    } else if (kind === 'show') {
+      if (!show.title.trim()) return setError('무엇을 봤는지 제목을 적어주세요.');
+      record = { ...base, ...show } as ShowRecord;
     } else {
       if (fourcut.source === 'qr' && !fourcut.frameImage) {
         return setError('QR로 사진을 가져오거나, "사진 4장 고르기"로 바꿔주세요.');
@@ -993,6 +1020,75 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 </View>
                 <Field label="한 줄 후기 (포스트잇에 적혀요)" value={food.memo} onChange={(v) => setFood({ ...food, memo: v })} placeholder="치즈케이크 꾸덕해서 또 먹고 싶다" multiline />
                 <FoodDesignPicker value={food.design} onChange={(design) => setFood((f) => ({ ...f, design }))} />
+              </>
+            )}
+
+            {kind === 'show' && (
+              <>
+                <View style={styles.segment}>
+                  {(Object.entries(SHOW_TYPES) as [ShowType, (typeof SHOW_TYPES)[ShowType]][]).map(([key, t]) => (
+                    <Pressable key={key} onPress={() => setShow({ ...show, type: key })} style={[styles.seg, show.type === key && styles.segOn]}>
+                      <Text style={[styles.segText, show.type === key && styles.segTextOn]}>{t.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Field label="제목 *" value={show.title} onChange={(v) => setShow({ ...show, title: v })} placeholder={show.type === 'exhibition' ? '빛과 그림자' : '한여름밤의 콘서트'} />
+                <Row>
+                  <Field
+                    label={SHOW_TYPES[show.type].castWord}
+                    value={show.artist}
+                    onChange={(v) => setShow({ ...show, artist: v })}
+                    placeholder={show.type === 'exhibition' ? '김하늘' : '새벽밴드'}
+                  />
+                  <Field label={SHOW_TYPES[show.type].placeWord} value={show.place} onChange={(v) => setShow({ ...show, place: v })} placeholder="올림픽홀" />
+                </Row>
+                <Row>
+                  <DateField label="날짜" value={show.date} onChange={(v) => setShow({ ...show, date: v })} />
+                  <Field label="시간" value={show.time} onChange={(v) => setShow({ ...show, time: v })} placeholder="19:00" />
+                </Row>
+                <Row>
+                  {show.type !== 'exhibition' && (
+                    <Field label="좌석" value={show.seat} onChange={(v) => setShow({ ...show, seat: v })} placeholder="1층 7열 12번" />
+                  )}
+                  <Field
+                    label="인원"
+                    value={String(show.people)}
+                    onChange={(v) => setShow({ ...show, people: Math.max(1, parseInt(v.replace(/[^0-9]/g, ''), 10) || 1) })}
+                    keyboardType="number-pad"
+                    placeholder="1"
+                  />
+                </Row>
+                <Label text="포스터·현장 사진 (선택)" />
+                <View style={styles.coverRow}>
+                  <Pressable
+                    onPress={async () => {
+                      const [p] = await pickPhotos(1);
+                      if (p) setShow((x) => ({ ...x, photo: p }));
+                    }}
+                    style={styles.giftPhoto}
+                    accessibilityLabel="사진 고르기">
+                    {show.photo ? (
+                      <>
+                        <Image source={{ uri: show.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setShow((x) => ({ ...x, photo: null }))}>
+                          <Text style={styles.slotRemoveText}>×</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <Text style={styles.slotText}>+</Text>
+                    )}
+                  </Pressable>
+                  <Text style={styles.coverHelp}>입장권 가운데에 들어가요.{'\n'}없으면 종류에 맞는 그림이 그려져요.</Text>
+                </View>
+                <Label text="관람평" />
+                <View style={styles.stars}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Pressable key={n} onPress={() => setShow({ ...show, stars: show.stars === n ? n - 1 : n })} hitSlop={6}>
+                      <Text style={[styles.star, n <= show.stars && styles.starOn]}>{n <= show.stars ? '★' : '☆'}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Field label="한 줄 감상" value={show.memo} onChange={(v) => setShow({ ...show, memo: v })} placeholder="앙코르 세 곡. 목이 다 쉬었다." multiline />
               </>
             )}
 

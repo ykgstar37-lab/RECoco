@@ -1,7 +1,7 @@
 // 상점 미리보기에 보여줄 상품 정보: 이름·설명·가격·쓰는 곳 태그·예시 기록
 import { KIND_LABEL } from '../templates';
 import { RecoRecord, RecordKind } from '../types';
-import { sampleFood, sampleFourcut, sampleGift, sampleSpending } from './previewSamples';
+import { sampleFood, sampleFourcut, sampleGift, sampleShow, sampleSpending } from './previewSamples';
 import { FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, THEMES, ThemeItem } from './shop';
 
 export interface PreviewSample {
@@ -104,6 +104,12 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
               caption: '식당',
             },
           ]
-        : [];
+        : kind === 'show'
+          ? [
+              { record: sampleShow('concert'), caption: '콘서트' },
+              { record: sampleShow('play'), caption: '뮤지컬·연극' },
+              { record: sampleShow('exhibition'), caption: '전시' },
+            ]
+          : [];
   return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };
 }

@@ -8,6 +8,7 @@ import { GiftCoupon, layoutGift } from './GiftCoupon';
 import { MovieTicket, layoutMovie } from './MovieTicket';
 import { ReadingReceipt, layoutReading } from './ReadingReceipt';
 import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
+import { ShowTicket, layoutShow } from './ShowTicket';
 import { TemplateLayout } from './shared';
 import { TravelPass, layoutTravel } from './TravelPass';
 
@@ -30,6 +31,8 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
       return layoutGift(record);
     case 'food':
       return record.design === 'house' ? layoutFoodHouse(record) : layoutFood(record);
+    case 'show':
+      return layoutShow(record);
   }
 }
 
@@ -64,6 +67,8 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
       return <GiftCoupon record={record} width={width} />;
     case 'food':
       return record.design === 'house' ? <FoodHouse record={record} width={width} /> : <FoodOrder record={record} width={width} />;
+    case 'show':
+      return <ShowTicket record={record} width={width} />;
   }
 });
 
@@ -75,4 +80,5 @@ export const KIND_LABEL: Record<RecoRecord['kind'], string> = {
   fourcut: '인생네컷',
   gift: '선물',
   food: '카페·맛집',
+  show: '공연·전시',
 };

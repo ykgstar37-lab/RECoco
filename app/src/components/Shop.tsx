@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import { won } from '../lib/format';
 import { PreviewProduct, THEME_TAGS, categoryProduct, foodDesignProduct, themeProduct } from '../lib/products';
@@ -107,7 +107,7 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                 </Pressable>
               );
             })}
-            <Text style={styles.soon}>공연·전시, 운동, 음악도 준비하고 있어요.</Text>
+            <Text style={styles.soon}>운동, 음악도 준비하고 있어요.</Text>
           </Section>
 
           <Section title="영수증 테마" sub="같은 기록을 다른 종이로">
@@ -169,14 +169,15 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
   );
 }
 
-/** 옷걸이에 걸린 티셔츠 (옷장 링크 아이콘) */
+/** 동그라미 안 옷걸이 (옷장 링크 아이콘) */
 function HangerIcon() {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24">
-      <Path d="M12,4.6 Q12,2.4 10.2,2.4 Q8.9,2.4 8.9,3.7" stroke={COLORS.orange} strokeWidth={1.6} strokeLinecap="round" fill="none" />
-      <Path d="M7.4,8.4 L12,4.9 L16.6,8.4" stroke={COLORS.orange} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M9.4,8 H14.6 L19.2,10.8 L17.6,13.4 L15.8,12.3 V19.4 Q12,21 8.2,19.4 V12.3 L6.4,13.4 L4.8,10.8 Z" fill={COLORS.orange} />
-      <Path d="M10.1,8.1 Q12,10.2 13.9,8.1" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" fill="none" />
+    <Svg width={24} height={24} viewBox="0 0 24 24">
+      <Circle cx={12} cy={12} r={11} fill={COLORS.orangeSoft} />
+      <Path d="M12,8.2 Q12,6.2 10.4,6.2 Q9.2,6.2 9.2,7.3" stroke={COLORS.orange} strokeWidth={1.5} strokeLinecap="round" fill="none" />
+      <Path d="M12,8.4 L5.6,12.6 Q5,13 5.3,13.7 Q5.6,14.3 6.4,14.3 H17.6 Q18.4,14.3 18.7,13.7 Q19,13 18.4,12.6 Z" fill={COLORS.orange} />
+      <Circle cx={9} cy={16.6} r={0.9} fill={COLORS.orange} opacity={0.5} />
+      <Circle cx={15} cy={16.6} r={0.9} fill={COLORS.orange} opacity={0.5} />
     </Svg>
   );
 }
@@ -210,11 +211,23 @@ const styles = StyleSheet.create({
   hat: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4 },
   hatName: { color: COLORS.ink, fontSize: 12, fontFamily: FONTS.sansBold, marginTop: 5 },
   hatPrice: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: 1 },
-  closetLink: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-end' },
+  closetLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    alignSelf: 'flex-end',
+    backgroundColor: '#fff',
+    borderRadius: 999,
+    paddingLeft: 8,
+    paddingRight: 14,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: COLORS.line,
+  },
   rowLink: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   categoryIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#ffe36b', alignItems: 'center', justifyContent: 'center' },
   nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
-  peek: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3, alignSelf: 'flex-end' },
+  peek: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3 },
   themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   themeName: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   themeDesc: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 1 },

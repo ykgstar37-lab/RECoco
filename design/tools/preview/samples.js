@@ -46,6 +46,14 @@ module.exports = () => {
     revisit: 'yes', memo: '치즈케이크 꾸덕해서 또 먹고 싶다. 창가 자리 명당!', photo: null,
   };
   return [
+    { name: '공연_콘서트', record: { id: 'sample-show-1', createdAt: '2026-09-13T21:30:00', kind: 'show', date: '2026-09-13', time: '19:00', type: 'concert',
+      title: '한여름밤의 콘서트', artist: '새벽밴드', place: '올림픽공원 올림픽홀', seat: '스탠딩 A구역 132번', people: 2, stars: 5,
+      memo: '앙코르 세 곡. 목이 다 쉬었다.', photo: null } },
+    { name: '공연_뮤지컬_사진', record: { id: 'sample-show-2', createdAt: '2026-09-13T21:30:00', kind: 'show', date: '2026-09-05', time: '14:00', type: 'play',
+      title: '아주 긴 제목의 뮤지컬 작품 이름이 들어가면 두 줄이 됩니다', artist: '조승우, 정성화', place: '블루스퀘어 신한카드홀', seat: '1층 7열 12번', people: 1, stars: 4,
+      memo: '커튼콜에서 눈물 날 뻔했다.', photo: photo(4) } },
+    { name: '공연_전시_최소', record: { id: 'sample-show-3', createdAt: '2026-09-13T21:30:00', kind: 'show', date: '2026-09-02', time: '', type: 'exhibition',
+      title: '빛과 그림자', artist: '', place: '서울시립미술관', seat: '', people: 1, stars: 3, memo: '', photo: null } },
     { name: '맛집_카페', record: food },
     { name: '맛집_식당_사진', record: { ...food, id: 'sample-food-2', place: '골목 칼국수', area: '망원동', type: 'meal', withWhom: '', photo: photo(3),
       menus: [{ name: '바지락 칼국수', stars: 5 }, { name: '김치만두', stars: 3 }, { name: '보리밥', stars: 4 }, { name: '아주 긴 이름의 계절 한정 들기름 막국수 곱빼기', stars: 2 }], total: 0, revisit: 'maybe', memo: '' } },

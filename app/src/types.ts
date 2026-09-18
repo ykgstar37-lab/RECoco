@@ -1,4 +1,4 @@
-export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food';
+export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food' | 'show';
 
 interface BaseRecord {
   id: string;
@@ -150,4 +150,22 @@ export interface FoodRecord extends BaseRecord {
   design?: FoodDesign; // 없으면 주문서
 }
 
-export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord;
+export type ShowType = 'concert' | 'play' | 'exhibition';
+
+/** 공연·전시: 콘서트·뮤지컬/연극·전시 입장권 */
+export interface ShowRecord extends BaseRecord {
+  kind: 'show';
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm (전시는 비어도 됨)
+  type: ShowType;
+  title: string;
+  artist: string; // 아티스트·출연·작가
+  place: string; // 공연장·전시장
+  seat: string;
+  people: number;
+  stars: number; // 0~5
+  memo: string;
+  photo: Photo | null; // 포스터·현장 사진
+}
+
+export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord | ShowRecord;
