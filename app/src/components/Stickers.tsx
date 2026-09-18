@@ -118,6 +118,26 @@ function Shape({ emoji }: { emoji: string }) {
       );
     case '❤':
       return <Path d="M24,40 C14,33 6,27 6,18 C6,11 11,7 16,7 C20,7 23,10 24,13 C25,10 28,7 32,7 C37,7 42,11 42,18 C42,27 34,33 24,40 Z" fill="#e5484d" {...s} />;
+    case '🎫':
+      return (
+        <G>
+          <Path
+            d="M6,14 H42 V21 Q37,21 37,24 Q37,27 42,27 V34 H6 V27 Q11,27 11,24 Q11,21 6,21 Z"
+            fill="#ffd166"
+            {...s}
+          />
+          <Path d="M17,19 V29 M24,19 V29 M31,19 V29" stroke={LINE} strokeWidth={1.8} strokeLinecap="round" />
+        </G>
+      );
+    case '🎤':
+      return (
+        <G>
+          <Path d="M24,6 C27.5,6 30,8.5 30,12 V21 C30,24.5 27.5,27 24,27 C20.5,27 18,24.5 18,21 V12 C18,8.5 20.5,6 24,6 Z" fill="#c9b8ff" {...s} />
+          <Path d="M13,20 C13,28 18,32 24,32 C30,32 35,28 35,20" {...s} fill="none" />
+          <Path d="M24,32 V39" {...s} />
+          <Path d="M17,41 H31" {...s} />
+        </G>
+      );
     default:
       return null;
   }

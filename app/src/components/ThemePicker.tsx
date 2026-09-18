@@ -176,16 +176,17 @@ export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesi
         <Rect x={2} y={45} width={36} height={5} fill="#141118" />
       </Svg>
     );
+  // 기본: 가로로 긴 공연 티켓
   return (
     <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
-      <Rect x={2} y={2} width={36} height={48} rx={3} fill="#fbf5ea" stroke={COLORS.line} strokeWidth={1} />
-      <Rect x={5} y={5} width={30} height={30} rx={2} fill="none" stroke="#1f2a44" strokeWidth={1} />
-      {[16, 19, 22].map((x, i) => (
-        <Rect key={x} x={x} y={13 - i} width={2} height={8 + i * 2} rx={1} fill="#e2685c" />
+      <Rect x={1} y={14} width={38} height={24} rx={3} fill="#241a4a" />
+      <Rect x={27} y={14} width={12} height={24} rx={3} fill="#c231d8" />
+      <Line x1={27} y1={16} x2={27} y2={36} stroke="#fff" strokeWidth={1} strokeDasharray="2 2" />
+      <Rect x={5} y={20} width={17} height={4} rx={2} fill="#fff" />
+      <Rect x={5} y={27} width={12} height={3} rx={1.5} fill="#5bd1ff" />
+      {[30, 33, 36].map((x) => (
+        <Rect key={x} x={x} y={20} width={1.4} height={12} fill="#fff" />
       ))}
-      <Line x1={9} y1={26} x2={31} y2={26} stroke="#1f2a44" strokeWidth={1.4} />
-      <Rect x={2} y={38} width={36} height={12} fill="#1f2a44" />
-      <Rect x={12} y={42} width={16} height={4} rx={2} fill="#e2685c" />
     </Svg>
   );
 }
@@ -236,6 +237,16 @@ export function ConcertDesignPicker({ value, onChange }: { value: ConcertDesign 
 
 /** 공연·전시 모양 견본 (입장권 / 홀로그램 기록표) */
 export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | undefined; size?: number }) {
+  if (design === 'poster')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={4} fill="#fdf3f6" stroke={COLORS.line} strokeWidth={1} />
+        <Rect x={2} y={2} width={36} height={11} rx={4} fill="#a4325a" />
+        <Rect x={10} y={17} width={20} height={16} rx={2} fill="#a4325a" opacity={0.25} />
+        <Line x1={2} y1={38} x2={38} y2={38} stroke={COLORS.line} strokeWidth={1.4} strokeDasharray="3 3" />
+        <Rect x={8} y={41} width={24} height={6} rx={1} fill="#a4325a" opacity={0.55} />
+      </Svg>
+    );
   if (design === 'holo')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -248,13 +259,16 @@ export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | u
         ))}
       </Svg>
     );
+  // 기본: 크림 레트로 입장권
   return (
     <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
-      <Rect x={2} y={2} width={36} height={48} rx={4} fill="#fdf3f6" stroke={COLORS.line} strokeWidth={1} />
-      <Rect x={2} y={2} width={36} height={11} rx={4} fill="#a4325a" />
-      <Rect x={10} y={17} width={20} height={16} rx={2} fill="#a4325a" opacity={0.2} />
-      <Line x1={2} y1={38} x2={38} y2={38} stroke={COLORS.line} strokeWidth={1.4} strokeDasharray="3 3" />
-      <Rect x={8} y={41} width={24} height={6} rx={1} fill="#a4325a" opacity={0.55} />
+      <Rect x={2} y={2} width={36} height={48} rx={3} fill="#fbf5ea" stroke={COLORS.line} strokeWidth={1} />
+      <Rect x={5} y={5} width={30} height={30} rx={2} fill="none" stroke="#1f2a44" strokeWidth={1} />
+      <Rect x={13} y={11} width={14} height={5} rx={2.5} fill="#e2685c" />
+      <Line x1={9} y1={22} x2={31} y2={22} stroke="#1f2a44" strokeWidth={1.2} />
+      <Line x1={9} y1={27} x2={31} y2={27} stroke="#1f2a44" strokeWidth={1.2} opacity={0.6} />
+      <Rect x={2} y={38} width={36} height={12} fill="#1f2a44" />
+      <Rect x={12} y={42} width={16} height={4} rx={2} fill="#e2685c" />
     </Svg>
   );
 }

@@ -89,6 +89,7 @@ export interface ShowDesignItem {
 
 /** 공연·전시 영수증 모양 테마 (기본은 입장권) */
 export const SHOW_DESIGNS: ShowDesignItem[] = [
+  { id: 'poster', name: '포스터 입장권', desc: '종류별 색 머리띠에 포스터가 큼직하게 들어간 입장권', productId: 'recoco.theme.show-poster', price: 1000 },
   { id: 'holo', name: '홀로그램 기록표', desc: '파란 홀로그램 종이에 칸칸이 적는 관람 기록표', productId: 'recoco.theme.show-holo', price: 1000 },
 ];
 

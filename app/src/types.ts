@@ -158,8 +158,8 @@ export interface FoodRecord extends BaseRecord {
 
 export type ShowType = 'play' | 'exhibition';
 
-/** ticket: 기본 입장권, holo: 홀로그램 기록표 */
-export type ShowDesign = 'ticket' | 'holo';
+/** ticket: 기본 크림 입장권, poster: 포스터 입장권, holo: 홀로그램 기록표 */
+export type ShowDesign = 'ticket' | 'poster' | 'holo';
 
 /** 공연·전시: 뮤지컬·연극·전시 입장권 */
 export interface ShowRecord extends BaseRecord {
