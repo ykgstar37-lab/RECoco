@@ -7,10 +7,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CATEGORIES, CategoryPicker } from './components/CategoryPicker';
 import { Closet } from './components/Closet';
 import { COCO_RATIO, Coco } from './components/Coco';
-import { BagIcon, DotsIcon, GearIcon, HatIcon } from './components/MenuIcons';
+import { BagIcon, CalendarIcon, DotsIcon, GearIcon, HatIcon } from './components/MenuIcons';
 import { OUTFIT_TOP } from './components/Outfits';
 import { PrintJob } from './components/Printer';
 import { RecordForm } from './components/RecordForm';
+import { MonthStamps } from './components/MonthStamps';
 import { RollScreen } from './components/RollScreen';
 import { Settings } from './components/Settings';
 import { Shop } from './components/Shop';
@@ -47,6 +48,7 @@ export function HomeScreen() {
   const [stage, setStage] = useState({ width: 0, height: 0 });
   const pokeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [closetOpen, setClosetOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -185,6 +187,7 @@ export function HomeScreen() {
           </Animated.View>
           <View style={[styles.menu, { top: insets.top + 24 + 48 + 10 }]} pointerEvents="box-none">
             {[
+              { label: '기록 달력', icon: CalendarIcon, open: () => setCalendarOpen(true) },
               { label: '상점', icon: BagIcon, open: () => setShopOpen(true) },
               { label: '코코 옷장', icon: HatIcon, open: () => setClosetOpen(true) },
               { label: '설정', icon: GearIcon, open: () => setSettingsOpen(true) },
@@ -257,6 +260,17 @@ export function HomeScreen() {
 
       {printing && <PrintJob record={printing} rollWidth={Math.min((stage.width - 80) * 0.72, 360) || 280} onDone={handleTorn} onCancel={() => setPrinting(null)} outfit={outfit} />}
 
+      <MonthStamps
+        visible={calendarOpen}
+        counts={counts}
+        onClose={() => setCalendarOpen(false)}
+        onPickDate={(date) => {
+          setCalendarOpen(false);
+          setRollDate(date);
+          // iOS 는 모달이 완전히 닫힌 뒤에야 다음 모달이 뜬다
+          setTimeout(() => setRollOpen(true), Platform.OS === 'ios' ? 450 : 50);
+        }}
+      />
       <RollScreen
         visible={rollOpen}
         records={records}

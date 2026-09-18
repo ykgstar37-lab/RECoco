@@ -112,16 +112,14 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'glasses':
-      // 빨간 뿔테: 타원 알 두 개 + 콧대, 안경다리는 생략하고 경첩만 짧게. 코코 눈(158,190)·(242,190) 위에 얹는다
+      // 빨간 뿔테: 타원 알 두 개 + 콧대만 (안경다리·경첩 없음). 코코 눈(158,190)·(242,190) 위에 얹는다
       return (
         <G>
-          <Path d="M196,181 Q200,173 204,181" stroke="#c9331d" strokeWidth={9} strokeLinecap="round" fill="none" />
-          <Path d="M118,182 L110,180" stroke="#c9331d" strokeWidth={9} strokeLinecap="round" fill="none" />
-          <Path d="M282,182 L290,180" stroke="#c9331d" strokeWidth={9} strokeLinecap="round" fill="none" />
-          <Ellipse cx={158} cy={190} rx={38} ry={26} fill="none" stroke="#e2402a" strokeWidth={9} />
-          <Ellipse cx={242} cy={190} rx={38} ry={26} fill="none" stroke="#e2402a" strokeWidth={9} />
-          <Path d="M134,176 Q148,167 168,168" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
-          <Path d="M218,176 Q232,167 252,168" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
+          <Path d="M188,179 Q200,170 212,179" stroke="#c9331d" strokeWidth={8} strokeLinecap="round" fill="none" />
+          <Ellipse cx={154} cy={190} rx={33} ry={25} fill="none" stroke="#e2402a" strokeWidth={9} />
+          <Ellipse cx={246} cy={190} rx={33} ry={25} fill="none" stroke="#e2402a" strokeWidth={9} />
+          <Path d="M132,177 Q144,169 162,170" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
+          <Path d="M224,177 Q236,169 254,170" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
         </G>
       );
     case 'headphones':
