@@ -1,9 +1,14 @@
 import * as Clipboard from 'expo-clipboard';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { GiftShot, parseGiftShot } from '../lib/giftShot';
 import { bump } from '../lib/haptics';
+import { readImageDetail } from '../lib/ocr';
+import { findGiftCrop } from '../lib/photoCrop';
+import { persistPhoto } from '../lib/photos';
+import { Photo } from '../types';
 import { COLORS, FONTS } from '../theme';
 import { KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 import { ModalSafeArea } from './ModalSafeArea';
@@ -11,8 +16,11 @@ import { ModalSafeArea } from './ModalSafeArea';
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onFound: (code: string) => void;
+  /** 번호 + 같이 찍힌 화면에서 읽어낸 상품 정보(못 읽었으면 번호만) + 잘라낸 상품 그림 */
+  onFound: (gift: GiftShot, photo: Photo | null) => void;
 }
+
+const numberOnly = (code: string): GiftShot => ({ item: '', brand: '', person: '', code, until: null });
 
 /** 교환권 번호 4자리씩 띄우기 */
 export const formatCoupon = (code: string) => code.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ');
@@ -23,17 +31,51 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
   const [code, setCode] = useState('');
   const [typed, setTyped] = useState('');
   const [message, setMessage] = useState('');
+  const [gift, setGift] = useState<GiftShot | null>(null);
+  const [photo, setPhoto] = useState<Photo | null>(null);
+  const [reading, setReading] = useState(false);
   const last = useRef('');
+  const cam = useRef<CameraView>(null);
+  const ready = useRef(false);
 
   useEffect(() => {
     if (!visible) return;
     setCode('');
     setTyped('');
     setMessage('');
+    setGift(null);
+    setPhoto(null);
+    setReading(false);
     last.current = '';
+    ready.current = false;
   }, [visible]);
 
-  const read = (data: string) => {
+  // 바코드에는 번호만 들어 있어서, 바코드를 찾은 그 화면을 한 장 찍어 무슨 선물인지도 읽는다
+  const readAround = async (found: string) => {
+    if (!cam.current || !ready.current) return;
+    setReading(true);
+    try {
+      const shot = await cam.current.takePictureAsync({ quality: 0.9, shutterSound: false });
+      if (!shot?.uri) return;
+      const { lines } = await readImageDetail(shot.uri);
+      const parsed = parseGiftShot(lines.map((l) => l.text).join('\n'));
+      if (!parsed?.item) return;
+      // 눈으로 읽은 숫자보다 바코드로 읽은 번호가 정확하다
+      const whole = { ...parsed, code: found };
+      setGift(whole);
+      const crop = findGiftCrop(lines, whole, shot.width, shot.height);
+      if (crop) {
+        const kept = await persistPhoto(shot.uri, shot.width, shot.height).catch(() => null);
+        if (kept) setPhoto({ ...kept, crop });
+      }
+    } catch {
+      // 글자를 못 읽어도 번호는 쓸 수 있으니 조용히 넘어간다 (Expo Go 에는 글자 읽기가 없다)
+    } finally {
+      setReading(false);
+    }
+  };
+
+  const read = (data: string, fromCamera = false) => {
     if (code || data === last.current) return;
     last.current = data;
     const digits = data.replace(/\D/g, '');
@@ -41,6 +83,7 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
       bump();
       setCode(digits);
       setMessage('');
+      if (fromCamera) void readAround(digits);
     } else {
       setMessage('교환권 바코드가 아닌 것 같아요. 숫자가 적힌 바코드를 비춰주세요.');
     }
@@ -67,12 +110,17 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
         ) : (
           <Pressable style={styles.cameraBox} onPress={() => Keyboard.dismiss()}>
             <CameraView
+              ref={cam}
               style={StyleSheet.absoluteFill}
+              onCameraReady={() => {
+                ready.current = true;
+              }}
               barcodeScannerSettings={{ barcodeTypes: ['code128', 'ean13', 'itf14', 'code39', 'code93', 'codabar', 'upc_a', 'qr', 'pdf417'] }}
-              onBarcodeScanned={code ? undefined : (r) => read(r.data)}
+              onBarcodeScanned={code ? undefined : (r) => read(r.data, true)}
             />
             <View pointerEvents="none" style={styles.aim} />
             <Text style={styles.aimText}>교환권의 바코드를 네모 안에 맞춰주세요</Text>
+            <Text style={styles.aimSub}>상품 이름까지 화면에 다 들어오면 그것도 같이 읽어요</Text>
           </Pressable>
         )}
 
@@ -81,17 +129,32 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
           {code ? (
             <>
               <Text style={styles.code}>{formatCoupon(code)}</Text>
+              {reading ? (
+                <View style={styles.readRow}>
+                  <ActivityIndicator color={COLORS.orange} />
+                  <Text style={styles.label}>무슨 선물인지 읽는 중…</Text>
+                </View>
+              ) : gift ? (
+                <Text style={styles.found} numberOfLines={2}>
+                  {gift.brand && gift.brand !== gift.item ? `${gift.brand} · ` : ''}
+                  {gift.item}
+                </Text>
+              ) : (
+                <Text style={styles.label}>번호만 찾았어요. 상품 이름은 기록에 직접 적어주세요.</Text>
+              )}
               <View style={styles.row}>
                 <Pressable
                   style={[styles.secondary, { flex: 1 }]}
                   onPress={() => {
                     setCode('');
+                    setGift(null);
+                    setPhoto(null);
                     last.current = '';
                   }}>
                   <Text style={styles.secondaryText}>다시 찍기</Text>
                 </Pressable>
-                <Pressable style={[styles.primary, { flex: 2 }]} onPress={() => onFound(code)}>
-                  <Text style={styles.primaryText}>이 번호 쓰기</Text>
+                <Pressable style={[styles.primary, { flex: 2 }]} disabled={reading} onPress={() => onFound(gift ?? numberOnly(code), photo)}>
+                  <Text style={styles.primaryText}>{gift ? '이 내용 쓰기' : '이 번호 쓰기'}</Text>
                 </Pressable>
               </View>
             </>
@@ -153,9 +216,12 @@ const styles = StyleSheet.create({
   cameraBox: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
   aim: { width: 290, height: 140, borderRadius: 16, borderWidth: 3, borderColor: 'rgba(255,255,255,0.9)' },
   aimText: { color: '#fff', marginTop: 18, fontSize: 14, fontFamily: FONTS.sansBold },
+  aimSub: { color: 'rgba(255,255,255,0.75)', marginTop: 6, fontSize: 12, fontFamily: FONTS.sans },
+  readRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  found: { color: COLORS.ink, fontSize: 16, fontFamily: FONTS.sansBold, textAlign: 'center' },
   panel: { padding: 16, gap: 10, backgroundColor: COLORS.bg, borderTopWidth: 1, borderTopColor: COLORS.line },
   body: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.sans, textAlign: 'center' },
-  label: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold },
+  label: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold, textAlign: 'center' },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pasteText: { color: COLORS.orange, fontSize: 13, fontFamily: FONTS.sansBold },
   warn: { color: COLORS.danger, fontSize: 13, fontFamily: FONTS.sansBold },

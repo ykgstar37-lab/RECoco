@@ -5,7 +5,7 @@ import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Modal, Platform, Pre
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
-import { OcrUnavailable, readImageText } from '../lib/ocr';
+import { OcrLine, OcrUnavailable, readImageDetail } from '../lib/ocr';
 import { persistPhoto } from '../lib/photos';
 import { Photo } from '../types';
 import { COLORS, FONTS } from '../theme';
@@ -35,8 +35,8 @@ interface Props<T> {
   onFill: (result: T) => void;
   /** 여러 건을 한꺼번에 기록할 수 있으면 (고른 것 전부) */
   onFillMany?: (results: T[]) => void;
-  /** 고른 캡처를 사진으로도 쓰고 싶을 때 */
-  onImage?: (photo: Photo) => void;
+  /** 고른 캡처를 사진으로도 쓰고 싶을 때 (읽은 글자 자리까지: 사진에서 상품 부분만 잘라내는 데 쓴다) */
+  onImage?: (photo: Photo, lines: OcrLine[]) => void;
 }
 
 /** 문자·알림을 붙여넣거나 캡처를 고르면 바로 읽은 내용을 보여주고, 그대로 기록을 채운다 */
@@ -60,15 +60,19 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAl
     const shot = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
     if (shot.canceled || !shot.assets[0]) return;
     setReading(true);
+    const asset = shot.assets[0];
+    // 글자를 못 읽어도 고른 캡처는 사진으로 쓸 수 있게, 읽기와 상관없이 먼저 넘긴다
+    const keep = (lines: OcrLine[]) => {
+      if (!onImage) return;
+      // 캡처를 앱 폴더로 복사해 두고(갤러리에서 지워도 남게) 사진으로 쓸 수 있게 알려준다
+      const raw = { uri: asset.uri, width: asset.width ?? 0, height: asset.height ?? 0 };
+      persistPhoto(raw.uri, raw.width, raw.height)
+        .then((photo) => onImage(photo, lines))
+        .catch(() => onImage(raw, lines));
+    };
     try {
-      const asset = shot.assets[0];
-      if (onImage) {
-        // 캡처를 앱 폴더로 복사해 두고(갤러리에서 지워도 남게) 사진으로 쓸 수 있게 알려준다
-        persistPhoto(asset.uri, asset.width ?? 0, asset.height ?? 0)
-          .then(onImage)
-          .catch(() => onImage({ uri: asset.uri, width: asset.width ?? 0, height: asset.height ?? 0 }));
-      }
-      const found = await readImageText(asset.uri);
+      const { text: found, lines } = await readImageDetail(asset.uri);
+      keep(lines);
       if (found.trim()) {
         setText(found);
         setPicked([0]);
@@ -76,6 +80,7 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAl
         setOcrNotice('캡처에서 글자를 찾지 못했어요.');
       }
     } catch (e) {
+      keep([]);
       setOcrNotice(e instanceof OcrUnavailable ? '캡처 읽기는 레코코 앱 설치 버전(개발 빌드)에서 돼요. 지금은 글자를 붙여넣어 주세요.' : '캡처를 읽지 못했어요.');
     } finally {
       setReading(false);

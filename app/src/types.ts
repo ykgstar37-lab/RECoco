@@ -65,11 +65,21 @@ export interface SpendingRecord extends BaseRecord {
 /** 유료 영수증 테마 (종이·무늬만 바뀜) */
 export type PaperTheme = 'plain' | 'grid';
 
+/** 사진에서 실제로 보여줄 네모 (원본 픽셀 기준) */
+export interface PhotoCrop {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 /** 앱 안에 복사해 둔 사진 */
 export interface Photo {
   uri: string;
   width: number;
   height: number;
+  /** 교환권 캡처에서 상품 그림만 찾아낸 자리 (없으면 사진 전체를 쓴다) */
+  crop?: PhotoCrop | null;
 }
 
 export interface TravelRecord extends BaseRecord {

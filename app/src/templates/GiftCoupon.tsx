@@ -4,6 +4,7 @@ import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-nat
 
 import { StickerArt } from '../components/Stickers';
 import { pad2, parseDate, seededRandom, won } from '../lib/format';
+import { fillRect } from '../lib/photoCrop';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { GiftCard, GiftRecord } from '../types';
@@ -130,7 +131,8 @@ export function GiftCoupon({ record: r, width }: { record: GiftRecord; width: nu
         {r.photo ? (
           <G>
             <Rect x={40} y={productTop} width={180} height={180} rx={24} fill={LINE} />
-            <Image href={{ uri: r.photo.uri }} x={40} y={productTop} width={180} height={180} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipId}-photo)`} />
+            {/* 교환권 캡처면 상품 그림 자리만 칸에 꽉 차게 놓는다 (바코드·안내 글자는 잘라내고) */}
+            <Image href={{ uri: r.photo.uri }} {...fillRect(r.photo, { x: 40, y: productTop, width: 180, height: 180 })} preserveAspectRatio="none" clipPath={`url(#${clipId}-photo)`} />
           </G>
         ) : (
           <G>

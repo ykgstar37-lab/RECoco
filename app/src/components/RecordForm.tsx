@@ -15,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
 import { newId, nowTime, today, won } from '../lib/format';
+import { cropIfCoupon } from '../lib/giftPhoto';
+import { fillRect } from '../lib/photoCrop';
 import { downloadPhoto, pickPhotos } from '../lib/photos';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
@@ -37,6 +39,7 @@ import {
   MovieRecord,
   PaperTheme,
   Photo,
+  PhotoCrop,
   ReadingRecord,
   ReadingStatus,
   RecoRecord,
@@ -114,6 +117,9 @@ const GIFT_CARDS: { key: GiftCard; label: string; color: string }[] = [
   { key: 'sky', label: '하늘', color: '#cfe2fb' },
   { key: 'plain', label: '무지', color: '#ece9e3' },
 ];
+
+/** 선물 사진 칸 크기 (잘라낸 자리를 여기 맞춰 확대한다) */
+const GIFT_PHOTO = 96;
 
 const GIFT_DIRECTIONS: [GiftRecord['direction'], string][] = [
   ['received', '받은 선물'],
@@ -312,6 +318,8 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   const [passShotOpen, setPassShotOpen] = useState(false);
   const [couponOpen, setCouponOpen] = useState(false);
   const [couponShotOpen, setCouponShotOpen] = useState(false);
+  // 교환권 캡처에서 찾아낸 상품 그림 자리 (원본 전체로 돌렸다가 다시 돌아올 수 있게 들고 있는다)
+  const [giftCrop, setGiftCrop] = useState<PhotoCrop | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [error, setError] = useState('');
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
@@ -372,6 +380,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
         break;
       case 'gift':
         setGift(rest);
+        setGiftCrop(rest.photo?.crop ?? null);
         break;
       case 'food':
         setFood({ ...rest, menus: rest.menus.length ? rest.menus : [{ name: '', stars: 4 }] });
@@ -1024,6 +1033,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   onClose={() => setCouponShotOpen(false)}
                   onFill={(g, photo) => {
                     setCouponShotOpen(false);
+                    if (photo) setGiftCrop(photo.crop ?? null);
                     setGift((x) => ({
                       ...x,
                       item: g.item || x.item,
@@ -1037,9 +1047,17 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <CouponScan
                   visible={couponOpen}
                   onClose={() => setCouponOpen(false)}
-                  onFound={(code) => {
+                  onFound={(g, photo) => {
                     setCouponOpen(false);
-                    setGift((g) => ({ ...g, couponCode: code }));
+                    if (photo) setGiftCrop(photo.crop ?? null);
+                    setGift((x) => ({
+                      ...x,
+                      item: g.item || x.item,
+                      brand: g.brand || x.brand,
+                      person: g.person || x.person,
+                      couponCode: g.code || x.couponCode,
+                      photo: photo ?? x.photo,
+                    }));
                   }}
                 />
                 <View style={styles.segment}>
@@ -1071,17 +1089,24 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 </Row>
                 <Field label="메시지" value={gift.message} onChange={(v) => setGift({ ...gift, message: v })} placeholder="시험 끝난 거 축하해!" multiline />
                 <Label text="선물 사진 (선택)" />
-                <Text style={styles.itemHint}>교환권 캡처로 채우면 그 캡처가 사진으로 들어가요. 눌러서 다른 사진으로 바꿔도 돼요.</Text>
+                <Text style={styles.itemHint}>교환권 캡처로 채우면 상품 그림만 잘라서 넣어요. 눌러서 다른 사진으로 바꿔도 돼요.</Text>
                 <View style={styles.row}>
                   <Pressable
                     onPress={async () => {
                       const [p] = await pickPhotos(1);
-                      if (p) setGift((g) => ({ ...g, photo: p }));
+                      if (!p) return;
+                      setGiftCrop(null);
+                      setGift((g) => ({ ...g, photo: p }));
+                      // 교환권 캡처를 골랐으면 상품 그림 자리를 찾아 그 부분만 크게 쓴다
+                      const cropped = await cropIfCoupon(p);
+                      if (!cropped.crop) return;
+                      setGiftCrop(cropped.crop);
+                      setGift((g) => (g.photo?.uri === p.uri ? { ...g, photo: cropped } : g));
                     }}
                     style={styles.giftPhoto}>
                     {gift.photo ? (
                       <>
-                        <Image source={{ uri: gift.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Image source={{ uri: gift.photo.uri }} style={[styles.giftPhotoImage, fillRect(gift.photo, { x: 0, y: 0, width: GIFT_PHOTO, height: GIFT_PHOTO })]} resizeMode="stretch" />
                         <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setGift((g) => ({ ...g, photo: null }))}>
                           <Text style={styles.slotRemoveText}>×</Text>
                         </Pressable>
@@ -1090,6 +1115,15 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                       <Text style={styles.slotText}>+</Text>
                     )}
                   </Pressable>
+                  {!!gift.photo && !!giftCrop && (
+                    <Pressable
+                      style={styles.frameChip}
+                      onPress={() =>
+                        setGift((g) => (g.photo ? { ...g, photo: { ...g.photo, crop: g.photo.crop ? null : giftCrop } } : g))
+                      }>
+                      <Text style={styles.segText}>{gift.photo.crop ? '캡처 전체로' : '상품만 크게'}</Text>
+                    </Pressable>
+                  )}
                 </View>
                 <Label text="카드 색" />
                 <View style={styles.row}>
@@ -1569,8 +1603,8 @@ const styles = StyleSheet.create({
   menuStars: { flexDirection: 'row' },
   menuStar: { fontSize: 20, color: COLORS.line, paddingHorizontal: 1 },
   giftPhoto: {
-    width: 96,
-    height: 96,
+    width: GIFT_PHOTO,
+    height: GIFT_PHOTO,
     borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: COLORS.surface,
@@ -1580,6 +1614,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  giftPhotoImage: { position: 'absolute' },
   missingKey: { color: COLORS.danger, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
   qrBox: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 14, gap: 12, alignItems: 'center' },
   qrHint: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 20 },
