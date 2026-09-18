@@ -48,6 +48,7 @@ import {
   TravelRecord,
 } from '../types';
 import { AirportField } from './AirportField';
+import { BoardingPassPaste } from './BoardingPassPaste';
 import { BoardingPassScan } from './BoardingPassScan';
 import { CouponScan, formatCoupon } from './CouponScan';
 import { CardSmsPaste } from './CardSmsPaste';
@@ -280,6 +281,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   const [isbnOpen, setIsbnOpen] = useState(false);
   const [smsOpen, setSmsOpen] = useState(false);
   const [passOpen, setPassOpen] = useState(false);
+  const [passShotOpen, setPassShotOpen] = useState(false);
   const [couponOpen, setCouponOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [error, setError] = useState('');
@@ -647,8 +649,14 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                       theme: spending.theme,
                       items: [{ name: pay.time ? `${pay.time} 결제` : '', qty: 1, price: pay.amount }],
                     }));
-                    onSubmitMany?.(made);
-                    reset();
+                    // iOS는 시트가 닫히기 전에 폼까지 닫으면 흰 화면이 돼서 한 박자 쉰다
+                    setTimeout(
+                      () => {
+                        onSubmitMany?.(made);
+                        reset();
+                      },
+                      Platform.OS === 'ios' ? 450 : 80,
+                    );
                   }}
                   onFill={(pay) => {
                     setSmsOpen(false);
@@ -759,7 +767,25 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
 
             {kind === 'travel' && (
               <>
-                <QuickFill icon="ticket" title="탑승권 바코드로 채우기" sub="모바일·종이 탑승권을 찍으면 공항·편명·좌석이 자동으로" onPress={() => setPassOpen(true)} />
+                <QuickFill icon="ticket" title="탑승권 바코드 찍기" sub="모바일·종이 탑승권 바코드를 카메라로 찍어요" onPress={() => setPassOpen(true)} />
+                <QuickFill icon="card" title="탑승권 캡처로 채우기" sub="모바일 탑승권 화면을 캡처해서 골라요" onPress={() => setPassShotOpen(true)} />
+                <BoardingPassPaste
+                  visible={passShotOpen}
+                  onClose={() => setPassShotOpen(false)}
+                  onFill={(bp) => {
+                    setPassShotOpen(false);
+                    setTravel((t) => ({
+                      ...t,
+                      from: bp.from,
+                      to: bp.to,
+                      name: bp.name || t.name,
+                      flight: bp.flight || t.flight,
+                      seat: bp.seat || t.seat,
+                      gate: bp.gate || t.gate,
+                      date: bp.date ?? t.date,
+                    }));
+                  }}
+                />
                 <BoardingPassScan
                   visible={passOpen}
                   onClose={() => setPassOpen(false)}
