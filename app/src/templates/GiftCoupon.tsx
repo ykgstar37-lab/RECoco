@@ -91,6 +91,8 @@ export function GiftCoupon({ record: r, width }: { record: GiftRecord; width: nu
   const blockTop = brand.text ? brandY - 16 : firstItemY - 22; // 글자 윗머리
   const blockBottom = (r.price > 0 ? priceY : lastItemY) + 6; // 글자 아랫배
   const drop = (PHOTO - (blockBottom - blockTop)) / 2 - (blockTop - productTop);
+  // 메시지 글자 묶음의 윗머리 자리 (말풍선 한가운데에 오도록)
+  const msgTop = bubbleTop + (bubbleH - ((message.lines.length - 1) * MSG_LINE + message.size * 0.72)) / 2;
 
   const info = [
     ['교환처', r.brand.trim() || '어디서나'],
@@ -134,8 +136,9 @@ export function GiftCoupon({ record: r, width }: { record: GiftRecord; width: nu
 
         {/* 메시지 카드 */}
         <Rect x={SIDE} y={bubbleTop} width={PW - SIDE * 2} height={bubbleH} rx={22} fill="#fff" stroke={color.deep} strokeWidth={2} />
+        {/* 글자 묶음을 말풍선 한가운데에 (줄 수와 글자 크기가 달라져서 자리를 고정하면 위로 쏠린다) */}
         {message.lines.map((line, i) => (
-          <T key={i} x={PW / 2} y={bubbleTop + 44 + i * MSG_LINE} fontSize={message.size} textAnchor="middle" children={line} />
+          <T key={i} x={PW / 2} y={msgTop + message.size * 0.72 + i * MSG_LINE} fontSize={message.size} textAnchor="middle" children={line} />
         ))}
 
         {/* 상품 */}

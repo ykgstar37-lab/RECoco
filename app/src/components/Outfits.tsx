@@ -1,7 +1,7 @@
 // 코코 옷(머리 장식). 코코 그림과 같은 viewBox(400×320) 좌표로 그려서 CocoArt 위에 겹친다
 import { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
-export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper';
+export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses';
 
 // 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
 const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
@@ -14,6 +14,7 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
+  glasses: { from: [0, 0], to: [0, 0], k: 1, top: 160 },
 };
 
 /** 머리를 덮는 옷은 만두 꼭지를 숨긴다 (리본은 꼭지 옆에 묶어서 꼭지가 보이게) */
@@ -27,6 +28,7 @@ export const COVERS_KNOB: Record<OutfitId, boolean> = {
   headphones: true,
   earflap: true,
   trapper: true,
+  glasses: false, // 눈에 걸치는 거라 머리 꼭지는 그대로 보인다
 };
 
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
@@ -107,6 +109,19 @@ function Hat({ id }: { id: OutfitId }) {
           <Path d="M196,70 L204,62 L250,44 L257,52 Z M176,92 L183,84 L272,68 L279,76 Z" fill="#fff5d6" />
           <Path d="M170,98 C210,90 262,92 302,102" stroke="#4fa885" strokeWidth={6} strokeLinecap="round" fill="none" />
           <Circle cx={236} cy={30} r={11} fill="#f2c14e" />
+        </G>
+      );
+    case 'glasses':
+      // 빨간 뿔테: 타원 알 두 개 + 콧대, 안경다리는 생략하고 경첩만 짧게. 코코 눈(158,190)·(242,190) 위에 얹는다
+      return (
+        <G>
+          <Path d="M196,181 Q200,173 204,181" stroke="#c9331d" strokeWidth={9} strokeLinecap="round" fill="none" />
+          <Path d="M118,182 L110,180" stroke="#c9331d" strokeWidth={9} strokeLinecap="round" fill="none" />
+          <Path d="M282,182 L290,180" stroke="#c9331d" strokeWidth={9} strokeLinecap="round" fill="none" />
+          <Ellipse cx={158} cy={190} rx={38} ry={26} fill="none" stroke="#e2402a" strokeWidth={9} />
+          <Ellipse cx={242} cy={190} rx={38} ry={26} fill="none" stroke="#e2402a" strokeWidth={9} />
+          <Path d="M134,176 Q148,167 168,168" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
+          <Path d="M218,176 Q232,167 252,168" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
         </G>
       );
     case 'headphones':
