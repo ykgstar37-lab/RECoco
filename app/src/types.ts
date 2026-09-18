@@ -58,6 +58,8 @@ export interface SpendingRecord extends BaseRecord {
   items: SpendingItem[];
   memo: string;
   theme?: PaperTheme; // 없으면 기본 간이영수증
+  /** 여러 가게를 한 장에 적을 때 표 첫 칸 (없으면 날짜가 다 같으면 시간, 다르면 날짜) */
+  listBy?: 'date' | 'time';
 }
 
 /** 유료 영수증 테마 (종이·무늬만 바뀜) */

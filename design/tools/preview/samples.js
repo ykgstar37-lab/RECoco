@@ -91,7 +91,7 @@ module.exports = () => {
     { name: '영화_티켓', record: movie },
     { name: '영화_티켓_흰색', record: { ...movie, id: 'sample-movie-white', paper: 'white' } },
     { name: '소비_영수증', record: spending },
-    { name: '소비_여러곳', record: { ...spending, id: 'sample-spending-multi', store: '9월 16일 소비', date: '2026-09-16', memo: '', items: [
+    { name: '소비_여러곳', record: { ...spending, id: 'sample-spending-multi', store: '9월 셋째 주 소비', listBy: 'date', date: '2026-09-16', memo: '', items: [
       { name: '아이스 아메리카노', qty: 1, price: 2000, store: '메가MGC', date: '2026-09-16', time: '19:13' },
       { name: '카페라떼', qty: 1, price: 1600, store: '메가MGC', date: '2026-09-15', time: '19:25' },
       { name: '도시락', qty: 2, price: 2750, store: 'GS25고척점', date: '2026-09-13', time: '21:39' } ] } },

@@ -91,7 +91,10 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
 
   const items = r.items.filter((it) => it.name.trim() || it.price > 0).slice(0, MAX_ROWS);
   // 여러 가게를 한 장에 적은 기록: 첫 칸을 월일 대신 시간으로 쓰고, 품목 칸에 가게 이름을 같이 적는다
-  const multi = new Set(items.map((it) => it.store?.trim()).filter(Boolean)).size > 1;
+  const multi = items.some((it) => it.store?.trim());
+  // 첫 칸: 고른 대로, 안 골랐으면 날짜가 다 같을 때만 시간
+  const sameDay = new Set(items.map((it) => it.date ?? r.date)).size <= 1;
+  const byTime = multi && (r.listBy ? r.listBy === 'time' : sameDay);
   const total = items.reduce((sum, it) => sum + it.qty * it.price, 0);
   const [, m, d] = r.date.split('-').map((v) => parseInt(v, 10));
   const md = m && d ? `${m}/${d}` : '';
@@ -157,7 +160,7 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
           <Text x={(L + R) / 2 + 7} y={gTop + 28} fontSize={20} textAnchor="middle" letterSpacing={14} fill={INK} fontFamily={FONTS.serif}>
             공급내역
           </Text>
-          {label((cols[0] + cols[1]) / 2, hTop + 26, multi ? '시간' : '월일', 16)}
+          {label((cols[0] + cols[1]) / 2, hTop + 26, byTime ? '시간' : '월일', 16)}
           {label((cols[1] + cols[2]) / 2, hTop + 26, '품      목', 16)}
           {label((cols[2] + cols[3]) / 2, hTop + 26, '수량', 16)}
           {label((cols[3] + cols[4]) / 2, hTop + 26, '단가', 16)}
@@ -196,7 +199,9 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
             const y = hBot + rowH * (i + 1) - 12;
             // 총액만 적은 기록: 품목 칸은 비우고 금액만 적는다
             const onlyTotal = !it.name.trim() && !it.store?.trim();
-            const when = multi ? (it.time ?? '') : md;
+            const itemDate = it.date ?? r.date;
+            const [, im, id] = itemDate.split('-');
+            const when = byTime ? (it.time ?? '') : multi ? `${+im}/${+id}` : md;
             const what = multi ? [it.store?.trim(), it.name.trim()].filter(Boolean).join(' ') : it.name;
             return (
               <G key={i}>
