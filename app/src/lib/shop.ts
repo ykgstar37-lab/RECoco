@@ -3,6 +3,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
+import { PurchaseCancelled, buyProduct, canBuy, ownedProductIds, startBilling } from './billing';
+
 import type { OutfitId } from '../components/Outfits';
 import type { ConcertDesign, FoodDesign, PaperTheme, RecordKind, ShowDesign } from '../types';
 
@@ -113,7 +115,7 @@ export const FREE_SHOW_DESIGNS: { id: ShowDesign; name: string }[] = [
 ];
 
 export const SHOW_DESIGNS: ShowDesignItem[] = [
-  { id: 'holo', name: '홀로그램 기록표', desc: '파란 홀로그램 종이에 칸칸이 적는 관람 기록표', productId: 'recoco.theme.show-holo', price: 1000, kinds: ['show'] },
+  { id: 'holo', name: '홀로그램 기록표', desc: '파란 홀로그램 종이에 칸칸이 적는 관람 기록표', productId: 'recoco.theme.holo', price: 1000, kinds: ['show'] },
   { id: 'band', ...WRIST_BAND },
   { id: 'kpop', ...PHOTO_TICKET },
 ];
@@ -165,6 +167,8 @@ const emit = () => listeners.forEach((l) => l());
 export async function initShop() {
   state = await loadShop();
   emit();
+  // 스토어에 연결해 두면 끝나지 않은 거래·다른 기기에서 산 것이 알아서 들어온다
+  if (canBuy) await startBilling(addOwned);
 }
 
 export function useShop() {
@@ -199,16 +203,33 @@ export class PurchaseUnavailable extends Error {}
 
 /** 스토어 결제. 성공하면 구매한 productId 를 돌려준다 */
 export async function purchase(productId: string): Promise<string> {
-  if (__DEV__) return productId;
-  // TODO: 개발 빌드에서 스토어 결제 연결 (RevenueCat 또는 expo-iap)
-  throw new PurchaseUnavailable(productId);
+  if (!canBuy) {
+    if (__DEV__) return productId; // 웹 미리보기
+    throw new PurchaseUnavailable(productId);
+  }
+  try {
+    await buyProduct(productId);
+    return productId;
+  } catch (e) {
+    if (e instanceof PurchaseCancelled) throw e;
+    // 개발 중에는 스토어에 상품을 아직 안 올렸어도 눌러서 확인할 수 있게 열어준다.
+    // (취소는 위에서 걸러내서, 취소했는데 해금되는 일은 없다)
+    if (__DEV__) return productId;
+    throw e;
+  }
 }
 
 /** 구매 복원 (스토어 계정에 남은 구매 내역을 다시 불러오기) */
 export async function restorePurchases(): Promise<string[]> {
-  // TODO: 스토어 결제 연결 시 구현
-  throw new PurchaseUnavailable('restore');
+  if (!canBuy) throw new PurchaseUnavailable('restore');
+  const ids = await ownedProductIds();
+  ids.forEach(addOwned);
+  return ids;
 }
 
 export const purchaseErrorMessage = (e: unknown) =>
-  e instanceof PurchaseUnavailable ? '결제는 스토어 출시 버전에서 열려요.' : '결제를 완료하지 못했어요.';
+  e instanceof PurchaseCancelled
+    ? ''
+    : e instanceof PurchaseUnavailable
+      ? '결제는 스토어 출시 버전에서 열려요.'
+      : '결제를 완료하지 못했어요.';
