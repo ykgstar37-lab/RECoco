@@ -22,6 +22,10 @@ interface Props<T> {
   placeholder: string;
   /** 읽지 못하면 null */
   parse: (text: string) => T | null;
+  /** 캡처 한 장에 여러 건이 있을 수 있으면: 찾은 것 전부 (골라서 채운다) */
+  parseAll?: (text: string) => T[];
+  /** 여러 건 고르는 줄에 보여줄 글자 */
+  optionLabel?: (result: T) => { title: string; sub: string };
   rows: (result: T) => PasteRow[];
   warning?: (result: T) => string | null;
   failMessage: string;
@@ -30,8 +34,9 @@ interface Props<T> {
 }
 
 /** 문자·알림을 붙여넣거나 캡처를 고르면 바로 읽은 내용을 보여주고, 그대로 기록을 채운다 */
-export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, warning, failMessage, onClose, onFill }: Props<T>) {
+export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAll, optionLabel, rows, warning, failMessage, onClose, onFill }: Props<T>) {
   const [text, setText] = useState('');
+  const [picked, setPicked] = useState(0);
   const [reading, setReading] = useState(false);
   const [ocrNotice, setOcrNotice] = useState('');
 
@@ -39,18 +44,23 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
     if (!visible) return;
     setText('');
     setOcrNotice('');
+    setPicked(0);
   }, [visible]);
 
   // 알림·앱 화면 캡처에서 글자를 읽어 칸에 넣는다 (그다음은 붙여넣기와 똑같이)
   const fromScreenshot = async () => {
     setOcrNotice('');
-    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
-    if (picked.canceled || !picked.assets[0]) return;
+    const shot = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
+    if (shot.canceled || !shot.assets[0]) return;
     setReading(true);
     try {
-      const found = await readImageText(picked.assets[0].uri);
-      if (found.trim()) setText(found);
-      else setOcrNotice('캡처에서 글자를 찾지 못했어요.');
+      const found = await readImageText(shot.assets[0].uri);
+      if (found.trim()) {
+        setText(found);
+        setPicked(0);
+      } else {
+        setOcrNotice('캡처에서 글자를 찾지 못했어요.');
+      }
     } catch (e) {
       setOcrNotice(e instanceof OcrUnavailable ? '캡처 읽기는 레코코 앱 설치 버전(개발 빌드)에서 돼요. 지금은 글자를 붙여넣어 주세요.' : '캡처를 읽지 못했어요.');
     } finally {
@@ -74,9 +84,11 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
   const changeText = (next: string) => {
     if (next.length - text.length > 15) Keyboard.dismiss();
     setText(next);
+    setPicked(0);
   };
 
-  const result = text.trim() ? parse(text) : null;
+  const found = text.trim() && parseAll ? parseAll(text) : [];
+  const result = text.trim() ? (parseAll ? (found[Math.min(picked, found.length - 1)] ?? null) : parse(text)) : null;
   const warn = result && warning ? warning(result) : null;
 
   return (
@@ -98,6 +110,27 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, rows, w
             </View>
             {!!ocrNotice && <Text style={styles.warn}>{ocrNotice}</Text>}
             <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} style={styles.input} value={text} onChangeText={changeText} multiline placeholder={placeholder} placeholderTextColor={COLORS.placeholder} />
+
+            {found.length > 1 && (
+              <View style={styles.pickList}>
+                <Text style={styles.pickHead}>{found.length}건을 찾았어요. 기록할 것을 골라주세요.</Text>
+                {found.map((f, i) => {
+                  const label = optionLabel?.(f) ?? { title: `${i + 1}번째`, sub: '' };
+                  const on = Math.min(picked, found.length - 1) === i;
+                  return (
+                    <Pressable key={`${label.title}-${i}`} onPress={() => setPicked(i)} style={[styles.pickRow, on && styles.pickRowOn]}>
+                      <View style={[styles.radio, on && styles.radioOn]}>{on && <View style={styles.radioDot} />}</View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.pickRowTitle, on && { color: COLORS.orange }]} numberOfLines={1}>
+                          {label.title}
+                        </Text>
+                        {!!label.sub && <Text style={styles.pickRowSub}>{label.sub}</Text>}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
 
             {!!text.trim() &&
               (result ? (
@@ -208,6 +241,25 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.sans,
     textAlignVertical: 'top',
   },
+  pickList: { gap: 6 },
+  pickHead: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sansBold },
+  pickRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  pickRowOn: { backgroundColor: COLORS.orangeSoft, borderColor: COLORS.orange },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: COLORS.placeholder, alignItems: 'center', justifyContent: 'center' },
+  radioOn: { borderColor: COLORS.orange },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.orange },
+  pickRowTitle: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
+  pickRowSub: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 1 },
   card: { borderRadius: 16, borderWidth: 1.5, borderColor: COLORS.orange, backgroundColor: COLORS.orangeSoft, padding: 16, gap: 8 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowLabel: { width: 44, color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sansBold },
