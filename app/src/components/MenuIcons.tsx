@@ -26,19 +26,30 @@ export function HatIcon({ color, size = 24 }: IconProps) {
   );
 }
 
-/** 장바구니: 손잡이 + 위가 넓은 몸통에 구멍이 뽕뽕 (가방처럼 보이지 않게) */
+/** 장바구니: 손잡이 두 개가 위에서 엇갈리고, 몸통엔 격자 (가방·자물쇠처럼 보이지 않게) */
 export function BagIcon({ color, size = 24 }: IconProps) {
-  // 몸통 안에 엇갈려 뚫린 구멍 (줄마다 폭이 좁아진다)
-  const holes = [
-    { y: 12.8, xs: [7.6, 10.4, 13.2, 16.0] },
-    { y: 15.6, xs: [8.6, 11.4, 14.2] },
-    { y: 18.4, xs: [9.5, 12.0, 14.5] },
-  ];
+  // 위가 넓은 사다리꼴 몸통
+  const TOP_Y = 11.4;
+  const BOT_Y = 21;
+  const TOP = [4.3, 19.7];
+  const BOT = [6.6, 17.4];
+  const at = (y: number) => {
+    const s = (y - TOP_Y) / (BOT_Y - TOP_Y);
+    return [TOP[0] + (BOT[0] - TOP[0]) * s, TOP[1] + (BOT[1] - TOP[1]) * s];
+  };
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path d="M8.2,9 V7.4 A3.8,3.8 0 0 1 15.8,7.4 V9" stroke={color} strokeWidth={2} strokeLinecap="round" fill="none" />
-      <Path d="M3.2,9.4 H20.8 L19.1,19.7 C18.9,21 17.8,22 16.5,22 H7.5 C6.2,22 5.1,21 4.9,19.7 Z" fill={color} />
-      {holes.flatMap((row) => row.xs.map((x) => <Circle key={`${x}-${row.y}`} cx={x} cy={row.y} r={1.15} fill="#fff" />))}
+      {/* 손잡이 두 개 + 테두리 띠 */}
+      <Path d="M8.4,9 L12.6,3.6 M15.6,9 L11.4,3.6" stroke={color} strokeWidth={1.9} strokeLinecap="round" fill="none" />
+      <Rect x={2.6} y={8} width={18.8} height={3.1} rx={1.55} fill={color} />
+      <Path d={`M${TOP[0]},${TOP_Y} H${TOP[1]} L${BOT[1]},${BOT_Y} Q${BOT[1] - 1.2},${BOT_Y + 1} ${BOT[1] - 2.4},${BOT_Y + 1} H${BOT[0] + 2.4} Q${BOT[0] + 1.2},${BOT_Y + 1} ${BOT[0]},${BOT_Y} Z`} fill={color} />
+      {/* 격자: 세로 3줄 + 가로 2줄 */}
+      {[0.25, 0.5, 0.75].map((t) => (
+        <Path key={t} d={`M${TOP[0] + (TOP[1] - TOP[0]) * t},${TOP_Y} L${BOT[0] + (BOT[1] - BOT[0]) * t},${BOT_Y + 0.6}`} stroke="#fff" strokeWidth={1.1} fill="none" />
+      ))}
+      {[14.6, 17.8].map((y) => (
+        <Path key={y} d={`M${at(y)[0]},${y} H${at(y)[1]}`} stroke="#fff" strokeWidth={1.1} fill="none" />
+      ))}
     </Svg>
   );
 }

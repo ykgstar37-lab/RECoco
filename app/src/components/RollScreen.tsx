@@ -87,11 +87,9 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   const byDate = date ? records.filter((r) => r.date === date) : records;
   const list = kind ? byDate.filter((r) => r.kind === kind) : byDate;
   const kindLabel = kind ? CATEGORIES.find((c) => c.kind === kind)?.label : null;
-  const title = date
-    ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일의 ${kindLabel ?? ''} 영수증`.replace('  ', ' ')
-    : kindLabel
-      ? `${kindLabel} 영수증`
-      : '나의 영수증';
+  // 제목은 짧게 (＋·닫기 버튼과 한 줄에 들어가야 해서). 카테고리는 아래 장수 줄에 붙인다
+  const title = date ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일` : kindLabel ? `${kindLabel} 영수증` : '나의 영수증';
+  const countLabel = `${date && kindLabel ? `${kindLabel} ` : ''}${list.length}장`;
 
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={() => close()}>
@@ -108,8 +106,10 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
               <View style={styles.grip} />
               <View style={styles.header}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.title}>{title}</Text>
-                  <Text style={styles.count}>{list.length}장</Text>
+                  <Text style={styles.title} numberOfLines={1}>
+                    {title}
+                  </Text>
+                  <Text style={styles.count}>{countLabel}</Text>
                 </View>
                 {date && (
                   <Pressable onPress={onClearDate} hitSlop={8} style={styles.chip}>
