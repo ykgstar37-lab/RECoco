@@ -4,7 +4,20 @@ import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
 import { won } from '../lib/format';
 import { PreviewProduct, concertDesignProductById, foodDesignProductById, showDesignProductById, themeProductById } from '../lib/products';
-import { CONCERT_DESIGNS, FOOD_DESIGNS, SHOW_DESIGNS, THEMES, concertDesignUnlocked, foodDesignUnlocked, showDesignUnlocked, themeUnlocked, useShop } from '../lib/shop';
+import {
+  CONCERT_DESIGNS,
+  FOOD_DESIGNS,
+  FREE_CONCERT_DESIGNS,
+  FREE_FOOD_DESIGNS,
+  FREE_SHOW_DESIGNS,
+  SHOW_DESIGNS,
+  THEMES,
+  concertDesignUnlocked,
+  foodDesignUnlocked,
+  showDesignUnlocked,
+  themeUnlocked,
+  useShop,
+} from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { ConcertDesign, FoodDesign, PaperTheme, ShowDesign } from '../types';
 import { ProductPreview } from './ProductPreview';
@@ -82,6 +95,19 @@ export function ThemePicker({ label, base, value, onChange }: Props) {
 
 /** 카페·맛집 모양 견본 (주문서 / 집) */
 export function FoodDesignSwatch({ design, size = 44 }: { design: FoodDesign | undefined; size?: number }) {
+  if (design === 'plain')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={1} y={1} width={38} height={50} rx={3} fill="#fcfbf7" stroke={COLORS.line} strokeWidth={1} />
+        <Rect x={8} y={7} width={24} height={3} rx={1} fill="#3b3a36" />
+        <Rect x={6} y={20} width={28} height={20} rx={2} fill="none" stroke="#3b3a36" strokeWidth={1.2} />
+        <Rect x={6} y={20} width={28} height={5} fill="#3b3a36" />
+        {[31, 36].map((y) => (
+          <Line key={y} x1={9} y1={y} x2={31} y2={y} stroke="#dcdad2" strokeWidth={1.2} />
+        ))}
+        <Line x1={6} y1={14} x2={34} y2={14} stroke="#3b3a36" strokeWidth={1} />
+      </Svg>
+    );
   if (design === 'house') {
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -112,7 +138,7 @@ export function FoodDesignSwatch({ design, size = 44 }: { design: FoodDesign | u
 export function FoodDesignPicker({ value, onChange }: { value: FoodDesign | undefined; onChange: (design: FoodDesign) => void }) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: FoodDesign; product: PreviewProduct } | null>(null);
-  const options: { id: FoodDesign; name: string; price: number }[] = [{ id: 'order', name: '주문서', price: 0 }, ...FOOD_DESIGNS];
+  const options: { id: FoodDesign; name: string; price: number }[] = [...FREE_FOOD_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOOD_DESIGNS];
 
   const choose = (id: FoodDesign) => {
     if (foodDesignUnlocked(id, owned)) return onChange(id);
@@ -154,6 +180,19 @@ export function FoodDesignPicker({ value, onChange }: { value: FoodDesign | unde
 
 /** 콘서트 티켓 모양 견본 (레트로 / 팔찌 / K-POP) */
 export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesign | undefined; size?: number }) {
+  if (design === 'retro')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={3} fill="#fbf5ea" stroke={COLORS.line} strokeWidth={1} />
+        <Rect x={5} y={5} width={30} height={30} rx={2} fill="none" stroke="#1f2a44" strokeWidth={1} />
+        {[16, 19, 22].map((x, i) => (
+          <Rect key={x} x={x} y={13 - i} width={2} height={8 + i * 2} rx={1} fill="#e2685c" />
+        ))}
+        <Line x1={9} y1={26} x2={31} y2={26} stroke="#1f2a44" strokeWidth={1.4} />
+        <Rect x={2} y={38} width={36} height={12} fill="#1f2a44" />
+        <Rect x={12} y={42} width={16} height={4} rx={2} fill="#e2685c" />
+      </Svg>
+    );
   if (design === 'band')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -195,7 +234,7 @@ export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesi
 export function ConcertDesignPicker({ value, onChange }: { value: ConcertDesign | undefined; onChange: (design: ConcertDesign) => void }) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: ConcertDesign; product: PreviewProduct } | null>(null);
-  const options: { id: ConcertDesign; name: string; price: number }[] = [{ id: 'ticket', name: '레트로 티켓', price: 0 }, ...CONCERT_DESIGNS];
+  const options: { id: ConcertDesign; name: string; price: number }[] = [...FREE_CONCERT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...CONCERT_DESIGNS];
 
   const choose = (id: ConcertDesign) => {
     if (concertDesignUnlocked(id, owned)) return onChange(id);
@@ -277,7 +316,7 @@ export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | u
 export function ShowDesignPicker({ value, onChange }: { value: ShowDesign | undefined; onChange: (design: ShowDesign) => void }) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: ShowDesign; product: PreviewProduct } | null>(null);
-  const options: { id: ShowDesign; name: string; price: number }[] = [{ id: 'ticket', name: '입장권', price: 0 }, ...SHOW_DESIGNS];
+  const options: { id: ShowDesign; name: string; price: number }[] = [...FREE_SHOW_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SHOW_DESIGNS];
 
   const choose = (id: ShowDesign) => {
     if (showDesignUnlocked(id, owned)) return onChange(id);

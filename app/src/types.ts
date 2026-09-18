@@ -113,7 +113,7 @@ export interface FourcutRecord extends BaseRecord {
   theme?: PaperTheme; // 뒷면 종이 (없으면 기본 크림 줄노트)
 }
 
-export type GiftCard = 'yellow' | 'pink' | 'mint' | 'sky';
+export type GiftCard = 'yellow' | 'pink' | 'mint' | 'sky' | 'plain';
 
 /** 선물: 받은/준 선물을 모바일 교환권처럼 */
 export interface GiftRecord extends BaseRecord {
@@ -132,8 +132,8 @@ export interface GiftRecord extends BaseRecord {
 
 export type FoodType = 'cafe' | 'meal' | 'dessert' | 'bar';
 
-/** order: 맛집 주문서, house: 집 모양 */
-export type FoodDesign = 'order' | 'house';
+/** order: 초록 맛집 주문서, plain: 단색 주문서 (여기까지 무료) / house: 집 모양 */
+export type FoodDesign = 'order' | 'plain' | 'house';
 
 export interface FoodMenu {
   name: string;
@@ -178,8 +178,8 @@ export interface ShowRecord extends BaseRecord {
   design?: ShowDesign; // 없으면 기본 입장권
 }
 
-/** order 대신 ticket: 기본 레트로 티켓, band: 스탠딩 팔찌, kpop: 핑크 포토 티켓 */
-export type ConcertDesign = 'ticket' | 'band' | 'kpop';
+/** ticket: 가로 공연 티켓, retro: 크림 레트로 티켓 (여기까지 무료) / band: 스탠딩 팔찌, kpop: 핑크 포토 티켓 */
+export type ConcertDesign = 'ticket' | 'retro' | 'band' | 'kpop';
 
 /** 콘서트: 공연·전시와 따로, 티켓 모양을 골라 뽑는다 */
 export interface ConcertRecord extends BaseRecord {

@@ -3,6 +3,7 @@ import { memo } from 'react';
 import { RecoRecord } from '../types';
 import { ConcertBand, layoutConcertBand } from './ConcertBand';
 import { ConcertKpop, layoutConcertKpop } from './ConcertKpop';
+import { ConcertRetro, layoutConcertRetro } from './ConcertRetro';
 import { ConcertTicket, layoutConcert } from './ConcertTicket';
 import { FoodHouse, layoutFoodHouse } from './FoodHouse';
 import { FoodOrder, layoutFood } from './FoodOrder';
@@ -39,7 +40,13 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'show':
       return record.design === 'holo' ? layoutShowHolo(record) : record.design === 'poster' ? layoutShow(record) : layoutShowRetro(record);
     case 'concert':
-      return record.design === 'band' ? layoutConcertBand(record) : record.design === 'kpop' ? layoutConcertKpop(record) : layoutConcert(record);
+      return record.design === 'band'
+        ? layoutConcertBand(record)
+        : record.design === 'kpop'
+          ? layoutConcertKpop(record)
+          : record.design === 'retro'
+            ? layoutConcertRetro(record)
+            : layoutConcert(record);
   }
 }
 
@@ -87,6 +94,8 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
         <ConcertBand record={record} width={width} />
       ) : record.design === 'kpop' ? (
         <ConcertKpop record={record} width={width} />
+      ) : record.design === 'retro' ? (
+        <ConcertRetro record={record} width={width} />
       ) : (
         <ConcertTicket record={record} width={width} />
       );

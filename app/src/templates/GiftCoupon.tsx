@@ -22,6 +22,7 @@ const CARDS: Record<GiftCard, { head: string; deep: string }> = {
   pink: { head: '#ffc9d9', deep: '#f294b2' },
   mint: { head: '#c3ecd9', deep: '#7fc9a6' },
   sky: { head: '#cfe2fb', deep: '#8db6ea' },
+  plain: { head: '#ece9e3', deep: '#b9b3a8' },
 };
 
 const HEAD_H = 300;

@@ -14,6 +14,8 @@ const M = 36; // 좌우 여백
 const PAPER = '#fbf7ec';
 const GREEN = '#2f6b52';
 const GREEN_SOFT = '#cfe1d6';
+// 단색(plain) 테마: 초록 대신 먹색 한 가지로
+const PLAIN = { paper: '#fcfbf7', main: '#3b3a36', soft: '#dcdad2', star: '#3b3a36', note: '#f1efe7' };
 const INK = '#26241f';
 const SUB = '#8a8578';
 const STAR = '#ff8a3d';
@@ -83,6 +85,12 @@ function starPath(cx: number, cy: number, r: number) {
 }
 
 export function FoodOrder({ record: r, width }: { record: FoodRecord; width: number }) {
+  const plain = r.design === 'plain';
+  const PAPER_C = plain ? PLAIN.paper : PAPER;
+  const GREEN_C = plain ? PLAIN.main : GREEN;
+  const SOFT_C = plain ? PLAIN.soft : GREEN_SOFT;
+  const STAR_C = plain ? PLAIN.star : STAR;
+  const NOTE_C = plain ? PLAIN.note : NOTE;
   const L = layoutFood(r);
   const { info, infoBot, photoTop, photoH, menuTop, rows, menuBot, note, noteTop, noteH, revisitTop, height } = computeLayout(r);
   const shape = paperPath(height, r.id);
@@ -100,16 +108,16 @@ export function FoodOrder({ record: r, width }: { record: FoodRecord; width: num
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={12} />
           </ClipPath>
         </Defs>
-        <Path d={shape} fill={PAPER} />
+        <Path d={shape} fill={PAPER_C} />
 
         {/* 머리: 가게 종류 칩 + 제목 + 주문번호 */}
-        <Rect x={M} y={34} width={86} height={34} rx={17} fill="none" stroke={GREEN} strokeWidth={2} />
-        <T f="sansBold" x={M + 43} y={57} fontSize={17} fill={GREEN} textAnchor="middle" children={FOOD_TYPES[r.type] ?? '카페'} />
-        <T f="mono" x={PW - M} y={57} fontSize={17} fill={GREEN} textAnchor="end" letterSpacing={1} children={`No. ${orderNo}`} />
-        <T f="sansHeavy" x={PW / 2} y={124} fontSize={44} fill={GREEN} textAnchor="middle" children={`${BRAND.ko} 맛집 주문서`} />
-        <T f="monoBold" x={PW / 2} y={154} fontSize={14} fill={GREEN} textAnchor="middle" letterSpacing={5} opacity={0.75} children="TABLE ORDER · TASTE NOTE" />
-        <Line x1={M} y1={HEAD_BOT} x2={PW - M} y2={HEAD_BOT} stroke={GREEN} strokeWidth={3} />
-        <Line x1={M} y1={HEAD_BOT + 6} x2={PW - M} y2={HEAD_BOT + 6} stroke={GREEN} strokeWidth={1.2} />
+        <Rect x={M} y={34} width={86} height={34} rx={17} fill="none" stroke={GREEN_C} strokeWidth={2} />
+        <T f="sansBold" x={M + 43} y={57} fontSize={17} fill={GREEN_C} textAnchor="middle" children={FOOD_TYPES[r.type] ?? '카페'} />
+        <T f="mono" x={PW - M} y={57} fontSize={17} fill={GREEN_C} textAnchor="end" letterSpacing={1} children={`No. ${orderNo}`} />
+        <T f="sansHeavy" x={PW / 2} y={124} fontSize={44} fill={GREEN_C} textAnchor="middle" children={`${BRAND.ko} 맛집 주문서`} />
+        <T f="monoBold" x={PW / 2} y={154} fontSize={14} fill={GREEN_C} textAnchor="middle" letterSpacing={5} opacity={0.75} children="TABLE ORDER · TASTE NOTE" />
+        <Line x1={M} y1={HEAD_BOT} x2={PW - M} y2={HEAD_BOT} stroke={GREEN_C} strokeWidth={3} />
+        <Line x1={M} y1={HEAD_BOT + 6} x2={PW - M} y2={HEAD_BOT + 6} stroke={GREEN_C} strokeWidth={1.2} />
 
         {/* 가게 정보 */}
         {info.map(([k, v], i) => {
@@ -118,9 +126,9 @@ export function FoodOrder({ record: r, width }: { record: FoodRecord; width: num
           const value = fitLine(v, PW - M * 2 - 96, big ? 32 : 24, 18, big ? 'sansHeavy' : 'sansBold');
           return (
             <G key={k}>
-              <T f="sansBold" x={M + 2} y={y + 38} fontSize={18} fill={GREEN} children={k} />
+              <T f="sansBold" x={M + 2} y={y + 38} fontSize={18} fill={GREEN_C} children={k} />
               <T f={big ? 'sansHeavy' : 'sansBold'} x={M + 90} y={y + 39} fontSize={value.size} children={value.text} />
-              <Line x1={M + 80} y1={y + INFO_ROW - 4} x2={PW - M} y2={y + INFO_ROW - 4} stroke={GREEN_SOFT} strokeWidth={2} strokeDasharray="2 6" strokeLinecap="round" />
+              <Line x1={M + 80} y1={y + INFO_ROW - 4} x2={PW - M} y2={y + INFO_ROW - 4} stroke={SOFT_C} strokeWidth={2} strokeDasharray="2 6" strokeLinecap="round" />
             </G>
           );
         })}
@@ -128,33 +136,33 @@ export function FoodOrder({ record: r, width }: { record: FoodRecord; width: num
         {/* 사진 + 마스킹 테이프 */}
         {r.photo && (
           <G>
-            <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={12} fill={GREEN_SOFT} />
+            <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={12} fill={SOFT_C} />
             <Image href={{ uri: r.photo.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipId}-photo)`} />
             <Rect x={PW / 2 - 60} y={photoTop - 16} width={120} height={34} fill="#f4dba8" opacity={0.85} transform={`rotate(${tilt - 2} ${PW / 2} ${photoTop})`} />
           </G>
         )}
 
         {/* 메뉴 표 */}
-        <Rect x={M} y={menuTop} width={PW - M * 2} height={menuBot - menuTop} rx={10} fill="none" stroke={GREEN} strokeWidth={2} />
-        <Path d={`M${M},${menuTop + MENU_HEAD} V${menuTop + 10} Q${M},${menuTop} ${M + 10},${menuTop} H${PW - M - 10} Q${PW - M},${menuTop} ${PW - M},${menuTop + 10} V${menuTop + MENU_HEAD} Z`} fill={GREEN} />
+        <Rect x={M} y={menuTop} width={PW - M * 2} height={menuBot - menuTop} rx={10} fill="none" stroke={GREEN_C} strokeWidth={2} />
+        <Path d={`M${M},${menuTop + MENU_HEAD} V${menuTop + 10} Q${M},${menuTop} ${M + 10},${menuTop} H${PW - M - 10} Q${PW - M},${menuTop} ${PW - M},${menuTop + 10} V${menuTop + MENU_HEAD} Z`} fill={GREEN_C} />
         <T f="sansBold" x={M + 20} y={menuTop + 32} fontSize={19} fill="#fff" children="메뉴" />
         <T f="sansBold" x={PW - M - 20} y={menuTop + 32} fontSize={19} fill="#fff" textAnchor="end" children="맛" />
-        <Line x1={PW - M - 190} y1={menuTop + MENU_HEAD} x2={PW - M - 190} y2={menuBot} stroke={GREEN_SOFT} strokeWidth={2} />
+        <Line x1={PW - M - 190} y1={menuTop + MENU_HEAD} x2={PW - M - 190} y2={menuBot} stroke={SOFT_C} strokeWidth={2} />
         {Array.from({ length: rows }, (_, i) => {
           const y = menuTop + MENU_HEAD + i * MENU_ROW;
           const m = r.menus[i];
           const name = m ? fitLine(m.name.trim(), PW - M * 2 - 230, 25, 17, 'sans') : null;
           return (
             <G key={i}>
-              {i > 0 && <Line x1={M + 12} y1={y} x2={PW - M - 12} y2={y} stroke={GREEN_SOFT} strokeWidth={1.5} strokeDasharray="6 5" />}
+              {i > 0 && <Line x1={M + 12} y1={y} x2={PW - M - 12} y2={y} stroke={SOFT_C} strokeWidth={1.5} strokeDasharray="6 5" />}
               {name && <T x={M + 20} y={y + 40} fontSize={name.size} children={name.text} />}
               {m &&
                 [0, 1, 2, 3, 4].map((s) => (
                   <Path
                     key={s}
                     d={starPath(PW - M - 170 + s * 34, y + 31, 14)}
-                    fill={s < m.stars ? STAR : 'none'}
-                    stroke={s < m.stars ? STAR : GREEN_SOFT}
+                    fill={s < m.stars ? STAR_C : 'none'}
+                    stroke={s < m.stars ? STAR_C : SOFT_C}
                     strokeWidth={2}
                     strokeLinejoin="round"
                   />
@@ -164,7 +172,7 @@ export function FoodOrder({ record: r, width }: { record: FoodRecord; width: num
         })}
         {r.total > 0 && (
           <G>
-            <T f="sansBold" x={M + 20} y={menuBot + 44} fontSize={20} fill={GREEN} children="합계" />
+            <T f="sansBold" x={M + 20} y={menuBot + 44} fontSize={20} fill={GREEN_C} children="합계" />
             <T f="sansHeavy" x={PW - M - 16} y={menuBot + 46} fontSize={30} textAnchor="end" children={`${won(r.total)}원`} />
           </G>
         )}
@@ -173,7 +181,7 @@ export function FoodOrder({ record: r, width }: { record: FoodRecord; width: num
         {note && (
           <G transform={`rotate(${tilt} ${PW / 2} ${noteTop + noteH / 2})`}>
             <Rect x={M + 24} y={noteTop + 4} width={PW - M * 2 - 48} height={noteH} fill="#000" opacity={0.06} />
-            <Rect x={M + 20} y={noteTop} width={PW - M * 2 - 48} height={noteH} fill={NOTE} />
+            <Rect x={M + 20} y={noteTop} width={PW - M * 2 - 48} height={noteH} fill={NOTE_C} />
             {note.lines.map((line, i) => (
               <T key={i} f="hand" x={M + 50} y={noteTop + 48 + i * NOTE_LINE} fontSize={note.size} fill="#3a3326" children={line} />
             ))}
@@ -181,15 +189,15 @@ export function FoodOrder({ record: r, width }: { record: FoodRecord; width: num
         )}
 
         {/* 또 갈래요? */}
-        <Line x1={M} y1={revisitTop} x2={PW - M} y2={revisitTop} stroke={GREEN} strokeWidth={1.2} />
-        <T f="sansBold" x={M + 2} y={revisitTop + 46} fontSize={20} fill={GREEN} children="또 갈래요?" />
+        <Line x1={M} y1={revisitTop} x2={PW - M} y2={revisitTop} stroke={GREEN_C} strokeWidth={1.2} />
+        <T f="sansBold" x={M + 2} y={revisitTop + 46} fontSize={20} fill={GREEN_C} children="또 갈래요?" />
         {REVISIT.map(([key, label], i) => {
           const x = M + 2 + i * 180;
           const on = r.revisit === key;
           return (
             <G key={key}>
-              <Rect x={x} y={revisitTop + 70} width={28} height={28} rx={6} fill="#fff" stroke={GREEN} strokeWidth={2} />
-              {on && <Path d={`M${x + 4},${revisitTop + 82} L${x + 13},${revisitTop + 94} L${x + 34},${revisitTop + 62}`} stroke={STAR} strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" fill="none" />}
+              <Rect x={x} y={revisitTop + 70} width={28} height={28} rx={6} fill="#fff" stroke={GREEN_C} strokeWidth={2} />
+              {on && <Path d={`M${x + 4},${revisitTop + 82} L${x + 13},${revisitTop + 94} L${x + 34},${revisitTop + 62}`} stroke={STAR_C} strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" fill="none" />}
               <T f={on ? 'sansHeavy' : 'sans'} x={x + 40} y={revisitTop + 92} fontSize={21} fill={on ? INK : SUB} children={label} />
             </G>
           );

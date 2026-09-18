@@ -111,6 +111,7 @@ const GIFT_CARDS: { key: GiftCard; label: string; color: string }[] = [
   { key: 'pink', label: '분홍', color: '#ffc9d9' },
   { key: 'mint', label: '민트', color: '#c3ecd9' },
   { key: 'sky', label: '하늘', color: '#cfe2fb' },
+  { key: 'plain', label: '무지', color: '#ece9e3' },
 ];
 
 const GIFT_DIRECTIONS: [GiftRecord['direction'], string][] = [

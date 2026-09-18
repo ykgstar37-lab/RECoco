@@ -55,12 +55,17 @@ export interface FoodDesignItem {
 }
 
 /** 카페·맛집 영수증 모양 테마 (기본은 맛집 주문서) */
+export const FREE_FOOD_DESIGNS: { id: FoodDesign; name: string }[] = [
+  { id: 'order', name: '주문서' },
+  { id: 'plain', name: '단색 주문서' },
+];
+
 export const FOOD_DESIGNS: FoodDesignItem[] = [
   { id: 'house', name: '집 모양', desc: '간판·창문 사진·칠판 메뉴가 있는 작은 가게 집', productId: 'recoco.theme.food-house', price: 1000 },
 ];
 
 export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) =>
-  !id || id === 'order' || owned.includes(FOOD_DESIGNS.find((d) => d.id === id)?.productId ?? '');
+  !id || FREE_FOOD_DESIGNS.some((d) => d.id === id) || owned.includes(FOOD_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 export interface ConcertDesignItem {
   id: Exclude<ConcertDesign, 'ticket'>;
@@ -71,13 +76,19 @@ export interface ConcertDesignItem {
 }
 
 /** 콘서트 영수증 모양 테마 (기본은 레트로 티켓) */
+/** 카테고리를 사면 바로 쓰는 기본 모양 (무료) */
+export const FREE_CONCERT_DESIGNS: { id: ConcertDesign; name: string }[] = [
+  { id: 'ticket', name: '가로 티켓' },
+  { id: 'retro', name: '레트로 티켓' },
+];
+
 export const CONCERT_DESIGNS: ConcertDesignItem[] = [
   { id: 'band', name: '스탠딩 팔찌', desc: '공연장에서 채워주는 손목 팔찌', productId: 'recoco.theme.concert-band', price: 1000 },
   { id: 'kpop', name: 'K-POP 포토 티켓', desc: '분홍 줄무늬에 사진이 큼직하게 박힌 티켓', productId: 'recoco.theme.concert-kpop', price: 1000 },
 ];
 
 export const concertDesignUnlocked = (id: ConcertDesign | undefined, owned: string[]) =>
-  !id || id === 'ticket' || owned.includes(CONCERT_DESIGNS.find((d) => d.id === id)?.productId ?? '');
+  !id || FREE_CONCERT_DESIGNS.some((d) => d.id === id) || owned.includes(CONCERT_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 export interface ShowDesignItem {
   id: Exclude<ShowDesign, 'ticket'>;
@@ -88,20 +99,24 @@ export interface ShowDesignItem {
 }
 
 /** 공연·전시 영수증 모양 테마 (기본은 입장권) */
+export const FREE_SHOW_DESIGNS: { id: ShowDesign; name: string }[] = [
+  { id: 'ticket', name: '입장권' },
+  { id: 'poster', name: '포스터 입장권' },
+];
+
 export const SHOW_DESIGNS: ShowDesignItem[] = [
-  { id: 'poster', name: '포스터 입장권', desc: '종류별 색 머리띠에 포스터가 큼직하게 들어간 입장권', productId: 'recoco.theme.show-poster', price: 1000 },
   { id: 'holo', name: '홀로그램 기록표', desc: '파란 홀로그램 종이에 칸칸이 적는 관람 기록표', productId: 'recoco.theme.show-holo', price: 1000 },
 ];
 
 export const showDesignUnlocked = (id: ShowDesign | undefined, owned: string[]) =>
-  !id || id === 'ticket' || owned.includes(SHOW_DESIGNS.find((d) => d.id === id)?.productId ?? '');
+  !id || FREE_SHOW_DESIGNS.some((d) => d.id === id) || owned.includes(SHOW_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 /** 새 카테고리 (기본 5개는 무료) */
 export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; icon: string; productId: string; price: number }>> = {
   gift: { name: '선물', desc: '받은·보낸 선물을 모바일 교환권처럼', icon: '🎁', productId: 'recoco.category.gift', price: 1500 },
-  food: { name: '카페·맛집', desc: '먹은 메뉴마다 별점을 매기는 맛집 주문서', icon: '☕', productId: 'recoco.category.food', price: 1500 },
-  show: { name: '공연·전시', desc: '뮤지컬·연극·전시를 종류마다 다른 입장권으로', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
-  concert: { name: '콘서트', desc: '아티스트·좌석이 큼직하게 박힌 레트로 공연 티켓', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
+  food: { name: '카페·맛집', desc: '메뉴마다 별점을 매기는 주문서 · 단색 2가지', icon: '☕', productId: 'recoco.category.food', price: 1500 },
+  show: { name: '공연·전시', desc: '뮤지컬·연극·전시 · 입장권 모양 2가지', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
+  concert: { name: '콘서트', desc: '가로 공연 티켓 · 레트로 티켓 2가지', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
 };
 
 export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {
