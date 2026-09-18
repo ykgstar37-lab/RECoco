@@ -26,11 +26,19 @@ export function HatIcon({ color, size = 24 }: IconProps) {
   );
 }
 
+/** 장바구니: 손잡이 + 위가 넓은 몸통에 구멍이 뽕뽕 (가방처럼 보이지 않게) */
 export function BagIcon({ color, size = 24 }: IconProps) {
+  // 몸통 안에 엇갈려 뚫린 구멍 (줄마다 폭이 좁아진다)
+  const holes = [
+    { y: 12.8, xs: [7.6, 10.4, 13.2, 16.0] },
+    { y: 15.6, xs: [8.6, 11.4, 14.2] },
+    { y: 18.4, xs: [9.5, 12.0, 14.5] },
+  ];
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path d="M8,8 V6.5 C8,4.3 9.8,2.5 12,2.5 C14.2,2.5 16,4.3 16,6.5 V8" stroke={color} strokeWidth={2.2} strokeLinecap="round" fill="none" />
-      <Path d="M4.5,8 H19.5 L18.6,19.5 C18.5,20.9 17.4,22 16,22 H8 C6.6,22 5.5,20.9 5.4,19.5 Z" fill={color} />
+      <Path d="M8.2,9 V7.4 A3.8,3.8 0 0 1 15.8,7.4 V9" stroke={color} strokeWidth={2} strokeLinecap="round" fill="none" />
+      <Path d="M3.2,9.4 H20.8 L19.1,19.7 C18.9,21 17.8,22 16.5,22 H7.5 C6.2,22 5.1,21 4.9,19.7 Z" fill={color} />
+      {holes.flatMap((row) => row.xs.map((x) => <Circle key={`${x}-${row.y}`} cx={x} cy={row.y} r={1.15} fill="#fff" />))}
     </Svg>
   );
 }

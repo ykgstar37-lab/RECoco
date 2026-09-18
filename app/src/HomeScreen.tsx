@@ -187,7 +187,7 @@ export function HomeScreen() {
           </Animated.View>
           <View style={[styles.menu, { top: insets.top + 24 + 48 + 10 }]} pointerEvents="box-none">
             {[
-              { label: '기록 달력', icon: CalendarIcon, open: () => setCalendarOpen(true) },
+              { label: '달력', icon: CalendarIcon, open: () => setCalendarOpen(true) },
               { label: '상점', icon: BagIcon, open: () => setShopOpen(true) },
               { label: '코코 옷장', icon: HatIcon, open: () => setClosetOpen(true) },
               { label: '설정', icon: GearIcon, open: () => setSettingsOpen(true) },

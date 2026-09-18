@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { pad2 } from '../lib/format';
 import { shortLabel } from '../lib/summary';
-import { KIND_LABEL } from '../templates';
+import { KIND_LABEL, RecordPaper, layoutOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { dateKey } from './WeekStamps';
@@ -45,12 +45,13 @@ interface Props {
   onPickDate: (date: string) => void;
 }
 
-/** 달 단위 기록 달력: 한 달에 며칠 적었는지 한눈에 보고, 도장을 누르면 아래에 그날 기록이 펼쳐진다 */
+/** 달 단위 달력: 한 달에 며칠 적었는지 한눈에 보고, 도장을 누르면 아래에 그날 기록이 펼쳐진다 */
 export function MonthStamps({ visible, onClose, records, onPickDate }: Props) {
   const now = new Date();
   // 이번 달부터 몇 달 전인지 (0 = 이번 달)
   const [back, setBack] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
+  const { width: screenW, height: screenH } = useWindowDimensions();
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -91,7 +92,7 @@ export function MonthStamps({ visible, onClose, records, onPickDate }: Props) {
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <View style={styles.header}>
-          <Text style={styles.title}>기록 달력</Text>
+          <Text style={styles.title}>달력</Text>
           <Pressable onPress={onClose} hitSlop={10} style={styles.close} accessibilityLabel="닫기">
             <Text style={styles.closeText}>✕</Text>
           </Pressable>
@@ -158,20 +159,30 @@ export function MonthStamps({ visible, onClose, records, onPickDate }: Props) {
           {picked ? (
             <View style={styles.list}>
               <Text style={styles.listHead}>{`${Number(picked.slice(5, 7))}월 ${Number(picked.slice(8, 10))}일 · ${dayRecords.length}장`}</Text>
-              {dayRecords.map((r) => (
-                <Pressable key={r.id} onPress={() => onPickDate(r.date)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>
-                  <View style={styles.kind}>
-                    <Text style={styles.kindText}>{KIND_LABEL[r.kind]}</Text>
-                  </View>
-                  <Text style={styles.rowLabel} numberOfLines={1}>
-                    {shortLabel(r)}
-                  </Text>
-                  <Text style={styles.chevron}>›</Text>
-                </Pressable>
-              ))}
+              {/* 그날 영수증을 실제 양식 그대로, 여러 장이면 옆으로 넘겨 본다 */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.papers}>
+                {dayRecords.map((r) => {
+                  const l = layoutOf(r);
+                  const w = Math.min(dayRecords.length > 1 ? screenW * 0.46 : screenW * 0.62, (screenH * 0.42 * l.width) / l.height);
+                  return (
+                    <Pressable key={r.id} onPress={() => onPickDate(r.date)} style={({ pressed }) => [styles.sample, pressed && { opacity: 0.75 }]}>
+                      <View style={styles.paper}>
+                        <RecordPaper record={r} width={w} />
+                      </View>
+                      <View style={styles.kind}>
+                        <Text style={styles.kindText}>{KIND_LABEL[r.kind]}</Text>
+                      </View>
+                      <Text style={[styles.caption, { maxWidth: w }]} numberOfLines={1}>
+                        {shortLabel(r)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+              <Text style={styles.help}>영수증을 누르면 크게 볼 수 있어요.</Text>
             </View>
           ) : (
-            <Text style={styles.help}>도장이 찍힌 날을 누르면 그날 기록이 펼쳐져요.</Text>
+            <Text style={styles.help}>도장이 찍힌 날을 누르면 그날 영수증이 펼쳐져요.</Text>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -221,19 +232,10 @@ const styles = StyleSheet.create({
   help: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, textAlign: 'center', marginTop: 10 },
   list: { marginTop: 10, gap: 8, paddingHorizontal: 4 },
   listHead: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sansBold, paddingHorizontal: 4 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.line,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
+  papers: { paddingVertical: 6, paddingHorizontal: 4, gap: 14, alignItems: 'flex-end' },
+  sample: { alignItems: 'center', gap: 6 },
+  paper: { backgroundColor: COLORS.surface, borderRadius: 16, padding: 8 },
   kind: { backgroundColor: COLORS.orangeSoft, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
   kindText: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold },
-  rowLabel: { flex: 1, color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
-  chevron: { color: COLORS.placeholder, fontSize: 20, fontFamily: FONTS.sansBold },
+  caption: { color: COLORS.ink, fontSize: 13, fontFamily: FONTS.sansBold },
 });
