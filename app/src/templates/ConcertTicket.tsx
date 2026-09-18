@@ -27,9 +27,9 @@ export function layoutConcert(_r: ConcertRecord): TemplateLayout {
 }
 
 /** 가운데가 삼각으로 파인 가로 티켓 */
-function ticketPath() {
+function ticketPath(connected: boolean) {
   const x = MAIN_W;
-  const R = 14;
+  const R = connected ? 0 : 14;
   return [
     `M${R},0 H${x - 26} L${x},${NOTCH} L${x + 26},0 H${PW - R} Q${PW},0 ${PW},${R}`,
     `V${PH - R} Q${PW},${PH} ${PW - R},${PH} H${x + 26} L${x},${PH - NOTCH} L${x - 26},${PH} H${R}`,
@@ -65,9 +65,9 @@ function Crowd({ seed }: { seed: string }) {
   return <G>{people}</G>;
 }
 
-export function ConcertTicket({ record: r, width }: { record: ConcertRecord; width: number }) {
+export function ConcertTicket({ record: r, width, connected = false }: { record: ConcertRecord; width: number; connected?: boolean }) {
   const L = layoutConcert(r);
-  const shape = ticketPath();
+  const shape = ticketPath(connected);
   const id = `concert-${r.id}`;
   const rnd = seededRandom(r.id);
   const serial = String(Math.floor(rnd() * 999999999)).padStart(9, '0');
@@ -86,7 +86,7 @@ export function ConcertTicket({ record: r, width }: { record: ConcertRecord; wid
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${id}-card`}>
             <Path d={shape} />

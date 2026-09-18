@@ -26,8 +26,10 @@ const Value = (p: TProps) => <T f="sansBold" fontSize={22} {...p} />;
 
 const H_NO_PHOTO = HH + 330; // 사진이 없으면 탑승권만 있는 짧은 카드
 
-const cardPath = (h: number) =>
-  `M26,0 H${W - 26} Q${W},0 ${W},26 V${h - 26} Q${W},${h} ${W - 26},${h} H26 Q0,${h} 0,${h - 26} V26 Q0,0 26,0 Z`;
+const cardPath = (h: number, connected = false) =>
+  connected
+    ? `M0,0 H${W} V${h} H0 Z`
+    : `M26,0 H${W - 26} Q${W},0 ${W},26 V${h - 26} Q${W},${h} ${W - 26},${h} H26 Q0,${h} 0,${h - 26} V26 Q0,0 26,0 Z`;
 
 const photosOf = (r: TravelRecord) => r.photos.filter((p): p is Photo => !!p).slice(0, 4);
 
@@ -131,12 +133,12 @@ function RouteSection({ from, to, departure, year }: { from: string; to: string;
   );
 }
 
-export function TravelPass({ record: r, width }: { record: TravelRecord; width: number }) {
+export function TravelPass({ record: r, width, connected = false }: { record: TravelRecord; width: number; connected?: boolean }) {
   const L = layoutTravel(r);
   const photos = photosOf(r);
   const slots = travelSlots(photos.length);
   const cardH = photos.length ? H : H_NO_PHOTO;
-  const CARD_PATH = cardPath(cardH);
+  const CARD_PATH = cardPath(cardH, connected);
   const year = r.date.slice(0, 4);
   const rnd = seededRandom(r.id);
   const from = (r.from.trim() || 'ICN').toUpperCase();
@@ -184,7 +186,7 @@ export function TravelPass({ record: r, width }: { record: TravelRecord; width: 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={CARD_PATH} strength={1.3} />
+        {!connected && <PaperShadow d={CARD_PATH} strength={1.3} />}
         <Path d={CARD_PATH} fill={CARD} stroke="#e1e1e1" strokeWidth={1.5} />
         <Line x1={0} y1={HH} x2={W} y2={HH} stroke="#d6d6d6" strokeWidth={2} />
         <Line x1={DIV} y1={0} x2={DIV} y2={HH} stroke="#cfcfcf" strokeWidth={2} strokeDasharray="7 8" />

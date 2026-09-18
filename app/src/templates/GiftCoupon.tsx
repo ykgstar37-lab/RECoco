@@ -53,22 +53,26 @@ export function layoutGift(r: GiftRecord): TemplateLayout {
   return { width: PW + PAD * 2, height: height + PAD * 2 + 14, foldAt: cut + PAD, displayRatio: 0.9, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
-/** 절취선 자리 양옆이 반원으로 파인 카드 */
-function cardPath(h: number, cut: number) {
+/**
+ * 절취선 자리 양옆이 반원으로 파인 카드.
+ * 롤로 이어 붙일 때(connected)는 위아래 모서리를 각지게 해서 앞뒤 장과 딱 맞물리게 한다.
+ */
+function cardPath(h: number, cut: number, connected: boolean) {
+  const r = connected ? 0 : R;
   return [
-    `M${R},0 H${PW - R} Q${PW},0 ${PW},${R}`,
+    `M${r},0 H${PW - r} Q${PW},0 ${PW},${r}`,
     `V${cut - NOTCH} A${NOTCH},${NOTCH} 0 0 0 ${PW},${cut + NOTCH}`,
-    `V${h - R} Q${PW},${h} ${PW - R},${h} H${R} Q0,${h} 0,${h - R}`,
+    `V${h - r} Q${PW},${h} ${PW - r},${h} H${r} Q0,${h} 0,${h - r}`,
     `V${cut + NOTCH} A${NOTCH},${NOTCH} 0 0 0 0,${cut - NOTCH}`,
-    `V${R} Q0,0 ${R},0 Z`,
+    `V${r} Q0,0 ${r},0 Z`,
   ].join(' ');
 }
 
-export function GiftCoupon({ record: r, width }: { record: GiftRecord; width: number }) {
+export function GiftCoupon({ record: r, width, connected = false }: { record: GiftRecord; width: number; connected?: boolean }) {
   const L = layoutGift(r);
   const { message, bubbleH, bubbleTop, item, productTop, cut, height } = computeLayout(r);
   const color = CARDS[r.card] ?? CARDS.yellow;
-  const shape = cardPath(height, cut);
+  const shape = cardPath(height, cut, connected);
   const clipId = `gift-${r.id}`;
 
   const rnd = seededRandom(r.id);
@@ -104,7 +108,7 @@ export function GiftCoupon({ record: r, width }: { record: GiftRecord; width: nu
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${clipId}-card`}>
             <Path d={shape} />

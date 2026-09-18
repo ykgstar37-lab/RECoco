@@ -107,7 +107,7 @@ function FoldableReceiptBase({ record, rollWidth, initiallyOpen = false, connect
       <GestureDetector gesture={Gesture.Exclusive(longPress, tap)}>
         <Animated.View style={[styles.clip, clipStyle]}>
           <View style={{ width, height, flexShrink: 0 }}>
-            <RecordPaper record={record} width={width} />
+            <RecordPaper record={record} width={width} connected={connected} />
           </View>
           <Animated.View pointerEvents="none" style={[styles.shade, foldShade]}>
             <Svg width={width} height={70}>

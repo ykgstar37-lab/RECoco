@@ -72,8 +72,11 @@ export function sizeOf(record: RecoRecord, rollWidth: number) {
   };
 }
 
-/** 기록의 "앞면" (인생네컷은 사진 면) */
-export const RecordPaper = memo(function RecordPaper({ record, width }: { record: RecoRecord; width: number }) {
+/**
+ * 기록의 "앞면" (인생네컷은 사진 면).
+ * connected: 롤로 이어 붙일 때 — 위아래 모서리를 각지게 하고 그림자를 빼서 앞뒤 장과 맞물리게 한다
+ */
+export const RecordPaper = memo(function RecordPaper({ record, width, connected = false }: { record: RecoRecord; width: number; connected?: boolean }) {
   switch (record.kind) {
     case 'reading':
       return <ReadingReceipt record={record} width={width} />;
@@ -82,34 +85,34 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
     case 'spending':
       return <SpendingReceipt record={record} width={width} />;
     case 'travel':
-      return <TravelPass record={record} width={width} />;
+      return <TravelPass record={record} width={width} connected={connected} />;
     case 'fourcut':
       return <FourcutFront record={record} width={width} />;
     case 'gift':
-      return <GiftCoupon record={record} width={width} />;
+      return <GiftCoupon record={record} width={width} connected={connected} />;
     case 'food':
-      return record.design === 'house' ? <FoodHouse record={record} width={width} /> : <FoodOrder record={record} width={width} />;
+      return record.design === 'house' ? <FoodHouse record={record} width={width} /> : <FoodOrder record={record} width={width} connected={connected} />;
     case 'show':
       return record.design === 'kpop' ? (
-        <PhotoTicket record={record} width={width} />
+        <PhotoTicket record={record} width={width} connected={connected} />
       ) : record.design === 'band' ? (
         <WristBand record={record} width={width} />
       ) : record.design === 'holo' ? (
-        <ShowHolo record={record} width={width} />
+        <ShowHolo record={record} width={width} connected={connected} />
       ) : record.design === 'poster' ? (
-        <ShowTicket record={record} width={width} />
+        <ShowTicket record={record} width={width} connected={connected} />
       ) : (
-        <ShowRetro record={record} width={width} />
+        <ShowRetro record={record} width={width} connected={connected} />
       );
     case 'concert':
       return record.design === 'band' ? (
         <WristBand record={record} width={width} />
       ) : record.design === 'kpop' ? (
-        <PhotoTicket record={record} width={width} />
+        <PhotoTicket record={record} width={width} connected={connected} />
       ) : record.design === 'retro' ? (
-        <ConcertRetro record={record} width={width} />
+        <ConcertRetro record={record} width={width} connected={connected} />
       ) : (
-        <ConcertTicket record={record} width={width} />
+        <ConcertTicket record={record} width={width} connected={connected} />
       );
   }
 });

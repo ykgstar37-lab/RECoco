@@ -1,5 +1,5 @@
 // 메인 메뉴용 단순한 아이콘 (한 가지 색 실루엣)
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 
 interface IconProps {
   color: string;
@@ -21,8 +21,9 @@ export function DotsIcon({ color, size = 22 }: IconProps) {
 export function HatIcon({ color, size = 24 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      {/* 옷걸이 고리 */}
-      <Path d="M12,6.4 V4.6 A1.35,1.35 0 1 0 10.5,5.7" stroke={color} strokeWidth={1.5} strokeLinecap="round" fill="none" />
+      <G transform="translate(0 -0.45)">
+      {/* 옷걸이 고리 (닫힌 동그라미가 아니라 끝이 트인 갈고리) */}
+      <Path d="M10.8,5.2 C10.8,3.5 13.6,3.4 13.6,5 C13.6,5.9 12.2,6 12,6.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" fill="none" />
       {/* 옷걸이 어깨 */}
       <Path d="M8.3,9.2 L12,6.3 L15.7,9.2" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       {/* 티셔츠: 어깨에서 소매가 내려오고 몸통은 곧게 */}
@@ -30,6 +31,7 @@ export function HatIcon({ color, size = 24 }: IconProps) {
         d="M9.1,7.6 Q12,10.8 14.9,7.6 L21.4,10.4 L19.1,14.6 L17.1,13.6 V21.2 Q17.1,21.9 16.4,21.9 H7.6 Q6.9,21.9 6.9,21.2 V13.6 L4.9,14.6 L2.6,10.4 Z"
         fill={color}
       />
+      </G>
     </Svg>
   );
 }
@@ -47,6 +49,7 @@ export function BagIcon({ color, size = 24 }: IconProps) {
   };
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
+      <G transform="translate(0 -0.25)">
       {/* 손잡이 두 개 + 테두리 띠 */}
       <Path d="M8.4,9 L12.6,3.6 M15.6,9 L11.4,3.6" stroke={color} strokeWidth={1.9} strokeLinecap="round" fill="none" />
       <Rect x={2.6} y={8} width={18.8} height={3.1} rx={1.55} fill={color} />
@@ -58,6 +61,7 @@ export function BagIcon({ color, size = 24 }: IconProps) {
       {[14.6, 17.8].map((y) => (
         <Path key={y} d={`M${at(y)[0]},${y} H${at(y)[1]}`} stroke="#fff" strokeWidth={1.1} fill="none" />
       ))}
+      </G>
     </Svg>
   );
 }
@@ -66,6 +70,7 @@ export function BagIcon({ color, size = 24 }: IconProps) {
 export function CalendarIcon({ color, size = 24 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
+      <G transform="translate(0 0.8)">
       <Rect x={3} y={5} width={18} height={16} rx={3.5} fill={color} />
       <Rect x={6.5} y={1.5} width={2.6} height={5} rx={1.3} fill={color} />
       <Rect x={14.9} y={1.5} width={2.6} height={5} rx={1.3} fill={color} />
@@ -74,6 +79,7 @@ export function CalendarIcon({ color, size = 24 }: IconProps) {
       <Circle cx={15} cy={12.8} r={1.5} fill={color} />
       <Circle cx={9} cy={16.5} r={1.5} fill={color} opacity={0.4} />
       <Circle cx={15} cy={16.5} r={1.5} fill={color} opacity={0.4} />
+      </G>
     </Svg>
   );
 }
@@ -88,8 +94,10 @@ export function GearIcon({ color, size = 24 }: IconProps) {
   });
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
+      <G transform="translate(12 12) scale(0.86) translate(-12 -12)">
       {teeth}
       <Path d="M12,4.5 A7.5,7.5 0 1 1 11.99,4.5 Z M12,9 A3,3 0 1 0 12.01,9 Z" fill={color} fillRule="evenodd" />
+      </G>
     </Svg>
   );
 }

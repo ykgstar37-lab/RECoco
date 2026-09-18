@@ -48,7 +48,8 @@ export function layoutPhotoTicket(r: PhotoTicketRecord): TemplateLayout {
 }
 
 /** 위아래가 뜯긴 톱니 모양 티켓 */
-function toothPath(h: number) {
+function toothPath(h: number, connected: boolean) {
+  if (connected) return `M0,0 H${PW} V${h} H0 Z`;
   const n = Math.round(PW / TOOTH);
   const step = PW / n;
   let d = `M0,${TOOTH * 0.5}`;
@@ -58,10 +59,10 @@ function toothPath(h: number) {
   return `${d} Z`;
 }
 
-export function PhotoTicket({ record: r, width }: { record: PhotoTicketRecord; width: number }) {
+export function PhotoTicket({ record: r, width, connected = false }: { record: PhotoTicketRecord; width: number; connected?: boolean }) {
   const L = layoutPhotoTicket(r);
   const { photoH, headBot, artist, artistTop, bigTop, photoTop, photoBot, infoTop, memo, infoBot, height } = computeLayout(r);
-  const shape = toothPath(height);
+  const shape = toothPath(height, connected);
   const id = `photo-${r.id}`;
   const flavor = ticketKindOf(r);
   // 띠 글자가 길면(EXHIBITION) 조금 줄여서 CONCERT 와 비슷한 폭으로 앉힌다
@@ -79,7 +80,7 @@ export function PhotoTicket({ record: r, width }: { record: PhotoTicketRecord; w
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${id}-card`}>
             <Path d={shape} />

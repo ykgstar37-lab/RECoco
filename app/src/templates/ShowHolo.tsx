@@ -53,7 +53,8 @@ export function layoutShowHolo(r: ShowRecord): TemplateLayout {
 }
 
 /** 위아래가 뜯긴 톱니 (홀로그램 티켓 느낌) */
-function toothPath(h: number) {
+function toothPath(h: number, connected: boolean) {
+  if (connected) return `M0,0 H${PW} V${h} H0 Z`;
   const n = Math.round(PW / TOOTH);
   const step = PW / n;
   let d = `M0,${TOOTH * 0.55}`;
@@ -76,10 +77,10 @@ function SeatIcon({ x, y, s, on }: { x: number; y: number; s: number; on: boolea
   );
 }
 
-export function ShowHolo({ record: r, width }: { record: ShowRecord; width: number }) {
+export function ShowHolo({ record: r, width, connected = false }: { record: ShowRecord; width: number; connected?: boolean }) {
   const L = layoutShowHolo(r);
   const { t, title, titleTop, titleBoxH, photoTop, photoH, rowsTop, rows, rowsBot, ratingBot, memo, reviewH, height } = computeLayout(r);
-  const shape = toothPath(height);
+  const shape = toothPath(height, connected);
   const id = `holo-${r.id}`;
   const rnd = seededRandom(r.id);
   const year = r.date.slice(0, 4);
@@ -91,7 +92,7 @@ export function ShowHolo({ record: r, width }: { record: ShowRecord; width: numb
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${id}-card`}>
             <Path d={shape} />

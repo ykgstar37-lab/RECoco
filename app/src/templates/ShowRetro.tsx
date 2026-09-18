@@ -50,8 +50,8 @@ export function layoutShowRetro(r: ShowRecord): TemplateLayout {
 }
 
 /** 뜯는 선 자리가 파인 티켓 + 스텁 쪽은 톱니 */
-export function ticketShape(h: number, cut: number, w = PW) {
-  const R = 16;
+export function ticketShape(h: number, cut: number, w = PW, connected = false) {
+  const R = connected ? 0 : 16;
   return [
     `M${R},0 H${w - R} Q${w},0 ${w},${R}`,
     `V${cut - NOTCH} A${NOTCH},${NOTCH} 0 0 0 ${w},${cut + NOTCH}`,
@@ -95,10 +95,10 @@ function MiniIcon({ kind, x, y, color }: { kind: 'date' | 'pin' | 'seat'; x: num
   );
 }
 
-export function ShowRetro({ record: r, width }: { record: ShowRecord; width: number }) {
+export function ShowRetro({ record: r, width, connected = false }: { record: ShowRecord; width: number; connected?: boolean }) {
   const L = layoutShowRetro(r);
   const { title, artist, titleTop, artistTop, photoTop, photoH, infoTop, infoBot, starsTop, memo, memoTop, bandTop, cut, height } = computeLayout(r);
-  const shape = ticketShape(height, cut);
+  const shape = ticketShape(height, cut, PW, connected);
   const id = `showretro-${r.id}`;
   const rnd = seededRandom(r.id);
   const serial = String(Math.floor(rnd() * 999999)).padStart(6, '0');
@@ -114,7 +114,7 @@ export function ShowRetro({ record: r, width }: { record: ShowRecord; width: num
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${id}-card`}>
             <Path d={shape} />

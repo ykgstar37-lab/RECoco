@@ -67,10 +67,11 @@ export function layoutFood(r: FoodRecord): TemplateLayout {
 }
 
 /** 주문서 묶음에서 뜯어낸 위쪽 가장자리 (살짝 들쭉날쭉) + 둥근 아래 모서리 */
-function paperPath(h: number, seed: string) {
+function paperPath(h: number, seed: string, connected: boolean) {
   const rnd = seededRandom(seed);
   let d = 'M0,6';
   for (let x = 12; x < PW; x += 12) d += ` L${x},${(3 + rnd() * 5).toFixed(1)}`;
+  if (connected) return `M0,0 H${PW} V${h} H0 Z`;
   return `${d} L${PW},6 V${h - 18} Q${PW},${h} ${PW - 18},${h} H18 Q0,${h} 0,${h - 18} Z`;
 }
 
@@ -84,7 +85,7 @@ function starPath(cx: number, cy: number, r: number) {
   return `M${pts.join(' L')} Z`;
 }
 
-export function FoodOrder({ record: r, width }: { record: FoodRecord; width: number }) {
+export function FoodOrder({ record: r, width, connected = false }: { record: FoodRecord; width: number; connected?: boolean }) {
   const plain = r.design === 'plain';
   const PAPER_C = plain ? PLAIN.paper : PAPER;
   const GREEN_C = plain ? PLAIN.main : GREEN;
@@ -93,7 +94,7 @@ export function FoodOrder({ record: r, width }: { record: FoodRecord; width: num
   const NOTE_C = plain ? PLAIN.note : NOTE;
   const L = layoutFood(r);
   const { info, infoBot, photoTop, photoH, menuTop, rows, menuBot, note, noteTop, noteH, revisitTop, height } = computeLayout(r);
-  const shape = paperPath(height, r.id);
+  const shape = paperPath(height, r.id, connected);
   const clipId = `food-${r.id}`;
   const rnd = seededRandom(`${r.id}-no`);
   const orderNo = String(1 + Math.floor(rnd() * 9998)).padStart(4, '0');
@@ -102,7 +103,7 @@ export function FoodOrder({ record: r, width }: { record: FoodRecord; width: num
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${clipId}-photo`}>
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={12} />

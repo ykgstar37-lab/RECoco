@@ -61,8 +61,8 @@ export function layoutShow(r: ShowRecord): TemplateLayout {
 const NOTCH = 20;
 
 /** 뜯는 선 자리가 양옆으로 파인 티켓 */
-function ticketPath(h: number, cut: number) {
-  const R = 18;
+function ticketPath(h: number, cut: number, connected: boolean) {
+  const R = connected ? 0 : 18;
   return [
     `M${R},0 H${PW - R} Q${PW},0 ${PW},${R}`,
     `V${cut - NOTCH} A${NOTCH},${NOTCH} 0 0 0 ${PW},${cut + NOTCH}`,
@@ -109,10 +109,10 @@ function TypeArt({ type, x, y, w, h, color }: { type: ShowType; x: number; y: nu
   );
 }
 
-export function ShowTicket({ record: r, width }: { record: ShowRecord; width: number }) {
+export function ShowTicket({ record: r, width, connected = false }: { record: ShowRecord; width: number; connected?: boolean }) {
   const L = layoutShow(r);
   const { t, posterH, posterTop, posterBot, title, titleTop, artist, info, infoTop, starsTop, memo, memoTop, cut, height } = computeLayout(r);
-  const shape = ticketPath(height, cut);
+  const shape = ticketPath(height, cut, connected);
   const id = `show-${r.id}`;
   const rnd = seededRandom(r.id);
   const serial = `${String(1 + Math.floor(rnd() * 98)).padStart(2, '0')}-${String(Math.floor(rnd() * 999999)).padStart(6, '0')}`;
@@ -121,7 +121,7 @@ export function ShowTicket({ record: r, width }: { record: ShowRecord; width: nu
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${id}-card`}>
             <Path d={shape} />
