@@ -1,12 +1,13 @@
 // 코코 옷(머리 장식). 코코 그림과 같은 viewBox(400×320) 좌표로 그려서 CocoArt 위에 겹친다
 import { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
-export type OutfitId = 'ribbon' | 'beanie' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses';
+export type OutfitId = 'ribbon' | 'heart' | 'cat' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses';
 
 // 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
 const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
   ribbon: { from: [268, 82], to: [300, 102], k: 1.1, r: 26, top: 70 },
-  beanie: { from: [225, 104], to: [203, 150], k: 1.45, top: 5 },
+  heart: { from: [0, 0], to: [0, 0], k: 1, top: 10 },
+  cat: { from: [0, 0], to: [0, 0], k: 1, top: 46 },
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
@@ -17,10 +18,14 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   glasses: { from: [0, 0], to: [0, 0], k: 1, top: 160 },
 };
 
+const HEART = '#ff6f91'; // 하트 꼬랑지 (주황 배경·흰 배경 어디서든 보이는 분홍)
+const LINE = '#3a2a22'; // 고양이 귀·수염 (코코 눈과 같은 색)
+
 /** 머리를 덮는 옷은 만두 꼭지를 숨긴다 (리본은 꼭지 옆에 묶어서 꼭지가 보이게) */
 export const COVERS_KNOB: Record<OutfitId, boolean> = {
   ribbon: false,
-  beanie: true,
+  heart: false, // 머리에서 솟는 더듬이라 꼭지는 그대로 보인다
+  cat: false,
   straw: true,
   beret: true,
   crown: true,
@@ -61,15 +66,31 @@ function Hat({ id }: { id: OutfitId }) {
           <Ellipse cx={266} cy={80} rx={3} ry={2.2} fill="#f7a8c4" />
         </G>
       );
-    case 'beanie':
+    case 'heart':
+      // 머리에서 가늘게 솟아 하트로 끝나는 꼬랑지 (만두 꼭지를 피해 왼쪽에서 솟는다)
+      return (
+        <G stroke={HEART} strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" fill="none">
+          <Path d="M171,89 C162,76 159,66 162,56" />
+          <Path d="M162,56 C146.3,44.5 137.9,35 137.9,26.6 C137.9,19.3 143.6,14 150.5,14 C155.7,14 159.9,17.2 162,21.4 C164.1,17.2 168.3,14 173.6,14 C180.4,14 186.2,19.3 186.2,26.6 C186.2,35 177.8,44.5 162,56 Z" />
+        </G>
+      );
+    case 'cat':
+      // 고양이: 가는 선 귀 + 볼 위로 뻗는 수염 + 작은 코
       return (
         <G>
-          <Path d="M132,104 C130,44 174,18 224,18 C274,18 318,44 318,108 C270,92 180,90 132,104 Z" fill="#4a63a8" />
-          {[176, 206, 236, 266].map((x, i) => (
-            <Path key={x} d={`M${x},${30 + Math.abs(i - 1.5) * 6} Q${x + (x - 222) * 0.12},70 ${x + (x - 222) * 0.2},96`} stroke="#3d5595" strokeWidth={5} strokeLinecap="round" fill="none" />
-          ))}
-          <Path d="M124,106 C180,84 272,86 326,112 L322,134 C272,110 182,108 128,128 Z" fill="#3d5595" />
-          <Circle cx={224} cy={17} r={13} fill="#f2c14e" />
+          <G stroke={LINE} strokeWidth={7} strokeLinecap="round" fill="none">
+            <Path d="M112,132 Q118,74 146,58 Q166,76 178,112" />
+            <Path d="M288,132 Q282,74 254,58 Q234,76 222,112" />
+          </G>
+          <G stroke={LINE} strokeWidth={5} strokeLinecap="round" fill="none" opacity={0.9}>
+            <Path d="M150,214 C118,204 84,198 50,196" />
+            <Path d="M150,228 C116,228 82,232 48,238" />
+            <Path d="M150,242 C120,250 90,262 60,276" />
+            <Path d="M250,214 C282,204 316,198 350,196" />
+            <Path d="M250,228 C284,228 318,232 352,238" />
+            <Path d="M250,242 C280,250 310,262 340,276" />
+          </G>
+          <Path d="M200,218 C196,212 190,207 185,209 C180,211 181,216 186,219 L200,227 L214,219 C219,216 220,211 215,209 C210,207 204,212 200,218 Z" fill={LINE} />
         </G>
       );
     case 'straw':

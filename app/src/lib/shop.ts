@@ -21,7 +21,7 @@ export interface OutfitItem {
 
 export const OUTFITS: OutfitItem[] = [
   { id: 'ribbon', name: '리본', unlock: { type: 'reward', records: 3 } },
-  { id: 'beanie', name: '비니', unlock: { type: 'reward', records: 10 } },
+  { id: 'heart', name: '하트 꼬랑지', unlock: { type: 'reward', records: 10 } },
   { id: 'straw', name: '밀짚모자', unlock: { type: 'reward', records: 30 } },
   { id: 'beret', name: '베레모', unlock: { type: 'paid', productId: 'recoco.outfit.beret', price: 1000 } },
   { id: 'crown', name: '왕관', unlock: { type: 'paid', productId: 'recoco.outfit.crown', price: 1000 } },
@@ -30,6 +30,7 @@ export const OUTFITS: OutfitItem[] = [
   { id: 'earflap', name: '귀도리 니트', unlock: { type: 'paid', productId: 'recoco.outfit.earflap', price: 1000 } },
   { id: 'trapper', name: '털 방한모', unlock: { type: 'paid', productId: 'recoco.outfit.trapper', price: 1000 } },
   { id: 'glasses', name: '빨간 안경', unlock: { type: 'paid', productId: 'recoco.outfit.glasses', price: 1000 } },
+  { id: 'cat', name: '고양이', unlock: { type: 'paid', productId: 'recoco.outfit.cat', price: 1000 } },
 ];
 
 export interface ThemeItem {
