@@ -32,8 +32,12 @@ export async function persistPhoto(uri: string, width: number, height: number): 
   return { uri: dest.uri, width, height };
 }
 
-/** 갤러리에서 사진 고르기 */
-export async function pickPhotos(limit: number): Promise<Photo[]> {
+/**
+ * 갤러리에서 사진 고르기.
+ * 고른 뒤 앱 폴더로 옮기는 데 시간이 걸려서, 앨범이 닫히는 순간 onPicked 로 알려준다
+ * (그때부터 칸에 도는 표시를 띄우면 멈춘 것처럼 보이지 않는다).
+ */
+export async function pickPhotos(limit: number, onPicked?: (count: number) => void): Promise<Photo[]> {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
     allowsMultipleSelection: limit > 1,
@@ -41,7 +45,9 @@ export async function pickPhotos(limit: number): Promise<Photo[]> {
     quality: 0.85,
   });
   if (result.canceled) return [];
-  return Promise.all(result.assets.slice(0, limit).map((a) => persistPhoto(a.uri, a.width, a.height)));
+  const assets = result.assets.slice(0, limit);
+  onPicked?.(assets.length);
+  return Promise.all(assets.map((a) => persistPhoto(a.uri, a.width, a.height)));
 }
 
 /** QR 페이지에서 찾은 원격 이미지 저장 */

@@ -17,11 +17,19 @@ export function DotsIcon({ color, size = 22 }: IconProps) {
   );
 }
 
+/** 코코 옷장: 옷걸이에 걸린 티셔츠 */
 export function HatIcon({ color, size = 24 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path d="M5,15 C4,8 7.5,4 12,4 C16.5,4 20,8 19,15 Z" fill={color} />
-      <Path d="M1.5,16.5 C6,13.5 18,13.5 22.5,16.5 C18,19.5 6,19.5 1.5,16.5 Z" fill={color} />
+      {/* 옷걸이 고리 */}
+      <Path d="M12,6.4 V4.6 A1.35,1.35 0 1 0 10.5,5.7" stroke={color} strokeWidth={1.5} strokeLinecap="round" fill="none" />
+      {/* 옷걸이 어깨 */}
+      <Path d="M8.3,9.2 L12,6.3 L15.7,9.2" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      {/* 티셔츠: 어깨에서 소매가 내려오고 몸통은 곧게 */}
+      <Path
+        d="M9.1,7.6 Q12,10.8 14.9,7.6 L21.4,10.4 L19.1,14.6 L17.1,13.6 V21.2 Q17.1,21.9 16.4,21.9 H7.6 Q6.9,21.9 6.9,21.2 V13.6 L4.9,14.6 L2.6,10.4 Z"
+        fill={color}
+      />
     </Svg>
   );
 }

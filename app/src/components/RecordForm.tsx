@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -318,6 +319,17 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   const [couponShotOpen, setCouponShotOpen] = useState(false);
   // 교환권 캡처에서 찾아낸 상품 그림 자리 (원본 전체로 돌렸다가 다시 돌아올 수 있게 들고 있는다)
   const [giftCrop, setGiftCrop] = useState<PhotoCrop | null>(null);
+  // 앨범에서 고른 사진을 앱 폴더로 옮기는 데 시간이 걸려서, 그동안 칸 위에 도는 표시를 띄운다
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const withPhotoBusy = async (job: () => Promise<void>) => {
+    if (photoBusy) return;
+    setPhotoBusy(true);
+    try {
+      await job();
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
   const [bookingOpen, setBookingOpen] = useState(false);
   const [error, setError] = useState('');
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
@@ -530,8 +542,10 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <View style={styles.coverRow}>
                   <Pressable
                     onPress={async () => {
-                      const [p] = await pickPhotos(1);
-                      if (p) setReading((r) => ({ ...r, cover: p }));
+                      await withPhotoBusy(async () => {
+                        const [p] = await pickPhotos(1);
+                        if (p) setReading((r) => ({ ...r, cover: p }));
+                      });
                     }}
                     style={styles.cover}
                     accessibilityLabel="책 표지 고르기">
@@ -545,6 +559,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     ) : (
                       <Text style={styles.slotText}>+{'\n'}표지</Text>
                     )}
+                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>
                     {reading.cover ? '영수증 왼쪽에 표지가 찍혀요.\n눌러서 다른 사진으로 바꿀 수 있어요.' : '책을 검색하거나 바코드로 찾으면 표지가 자동으로 들어가요.\n직접 사진을 골라도 돼요.'}
@@ -1069,15 +1084,17 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <View style={styles.row}>
                   <Pressable
                     onPress={async () => {
-                      const [p] = await pickPhotos(1);
-                      if (!p) return;
-                      setGiftCrop(null);
-                      setGift((g) => ({ ...g, photo: p }));
-                      // 교환권 캡처를 골랐으면 상품 그림 자리를 찾아 그 부분만 크게 쓴다
-                      const cropped = await cropIfCoupon(p);
-                      if (!cropped.crop) return;
-                      setGiftCrop(cropped.crop);
-                      setGift((g) => (g.photo?.uri === p.uri ? { ...g, photo: cropped } : g));
+                      await withPhotoBusy(async () => {
+                        const [p] = await pickPhotos(1);
+                        if (!p) return;
+                        setGiftCrop(null);
+                        setGift((g) => ({ ...g, photo: p }));
+                        // 교환권 캡처를 골랐으면 상품 그림 자리를 찾아 그 부분만 크게 쓴다
+                        const cropped = await cropIfCoupon(p);
+                        if (!cropped.crop) return;
+                        setGiftCrop(cropped.crop);
+                        setGift((g) => (g.photo?.uri === p.uri ? { ...g, photo: cropped } : g));
+                      });
                     }}
                     style={styles.giftPhoto}>
                     {gift.photo ? (
@@ -1090,6 +1107,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
+                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   {!!gift.photo && !!giftCrop && (
                     <Pressable
@@ -1186,8 +1204,10 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <View style={styles.coverRow}>
                   <Pressable
                     onPress={async () => {
-                      const [p] = await pickPhotos(1);
-                      if (p) setFood((f) => ({ ...f, photo: p }));
+                      await withPhotoBusy(async () => {
+                        const [p] = await pickPhotos(1);
+                        if (p) setFood((f) => ({ ...f, photo: p }));
+                      });
                     }}
                     style={styles.giftPhoto}
                     accessibilityLabel="사진 고르기">
@@ -1201,6 +1221,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
+                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>
                     {food.design === 'house' ? '집 창문에 사진이 들어가요.\n없으면 창문에 가게 그림이 그려져요.' : '주문서 가운데에 테이프로 붙여져요.'}
@@ -1258,8 +1279,10 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <View style={styles.coverRow}>
                   <Pressable
                     onPress={async () => {
-                      const [p] = await pickPhotos(1);
-                      if (p) setShow((x) => ({ ...x, photo: p }));
+                      await withPhotoBusy(async () => {
+                        const [p] = await pickPhotos(1);
+                        if (p) setShow((x) => ({ ...x, photo: p }));
+                      });
                     }}
                     style={styles.giftPhoto}
                     accessibilityLabel="사진 고르기">
@@ -1273,6 +1296,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
+                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>입장권 가운데에 들어가요.{'\n'}없으면 종류에 맞는 그림이 그려져요.</Text>
                 </View>
@@ -1321,8 +1345,10 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <View style={styles.coverRow}>
                   <Pressable
                     onPress={async () => {
-                      const [p] = await pickPhotos(1);
-                      if (p) setConcert((x) => ({ ...x, photo: p }));
+                      await withPhotoBusy(async () => {
+                        const [p] = await pickPhotos(1);
+                        if (p) setConcert((x) => ({ ...x, photo: p }));
+                      });
                     }}
                     style={styles.giftPhoto}
                     accessibilityLabel="사진 고르기">
@@ -1336,6 +1362,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
+                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>티켓 가운데에 들어가요.{'\n'}팔찌 모양에는 사진이 들어가지 않아요.</Text>
                 </View>
@@ -1366,20 +1393,30 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
 }
 
 /** 사진 칸: 빈 칸을 누르면 남은 칸 수만큼 한 번에 고를 수 있다 */
+/** 고른 사진을 앱 폴더로 옮기는 동안 칸 위에 덮어두는 표시 */
+function PhotoBusy() {
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.photoBusy]}>
+      <ActivityIndicator color={COLORS.orange} />
+    </View>
+  );
+}
+
 function PhotoSlots({ photos, onChange }: { photos: (Photo | null)[]; onChange: (p: (Photo | null)[]) => void }) {
-  const [busy, setBusy] = useState(false);
+  // 지금 채워지는 중인 칸들 (그 칸에만 도는 표시를 띄운다)
+  const [filling, setFilling] = useState<number[]>([]);
   const pick = async (index: number) => {
-    if (busy) return;
-    setBusy(true);
+    if (filling.length) return;
+    const empty = photos.map((p, i) => (p ? -1 : i)).filter((i) => i >= 0);
+    const targets = photos[index] ? [index] : [index, ...empty.filter((i) => i !== index)];
     try {
-      const empty = photos.map((p, i) => (p ? -1 : i)).filter((i) => i >= 0);
-      const targets = photos[index] ? [index] : [index, ...empty.filter((i) => i !== index)];
-      const picked = await pickPhotos(targets.length);
+      const picked = await pickPhotos(targets.length, (n) => setFilling(targets.slice(0, n)));
+      if (!picked.length) return;
       const next = [...photos];
       picked.forEach((p, k) => (next[targets[k]] = p));
       onChange(next);
     } finally {
-      setBusy(false);
+      setFilling([]);
     }
   };
   return (
@@ -1591,6 +1628,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   giftPhotoImage: { position: 'absolute' },
+  photoBusy: { backgroundColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center' },
   missingKey: { color: COLORS.danger, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
   qrBox: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 14, gap: 12, alignItems: 'center' },
   qrHint: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 20 },
