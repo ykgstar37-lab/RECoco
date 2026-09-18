@@ -97,12 +97,12 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
     case 'gift':
       return <GiftCoupon record={record} width={width} connected={connected} />;
     case 'food':
-      return record.design === 'house' ? <FoodHouse record={record} width={width} /> : <FoodOrder record={record} width={width} connected={connected} />;
+      return record.design === 'house' ? <FoodHouse record={record} width={width} connected={connected} /> : <FoodOrder record={record} width={width} connected={connected} />;
     case 'show':
       return record.design === 'kpop' ? (
         <PhotoTicket record={record} width={width} connected={connected} />
       ) : record.design === 'band' ? (
-        <WristBand record={record} width={width} />
+        <WristBand record={record} width={width} connected={connected} />
       ) : record.design === 'holo' ? (
         <ShowHolo record={record} width={width} connected={connected} />
       ) : record.design === 'poster' ? (
@@ -112,7 +112,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
       );
     case 'concert':
       return record.design === 'band' ? (
-        <WristBand record={record} width={width} />
+        <WristBand record={record} width={width} connected={connected} />
       ) : record.design === 'kpop' ? (
         <PhotoTicket record={record} width={width} connected={connected} />
       ) : record.design === 'retro' ? (

@@ -78,7 +78,9 @@ const roofPath = `M18,${RB} L300,22 L582,${RB} Z`;
 const chimneyPath = 'M412,150 V78 H458 V150 Z M404,64 H466 V84 H404 Z';
 
 /** 집 윤곽 (지붕 + 굴뚝 + 벽): 그림자·질감용 */
-function housePath(h: number) {
+function housePath(h: number, connected = false) {
+  // 롤로 이을 때는 벽이 종이 전체를 채운다 (지붕·굴뚝은 그 위에 얹힌 그림이 된다)
+  if (connected) return `M0,0 H${PW} V${h} H0 Z`;
   return `${roofPath} ${chimneyPath} M${BL},${RB - 1} H${BR} V${h - 8} Q${BR},${h} ${BR - 8},${h} H${BL + 8} Q${BL},${h} ${BL},${h - 8} Z`;
 }
 
@@ -91,11 +93,11 @@ function starPath(cx: number, cy: number, r: number) {
   return `M${pts.join(' L')} Z`;
 }
 
-export function FoodHouse({ record: r, width }: { record: FoodRecord; width: number }) {
+export function FoodHouse({ record: r, width, connected = false }: { record: FoodRecord; width: number; connected?: boolean }) {
   const L = layoutFoodHouse(r);
   const { winH, winBot, boardTop, rows, totalH, boardBot, lowTop, note, noteH, ground, height } = computeLayout(r);
   const color = ROOFS[r.type] ?? ROOFS.cafe;
-  const shape = housePath(height);
+  const shape = housePath(height, connected);
   const id = `house-${r.id}`;
   const tilt = (seededRandom(`${r.id}-tilt`)() - 0.5) * 4;
 
@@ -112,7 +114,7 @@ export function FoodHouse({ record: r, width }: { record: FoodRecord; width: num
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${id}-roof`}>
             <Path d={roofPath} />
@@ -121,6 +123,9 @@ export function FoodHouse({ record: r, width }: { record: FoodRecord; width: num
             <Rect x={WIN_X} y={WIN_TOP} width={WIN_W} height={winH} rx={6} />
           </ClipPath>
         </Defs>
+
+        {/* 롤로 이을 때는 집 뒤에 종이를 깔아 앞뒤 장과 맞물리게 한다 */}
+        {connected && <Rect x={0} y={0} width={PW} height={height} fill={WALL} />}
 
         {/* 굴뚝 + 지붕 */}
         <Path d={chimneyPath} fill={color.deep} />

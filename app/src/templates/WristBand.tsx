@@ -46,7 +46,9 @@ export function layoutWristBand(r: WristBandRecord): TemplateLayout {
 }
 
 /** 위는 잠금 고리(넓은 사각), 아래로 길게 내려오는 띠 + 끝은 둥글게 */
-function bandPath(h: number) {
+function bandPath(h: number, connected = false) {
+  // 롤로 이을 때는 띠가 종이 전체를 채운다 (손목 모양 대신 검은 띠 한 줄로 이어진다)
+  if (connected) return `M0,0 H${PW} V${h} H0 Z`;
   const x = BAND_X;
   const w = BAND_W;
   return [
@@ -58,11 +60,11 @@ function bandPath(h: number) {
   ].join(' ');
 }
 
-export function WristBand({ record: r, width }: { record: WristBandRecord; width: number }) {
+export function WristBand({ record: r, width, connected = false }: { record: WristBandRecord; width: number; connected?: boolean }) {
   const L = layoutWristBand(r);
   const k = ticketKindOf(r);
   const { rows, infoBot, height } = computeLayout(r);
-  const shape = bandPath(height);
+  const shape = bandPath(height, connected);
   const id = `band-${r.id}`;
   const rnd = seededRandom(r.id);
   const serial = String(Math.floor(rnd() * 99999999)).padStart(8, '0');
@@ -72,7 +74,7 @@ export function WristBand({ record: r, width }: { record: WristBandRecord; width
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${id}-band`}>
             <Path d={shape} />
