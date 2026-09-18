@@ -21,14 +21,14 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
 
 const HEART = '#fff'; // 하트 꼬랑지 (코코와 같은 흰색)
 const LINE = '#3a2a22'; // 고양이 귀·수염 (코코 눈과 같은 색)
-const EAR_LINE = '#ffc9a1'; // 강아지 귀 테두리 (흰 코코의 꼭지 주름과 같은 색)
+const EAR = '#2e2a2f'; // 강아지 귀 (흰 코코와 대비되는 검정)
 
 /** 머리를 덮는 옷은 만두 꼭지를 숨긴다 (리본은 꼭지 옆에 묶어서 꼭지가 보이게) */
 export const COVERS_KNOB: Record<OutfitId, boolean> = {
   ribbon: false,
   heart: true, // 꼭지 자리에서 하트가 솟는다
   cat: true, // 귀가 꼭지 자리를 대신한다
-  dog: false, // 귀가 머리 양옆에 달려서 꼭지는 그대로 보인다
+  dog: true,
   straw: true,
   beret: true,
   crown: true,
@@ -98,9 +98,9 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'dog':
-      // 머리 양옆에 늘어진 강아지 귀 (흰 코코와 같은 색이라 테두리로 구분한다)
+      // 머리 양옆에 늘어진 검은 강아지 귀
       return (
-        <G fill="#fff" stroke={EAR_LINE} strokeWidth={5} strokeLinejoin="round">
+        <G fill={EAR}>
           <Path d="M100,110 C68,108 34,128 26,164 C19,194 28,224 48,230 C67,235 82,218 88,194 C95,170 99,134 100,110 Z" />
           <Path d="M300,110 C332,108 366,128 374,164 C381,194 372,224 352,230 C333,235 318,218 312,194 C305,170 301,134 300,110 Z" />
         </G>
