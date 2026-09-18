@@ -1,6 +1,7 @@
+import * as Clipboard from 'expo-clipboard';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { bump } from '../lib/haptics';
 import { COLORS, FONTS } from '../theme';
@@ -64,7 +65,7 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
             </Pressable>
           </View>
         ) : (
-          <View style={styles.cameraBox}>
+          <Pressable style={styles.cameraBox} onPress={() => Keyboard.dismiss()}>
             <CameraView
               style={StyleSheet.absoluteFill}
               barcodeScannerSettings={{ barcodeTypes: ['code128', 'ean13', 'itf14', 'code39', 'code93', 'codabar', 'upc_a', 'qr', 'pdf417'] }}
@@ -72,9 +73,10 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
             />
             <View pointerEvents="none" style={styles.aim} />
             <Text style={styles.aimText}>교환권의 바코드를 네모 안에 맞춰주세요</Text>
-          </View>
+          </Pressable>
         )}
 
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.panel}>
           {code ? (
             <>
@@ -96,7 +98,22 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
           ) : (
             <>
               {!!message && <Text style={styles.warn}>{message}</Text>}
-              <Text style={styles.label}>바코드 아래 숫자를 직접 입력해도 돼요</Text>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>바코드 아래 숫자를 직접 넣어도 돼요</Text>
+                <Pressable
+                  hitSlop={8}
+                  onPress={async () => {
+                    const copied = await Clipboard.getStringAsync().catch(() => '');
+                    const digits = copied.replace(/\D/g, '');
+                    if (!digits) return setMessage('복사한 번호가 없어요.');
+                    Keyboard.dismiss();
+                    setTyped(digits);
+                    last.current = '';
+                    read(digits);
+                  }}>
+                  <Text style={styles.pasteText}>붙여넣기</Text>
+                </Pressable>
+              </View>
               <View style={styles.row}>
                 <TextInput
                   inputAccessoryViewID={KEYBOARD_DONE_ID}
@@ -120,6 +137,7 @@ export function CouponScan({ visible, onClose, onFound }: Props) {
             </>
           )}
         </View>
+        </KeyboardAvoidingView>
         <KeyboardDone />
       </ModalSafeArea>
     </Modal>
@@ -138,6 +156,8 @@ const styles = StyleSheet.create({
   panel: { padding: 16, gap: 10, backgroundColor: COLORS.bg, borderTopWidth: 1, borderTopColor: COLORS.line },
   body: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.sans, textAlign: 'center' },
   label: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold },
+  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  pasteText: { color: COLORS.orange, fontSize: 13, fontFamily: FONTS.sansBold },
   warn: { color: COLORS.danger, fontSize: 13, fontFamily: FONTS.sansBold },
   code: { color: COLORS.ink, fontSize: 24, fontFamily: FONTS.sansHeavy, textAlign: 'center', letterSpacing: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },

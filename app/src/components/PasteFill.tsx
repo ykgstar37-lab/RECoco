@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { OcrUnavailable, readImageText } from '../lib/ocr';
+import { persistPhoto } from '../lib/photos';
+import { Photo } from '../types';
 import { COLORS, FONTS } from '../theme';
 import { DISMISS_ON_DRAG, KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 
@@ -33,10 +35,12 @@ interface Props<T> {
   onFill: (result: T) => void;
   /** 여러 건을 한꺼번에 기록할 수 있으면 (고른 것 전부) */
   onFillMany?: (results: T[]) => void;
+  /** 고른 캡처를 사진으로도 쓰고 싶을 때 */
+  onImage?: (photo: Photo) => void;
 }
 
 /** 문자·알림을 붙여넣거나 캡처를 고르면 바로 읽은 내용을 보여주고, 그대로 기록을 채운다 */
-export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAll, optionLabel, rows, warning, failMessage, onClose, onFill, onFillMany }: Props<T>) {
+export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAll, optionLabel, rows, warning, failMessage, onClose, onFill, onFillMany, onImage }: Props<T>) {
   const [text, setText] = useState('');
   // 고른 줄 번호들 (여러 건 기록이 가능하면 여러 개)
   const [picked, setPicked] = useState<number[]>([0]);
@@ -57,7 +61,14 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAl
     if (shot.canceled || !shot.assets[0]) return;
     setReading(true);
     try {
-      const found = await readImageText(shot.assets[0].uri);
+      const asset = shot.assets[0];
+      if (onImage) {
+        // 캡처를 앱 폴더로 복사해 두고(갤러리에서 지워도 남게) 사진으로 쓸 수 있게 알려준다
+        persistPhoto(asset.uri, asset.width ?? 0, asset.height ?? 0)
+          .then(onImage)
+          .catch(() => onImage({ uri: asset.uri, width: asset.width ?? 0, height: asset.height ?? 0 }));
+      }
+      const found = await readImageText(asset.uri);
       if (found.trim()) {
         setText(found);
         setPicked([0]);

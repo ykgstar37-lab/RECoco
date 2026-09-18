@@ -128,7 +128,8 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
         ]
       : kind === 'food'
         ? [
-            { record: sampleFood(), caption: '카페' },
+            { record: sampleFood(), caption: '주문서' },
+            { record: { ...sampleFood(), id: 'preview-food-plain', design: 'plain' }, caption: '단색 주문서' },
             {
               record: {
                 ...sampleFood(),
@@ -151,16 +152,14 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
           ]
         : kind === 'show'
           ? [
-              { record: sampleShow('play'), caption: '뮤지컬·연극' },
+              { record: sampleShow('play'), caption: '입장권' },
+              { record: { ...sampleShow('play'), id: 'preview-show-poster', design: 'poster' }, caption: '포스터 입장권' },
               { record: sampleShow('exhibition'), caption: '전시' },
             ]
           : kind === 'concert'
             ? [
-                { record: sampleConcert(), caption: '콘서트 티켓' },
-                {
-                  record: { ...sampleConcert(), id: 'preview-concert-2', artist: '달빛소년단', title: '월드투어 서울', place: 'KSPO DOME', seat: '2층 F구역 7열 21번', price: 154000, stars: 4, memo: '' },
-                  caption: '다른 공연',
-                },
+                { record: sampleConcert(), caption: '가로 티켓' },
+                { record: { ...sampleConcert(), id: 'preview-concert-retro', design: 'retro' }, caption: '레트로 티켓' },
               ]
             : [];
   return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };

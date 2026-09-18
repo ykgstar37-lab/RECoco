@@ -50,6 +50,7 @@ import {
 import { AirportField } from './AirportField';
 import { BoardingPassPaste } from './BoardingPassPaste';
 import { BoardingPassScan } from './BoardingPassScan';
+import { CouponPaste } from './CouponPaste';
 import { CouponScan, formatCoupon } from './CouponScan';
 import { CardSmsPaste } from './CardSmsPaste';
 import { DateField } from './DateField';
@@ -310,6 +311,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   const [passOpen, setPassOpen] = useState(false);
   const [passShotOpen, setPassShotOpen] = useState(false);
   const [couponOpen, setCouponOpen] = useState(false);
+  const [couponShotOpen, setCouponShotOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [error, setError] = useState('');
   // 제목을 직접 타이핑하는 동안만 검색 결과를 띄운다
@@ -1016,6 +1018,22 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   sub={gift.couponCode ? '다시 누르면 새로 찍어요' : '진짜 교환권 번호가 영수증 바코드 아래에 찍혀요'}
                   onPress={() => setCouponOpen(true)}
                 />
+                <QuickFill icon="card" title="교환권 캡처로 채우기" sub="교환권 화면을 캡처하면 상품·보낸 사람·번호까지" onPress={() => setCouponShotOpen(true)} />
+                <CouponPaste
+                  visible={couponShotOpen}
+                  onClose={() => setCouponShotOpen(false)}
+                  onFill={(g, photo) => {
+                    setCouponShotOpen(false);
+                    setGift((x) => ({
+                      ...x,
+                      item: g.item || x.item,
+                      brand: g.brand || x.brand,
+                      person: g.person || x.person,
+                      couponCode: g.code || x.couponCode,
+                      photo: photo ?? x.photo,
+                    }));
+                  }}
+                />
                 <CouponScan
                   visible={couponOpen}
                   onClose={() => setCouponOpen(false)}
@@ -1053,6 +1071,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 </Row>
                 <Field label="메시지" value={gift.message} onChange={(v) => setGift({ ...gift, message: v })} placeholder="시험 끝난 거 축하해!" multiline />
                 <Label text="선물 사진 (선택)" />
+                <Text style={styles.itemHint}>교환권 캡처로 채우면 그 캡처가 사진으로 들어가요. 눌러서 다른 사진으로 바꿔도 돼요.</Text>
                 <View style={styles.row}>
                   <Pressable
                     onPress={async () => {
