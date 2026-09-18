@@ -18,6 +18,8 @@ export interface PreviewProduct {
   price: number;
   /** 어느 카테고리에 쓰는지 (원형 태그) */
   tags: string[];
+  /** 이 중 하나라도 사야 쓸 수 있는 카테고리 (영수증 모양 테마) */
+  requires?: RecordKind[];
   samples: PreviewSample[];
 }
 
@@ -47,6 +49,7 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
     productId: d.productId,
     price: d.price,
     tags: [KIND_LABEL.food],
+    requires: ['food'],
     samples: [
       { record: { ...sampleFood(), id: `preview-food-${d.id}`, design: d.id }, caption: '카페' },
       {
@@ -98,7 +101,7 @@ export function designProduct(d: ConcertDesignItem | ShowDesignItem): PreviewPro
     samples.push({ record: { ...sampleShow('play'), id: `preview-${d.id}-play`, design: d.id as ShowDesign }, caption: '뮤지컬·연극' });
     samples.push({ record: { ...sampleShow('exhibition'), id: `preview-${d.id}-ex`, design: d.id as ShowDesign }, caption: '전시' });
   }
-  return { title: d.name, desc: d.desc, productId: d.productId, price: d.price, tags: d.kinds.map((k) => KIND_LABEL[k]), samples };
+  return { title: d.name, desc: d.desc, productId: d.productId, price: d.price, tags: d.kinds.map((k) => KIND_LABEL[k]), requires: d.kinds, samples };
 }
 
 export const concertDesignProduct = designProduct;

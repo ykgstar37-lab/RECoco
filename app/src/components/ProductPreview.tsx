@@ -4,9 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { won } from '../lib/format';
 import { PreviewProduct } from '../lib/products';
-import { buy, purchaseErrorMessage, useShop } from '../lib/shop';
+import { buy, categoryUnlocked, purchaseErrorMessage, useShop } from '../lib/shop';
 import { FourcutBack, RecordPaper, layoutOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
+import { KIND_LABEL } from '../templates';
 
 /** 상품을 사기 전에 실제 양식으로 그린 예시를 보여주고, 여기서 바로 산다 */
 export function ProductPreview({ product, onClose, onBought }: { product: PreviewProduct | null; onClose: () => void; onBought?: () => void }) {
@@ -20,6 +21,8 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
   }, [product]);
 
   const have = !!product && owned.includes(product.productId);
+  // 영수증 모양 테마는 그 카테고리를 사야 쓸 수 있다 (공용 모양은 둘 중 하나만 있어도 된다)
+  const needKinds = product?.requires?.every((k) => !categoryUnlocked(k, owned)) ? product.requires : null;
 
   const purchase = async () => {
     if (!product || busy) return;
@@ -82,8 +85,21 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
         )}
 
         {product && (
-          <Pressable disabled={have || busy} onPress={purchase} style={({ pressed }) => [styles.buy, have && styles.buyOff, pressed && { opacity: 0.85 }]}>
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '이미 가지고 있어요' : `${won(product.price)}원에 사기`}</Text>}
+          <Pressable
+            disabled={have || busy || !!needKinds}
+            onPress={purchase}
+            style={({ pressed }) => [styles.buy, (have || !!needKinds) && styles.buyOff, pressed && { opacity: 0.85 }]}>
+            {busy ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={[styles.buyText, (have || !!needKinds) && styles.buyTextOff]}>
+                {have
+                  ? '이미 가지고 있어요'
+                  : needKinds
+                    ? `${needKinds.map((k) => KIND_LABEL[k]).join(' 또는 ')}을(를) 먼저 사야 써요`
+                    : `${won(product.price)}원에 사기`}
+              </Text>
+            )}
           </Pressable>
         )}
       </SafeAreaView>

@@ -5,7 +5,7 @@ import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
 import { PreviewProduct, THEME_TAGS, categoryProduct, designProduct, foodDesignProduct, themeProduct } from '../lib/products';
-import { DESIGN_SHELF, FOOD_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { DESIGN_SHELF, FOOD_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { ConcertDesign, RecordKind, ShowDesign } from '../types';
@@ -137,6 +137,8 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
             })}
             {FOOD_DESIGNS.map((d) => {
               const have = owned.includes(d.productId);
+              // 카테고리를 사야 쓸 수 있는 모양은 그 전에 못 사게 한다
+              const need = categoryUnlocked('food', owned) ? null : [KIND_LABEL.food];
               return (
                 <Pressable key={d.id} onPress={() => setPreview(foodDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
                   <FoodDesignSwatch design={d.id} size={34} />
@@ -148,13 +150,14 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                       <CategoryTags tags={[KIND_LABEL.food]} tight />
                     </View>
                     <Text style={styles.themeDesc}>{d.desc}</Text>
+                    {need && <Text style={styles.needText}>{need.join(' 또는 ')}을(를) 먼저 사야 써요</Text>}
                     <Text style={styles.peek}>미리보기 ›</Text>
                   </View>
                   <Pressable
-                    disabled={have || busy}
+                    disabled={have || busy || !!need}
                     onPress={() => run(() => buy(d.productId))}
-                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(d.price)}원`}</Text>
+                    style={({ pressed }) => [styles.buyBtn, (have || !!need) && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
+                    <Text style={[styles.buyText, (have || !!need) && styles.buyTextOff]}>{have ? '보유' : need ? '잠김' : `${won(d.price)}원`}</Text>
                   </Pressable>
                 </Pressable>
               );
@@ -162,6 +165,8 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
             {DESIGN_SHELF.map((d) => {
               const have = owned.includes(d.productId);
               const forConcert = d.kinds.includes('concert');
+              // 공용 모양은 두 카테고리 중 하나만 있어도 쓸 수 있다
+              const need = d.kinds.some((k) => categoryUnlocked(k, owned)) ? null : d.kinds.map((k) => KIND_LABEL[k]);
               return (
                 <Pressable key={d.productId} onPress={() => setPreview(designProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
                   {forConcert ? <ConcertDesignSwatch design={d.id as ConcertDesign} size={34} /> : <ShowDesignSwatch design={d.id as ShowDesign} size={34} />}
@@ -173,13 +178,14 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                       <CategoryTags tags={d.kinds.map((k) => KIND_LABEL[k])} tight />
                     </View>
                     <Text style={styles.themeDesc}>{d.desc}</Text>
+                    {need && <Text style={styles.needText}>{need.join(' 또는 ')}을(를) 먼저 사야 써요</Text>}
                     <Text style={styles.peek}>미리보기 ›</Text>
                   </View>
                   <Pressable
-                    disabled={have || busy}
+                    disabled={have || busy || !!need}
                     onPress={() => run(() => buy(d.productId))}
-                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(d.price)}원`}</Text>
+                    style={({ pressed }) => [styles.buyBtn, (have || !!need) && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
+                    <Text style={[styles.buyText, (have || !!need) && styles.buyTextOff]}>{have ? '보유' : need ? '잠김' : `${won(d.price)}원`}</Text>
                   </Pressable>
                 </Pressable>
               );
@@ -244,6 +250,7 @@ const styles = StyleSheet.create({
   categoryIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#ffe36b', alignItems: 'center', justifyContent: 'center' },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   peek: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3 },
+  needText: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3 },
   themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   themeName: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold, flexShrink: 1 },
   themeDesc: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 1 },
