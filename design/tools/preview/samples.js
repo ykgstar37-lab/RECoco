@@ -52,7 +52,7 @@ module.exports = () => {
     { name: '콘서트_기본_사진', px: 1100, record: { id: 'sample-concert-2', createdAt: '2026-09-13T22:10:00', kind: 'concert', date: '2026-09-13', time: '19:00',
       title: '월드투어 서울', artist: '달빛소년단', place: 'KSPO DOME', seat: '2층 F구역 7열 21번', people: 1, price: 154000, stars: 4,
       memo: '', photo: photo(3), design: 'ticket' } },
-    { name: '콘서트_레트로', record: { id: 'sample-concert-r', createdAt: '2026-09-13T22:10:00', kind: 'concert', date: '2026-09-13', time: '19:00',
+    { name: '콘서트_레트로', px: 1100, record: { id: 'sample-concert-r', createdAt: '2026-09-13T22:10:00', kind: 'concert', date: '2026-09-13', time: '19:00',
       title: '한여름밤의 라이브', artist: '새벽밴드', place: '올림픽공원 올림픽홀', seat: '스탠딩 A구역 132번', people: 2, price: 99000, stars: 5,
       memo: '앙코르 세 곡. 목이 다 쉬었다.', photo: null, design: 'retro' } },
     { name: '콘서트_팔찌', record: { id: 'sample-concert-3', createdAt: '2026-09-13T22:10:00', kind: 'concert', date: '2026-09-13', time: '19:00',

@@ -1,62 +1,39 @@
-// 콘서트 티켓 (레트로): 크림 종이 + 이중 테두리 + 소리파형 + 제목/아티스트 + 정보 3칸 + 남색 스텁(번호·바코드)
+// 콘서트 티켓 (레트로): 가로로 긴 크림 티켓 — 이중 테두리·소리파형·정보 3칸 + 남색 스텁(번호·바코드)
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
 import { dotDateWithDay, seededRandom, won } from '../lib/format';
-import { fitLine, fitLines } from '../lib/text';
+import { fitLine } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
 import { ConcertRecord } from '../types';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
-const PW = 600;
-const PAD = 16;
-const M = 46;
-const CONCERT_PAPER = '#fbf5ea';
-const CONCERT_NAVY = '#1f2a44';
-const CONCERT_CORAL = '#e2685c';
-const INK = '#20242f';
-const SUB = '#8a8578';
+const PW = 980;
+const PH = 392;
+const PAD = 18;
+const STUB_W = 292;
+const MAIN_W = PW - STUB_W;
+const PAPER = '#fbf5ea';
+const NAVY = '#1f2a44';
+const CORAL = '#e2685c';
 const LINE = '#ded5c4';
-
-const TITLE_LINE = 58;
-const STUB_H = 420;
-const NOTCH = 20;
+const NOTCH = 15;
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
-const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
+const T = ({ f = 'sans', ...p }: TProps) => <Text fill={NAVY} fontFamily={FONTS[f]} {...p} />;
 
-function computeLayout(r: ConcertRecord) {
-  const title = fitLines(r.title.trim() || '제목 없는 공연', PW - M * 2 - 20, 52, 32, 2, 'sansHeavy');
-  const artist = fitLine(r.artist.trim(), PW - M * 2 - 40, 40, 26, 'hand');
-  const titleTop = 214;
-  const artistTop = titleTop + (title.lines.length - 1) * TITLE_LINE + 54;
-  const photoTop = artistTop + (r.artist.trim() ? 30 : 0) + 24;
-  const photoH = r.photo ? Math.round(Math.min(360, Math.max(240, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 0;
-  const infoTop = photoTop + (r.photo ? photoH + 30 : 6);
-  const infoBot = infoTop + 128;
-  const memo = r.memo.trim() ? fitLines(r.memo.trim(), PW - M * 2 - 30, 30, 24, 3, 'hand') : null;
-  const starsTop = infoBot + 22;
-  const memoTop = starsTop + 52;
-  const bandTop = (memo ? memoTop + memo.lines.length * 38 : starsTop + 46) + 18;
-  const cut = bandTop + 78;
-  const height = cut + STUB_H;
-  return { title, artist, titleTop, artistTop, photoTop, photoH, infoTop, infoBot, starsTop, memo, memoTop, bandTop, cut, height };
+export function layoutConcertRetro(_r: ConcertRecord): TemplateLayout {
+  return { width: PW + PAD * 2, height: PH + PAD * 2 + 14, foldAt: 0, displayRatio: 1, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
-export function layoutConcertRetro(r: ConcertRecord): TemplateLayout {
-  const { height, cut } = computeLayout(r);
-  return { width: PW + PAD * 2, height: height + PAD * 2 + 14, foldAt: cut + PAD, displayRatio: 0.9, inset: { top: PAD, bottom: PAD + 14 } };
-}
-
-/** 뜯는 선 자리가 파인 티켓 + 스텁 쪽은 톱니 */
-function ticketShape(h: number, cut: number, w = PW) {
-  const R = 16;
+/** 스텁 경계가 반원으로 파인 가로 티켓 */
+function ticketPath() {
+  const x = MAIN_W;
+  const R = 14;
   return [
-    `M${R},0 H${w - R} Q${w},0 ${w},${R}`,
-    `V${cut - NOTCH} A${NOTCH},${NOTCH} 0 0 0 ${w},${cut + NOTCH}`,
-    `V${h - R} Q${w},${h} ${w - R},${h} H${R} Q0,${h} 0,${h - R}`,
-    `V${cut + NOTCH} A${NOTCH},${NOTCH} 0 0 0 0,${cut - NOTCH}`,
-    `V${R} Q0,0 ${R},0 Z`,
+    `M${R},0 H${x - NOTCH} A${NOTCH},${NOTCH} 0 0 1 ${x + NOTCH},0 H${PW - R} Q${PW},0 ${PW},${R}`,
+    `V${PH - R} Q${PW},${PH} ${PW - R},${PH} H${x + NOTCH} A${NOTCH},${NOTCH} 0 0 1 ${x - NOTCH},${PH} H${R}`,
+    `Q0,${PH} 0,${PH - R} V${R} Q0,0 ${R},0 Z`,
   ].join(' ');
 }
 
@@ -83,31 +60,43 @@ function MiniIcon({ kind, x, y, color }: { kind: 'date' | 'pin' | 'seat'; x: num
   if (kind === 'pin')
     return (
       <G>
-        <Path d={`M${x + 8},${y + 18} C${x + 8},${y + 12} ${x + 15},${y + 10} ${x + 15},${y + 6} A7,7 0 1 0 ${x + 1},${y + 6} C${x + 1},${y + 10} ${x + 8},${y + 12} ${x + 8},${y + 18} Z`} fill="none" stroke={color} strokeWidth={2} />
+        <Path
+          d={`M${x + 8},${y + 18} C${x + 8},${y + 12} ${x + 15},${y + 10} ${x + 15},${y + 6} A7,7 0 1 0 ${x + 1},${y + 6} C${x + 1},${y + 10} ${x + 8},${y + 12} ${x + 8},${y + 18} Z`}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+        />
         <Circle cx={x + 8} cy={y + 6} r={2.4} fill={color} />
       </G>
     );
   return (
-    <G>
-      <Path d={`M${x},${y + 3} H${x + 16} V${y + 8} A2.6,2.6 0 0 0 ${x + 16},${y + 13} V${y + 17} H${x} V${y + 13} A2.6,2.6 0 0 0 ${x},${y + 8} Z`} fill="none" stroke={color} strokeWidth={2} />
-    </G>
+    <Path
+      d={`M${x},${y + 3} H${x + 16} V${y + 8} A2.6,2.6 0 0 0 ${x + 16},${y + 13} V${y + 17} H${x} V${y + 13} A2.6,2.6 0 0 0 ${x},${y + 8} Z`}
+      fill="none"
+      stroke={color}
+      strokeWidth={2}
+    />
   );
 }
 
 export function ConcertRetro({ record: r, width }: { record: ConcertRecord; width: number }) {
   const L = layoutConcertRetro(r);
-  const { title, artist, titleTop, artistTop, photoTop, photoH, infoTop, infoBot, starsTop, memo, memoTop, bandTop, cut, height } = computeLayout(r);
-  const shape = ticketShape(height, cut);
+  const shape = ticketPath();
   const id = `retro-${r.id}`;
   const rnd = seededRandom(r.id);
   const serial = String(Math.floor(rnd() * 999999)).padStart(6, '0');
 
+  const title = fitLine(r.title.trim() && r.artist.trim() ? r.artist.trim() : r.artist.trim() || r.title.trim() || '공연', MAIN_W - 140, 60, 34, 'sansHeavy');
+  const sub = fitLine(r.artist.trim() && r.title.trim() ? r.title.trim() : '', MAIN_W - 200, 42, 26, 'hand');
+  const memo = fitLine(r.memo.trim(), MAIN_W - 260, 26, 18, 'hand');
+
   const info: [string, string, 'date' | 'pin' | 'seat'][] = [
     ['DATE', `${dotDateWithDay(r.date)}${r.time ? `\n${r.time}` : ''}`, 'date'],
     ['VENUE', r.place.trim() || '공연장', 'pin'],
-    ['SEAT', [r.seat.trim() || `${r.people}명`, r.price > 0 ? `₩ ${won(r.price)}` : ''].filter(Boolean).join('\n'), 'seat'],
+    ['ADMISSION', [r.seat.trim() || `${r.people}명`, r.price > 0 ? `₩ ${won(r.price)}` : ''].filter(Boolean).join('\n'), 'seat'],
   ];
-  const colW = (PW - M * 2) / 3;
+  const colW = (MAIN_W - 96) / 3;
+  const infoTop = 250;
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
@@ -118,106 +107,107 @@ export function ConcertRetro({ record: r, width }: { record: ConcertRecord; widt
             <Path d={shape} />
           </ClipPath>
           <ClipPath id={`${id}-photo`}>
-            <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={8} />
+            <Rect x={0} y={0} width={MAIN_W} height={PH} />
           </ClipPath>
         </Defs>
-        <Path d={shape} fill={CONCERT_PAPER} />
+        <Path d={shape} fill={PAPER} />
 
-        {/* 이중 테두리 + 모서리 별 */}
-        <Rect x={22} y={22} width={PW - 44} height={cut - 44} rx={10} fill="none" stroke={CONCERT_NAVY} strokeWidth={2} opacity={0.75} />
-        <Rect x={30} y={30} width={PW - 60} height={cut - 60} rx={6} fill="none" stroke={CONCERT_NAVY} strokeWidth={0.9} opacity={0.5} />
-        {[
-          [46, 46],
-          [PW - 46, 46],
-          [46, cut - 46],
-          [PW - 46, cut - 46],
-        ].map(([x, y]) => (
-          <Path key={`${x}-${y}`} d={`M${x},${y - 9} Q${x + 1.6},${y - 1.6} ${x + 9},${y} Q${x + 1.6},${y + 1.6} ${x},${y + 9} Q${x - 1.6},${y + 1.6} ${x - 9},${y} Q${x - 1.6},${y - 1.6} ${x},${y - 9} Z`} fill={CONCERT_NAVY} opacity={0.35} />
-        ))}
-
-        {/* LIVE YOUR MOMENT */}
-        <Line x1={M + 30} y1={86} x2={M + 76} y2={86} stroke={CONCERT_NAVY} strokeWidth={1.2} />
-        <Line x1={PW - M - 76} y1={86} x2={PW - M - 30} y2={86} stroke={CONCERT_NAVY} strokeWidth={1.2} />
-        <T f="monoBold" x={PW / 2} y={92} fontSize={15} letterSpacing={5} textAnchor="middle" fill={CONCERT_NAVY} children="LIVE YOUR MOMENT" />
-
-        {/* 소리 파형 */}
-        {[16, 30, 46, 58, 46, 30, 16].map((h, i) => (
-          <Rect key={i} x={PW / 2 - 47 + i * 15} y={140 - h / 2} width={6} height={h} rx={3} fill={CONCERT_CORAL} />
-        ))}
-
-        {/* 제목 · 아티스트 */}
-        {title.lines.map((line, i) => (
-          <T key={i} f="sansHeavy" x={PW / 2} y={titleTop + i * TITLE_LINE} fontSize={title.size} textAnchor="middle" fill={CONCERT_NAVY} children={line} />
-        ))}
-        {!!artist.text && <T f="hand" x={PW / 2} y={artistTop} fontSize={artist.size} textAnchor="middle" fill={CONCERT_CORAL} children={artist.text} />}
-
-        {/* 사진 */}
+        {/* 사진은 왼쪽에 아주 연하게 (있을 때만) */}
         {r.photo && (
-          <G>
-            <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={8} fill={LINE} />
-            <Image href={{ uri: r.photo.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-photo)`} />
+          <G clipPath={`url(#${id}-photo)`}>
+            <Image href={{ uri: r.photo.uri }} x={0} y={0} width={MAIN_W} height={PH} preserveAspectRatio="xMidYMid slice" opacity={0.18} />
           </G>
         )}
 
+        {/* 이중 테두리 + 모서리 별 */}
+        <Rect x={22} y={22} width={MAIN_W - 48} height={PH - 44} rx={10} fill="none" stroke={NAVY} strokeWidth={2} opacity={0.75} />
+        <Rect x={30} y={30} width={MAIN_W - 64} height={PH - 60} rx={6} fill="none" stroke={NAVY} strokeWidth={0.9} opacity={0.45} />
+        {[
+          [48, 48],
+          [MAIN_W - 50, 48],
+          [48, PH - 48],
+          [MAIN_W - 50, PH - 48],
+        ].map(([x, y]) => (
+          <Path
+            key={`${x}-${y}`}
+            d={`M${x},${y - 9} Q${x + 1.6},${y - 1.6} ${x + 9},${y} Q${x + 1.6},${y + 1.6} ${x},${y + 9} Q${x - 1.6},${y + 1.6} ${x - 9},${y} Q${x - 1.6},${y - 1.6} ${x},${y - 9} Z`}
+            fill={NAVY}
+            opacity={0.35}
+          />
+        ))}
+
+        {/* LIVE YOUR MOMENT */}
+        <Line x1={MAIN_W / 2 - 150} y1={72} x2={MAIN_W / 2 - 96} y2={72} stroke={NAVY} strokeWidth={1.2} />
+        <Line x1={MAIN_W / 2 + 96} y1={72} x2={MAIN_W / 2 + 150} y2={72} stroke={NAVY} strokeWidth={1.2} />
+        <T f="monoBold" x={MAIN_W / 2} y={78} fontSize={15} letterSpacing={5} textAnchor="middle" children="LIVE YOUR MOMENT" />
+
+        {/* 소리 파형 */}
+        {[14, 26, 40, 50, 40, 26, 14].map((h, i) => (
+          <Rect key={i} x={MAIN_W / 2 - 45 + i * 14} y={110 - h / 2} width={6} height={h} rx={3} fill={CORAL} />
+        ))}
+
+        {/* 제목 · 아티스트 */}
+        <T f="sansHeavy" x={MAIN_W / 2} y={180} fontSize={title.size} textAnchor="middle" children={title.text} />
+        {!!sub.text && <T f="hand" x={MAIN_W / 2} y={224} fontSize={sub.size} textAnchor="middle" fill={CORAL} children={sub.text} />}
+
         {/* 정보 3칸 */}
-        <Line x1={M} y1={infoTop} x2={PW - M} y2={infoTop} stroke={LINE} strokeWidth={1.6} />
+        <Line x1={48} y1={infoTop} x2={MAIN_W - 48} y2={infoTop} stroke={LINE} strokeWidth={1.6} />
         {info.map(([k, v, icon], i) => {
-          const x = M + colW * i;
-          const lines = v.split('\n');
+          const x = 48 + colW * i;
           return (
             <G key={k}>
-              {i > 0 && <Line x1={x} y1={infoTop + 12} x2={x} y2={infoBot - 12} stroke={LINE} strokeWidth={1.4} />}
-              <MiniIcon kind={icon} x={x + 14} y={infoTop + 22} color={CONCERT_CORAL} />
-              <T f="monoBold" x={x + 38} y={infoTop + 36} fontSize={13} letterSpacing={2} fill={CONCERT_CORAL} children={k} />
-              {lines.map((line, j) => {
-                const f = fitLine(line, colW - 28, 19, 13, 'sansBold');
-                return <T key={j} f="sansBold" x={x + 14} y={infoTop + 68 + j * 26} fontSize={f.size} children={f.text} />;
+              {i > 0 && <Line x1={x} y1={infoTop + 12} x2={x} y2={infoTop + 92} stroke={LINE} strokeWidth={1.4} />}
+              <MiniIcon kind={icon} x={x + 14} y={infoTop + 20} color={CORAL} />
+              <T f="monoBold" x={x + 38} y={infoTop + 34} fontSize={13} letterSpacing={2} fill={CORAL} children={k} />
+              {v.split('\n').map((line, j) => {
+                const f = fitLine(line, colW - 28, 20, 13, 'sansBold');
+                return <T key={j} f="sansBold" x={x + 14} y={infoTop + 64 + j * 26} fontSize={f.size} children={f.text} />;
               })}
             </G>
           );
         })}
-        <Line x1={M} y1={infoBot} x2={PW - M} y2={infoBot} stroke={LINE} strokeWidth={1.6} />
+        <Line x1={48} y1={infoTop + 104} x2={MAIN_W - 48} y2={infoTop + 104} stroke={LINE} strokeWidth={1.6} />
 
         {/* 별점 · 한 줄 감상 */}
-        <T f="monoBold" x={M} y={starsTop + 28} fontSize={13} letterSpacing={2} fill={CONCERT_CORAL} children="RATING" />
         {[0, 1, 2, 3, 4].map((s) => (
-          <Path key={s} d={starPath(PW - M - 16 - (4 - s) * 38, starsTop + 20, 15)} fill={s < r.stars ? CONCERT_CORAL : 'none'} stroke={CONCERT_CORAL} strokeOpacity={s < r.stars ? 1 : 0.35} strokeWidth={2} strokeLinejoin="round" />
+          <Path
+            key={s}
+            d={starPath(74 + s * 32, infoTop + 132, 12)}
+            fill={s < r.stars ? CORAL : 'none'}
+            stroke={CORAL}
+            strokeOpacity={s < r.stars ? 1 : 0.35}
+            strokeWidth={2}
+            strokeLinejoin="round"
+          />
         ))}
-        {memo &&
-          memo.lines.map((line, i) => (
-            <T key={i} f="hand" x={PW / 2} y={memoTop + i * 38} fontSize={memo.size} textAnchor="middle" fill={INK} children={line} />
-          ))}
-
-        {/* 아래 남색 띠 */}
-        <Rect x={M + 10} y={bandTop} width={PW - (M + 10) * 2} height={44} rx={22} fill={CONCERT_NAVY} />
-        <T f="monoBold" x={PW / 2} y={bandTop + 28} fontSize={13} letterSpacing={4} textAnchor="middle" fill="#fff" children="MUSIC · MEMORY · MOMENT" />
+        {!!memo.text && <T f="hand" x={MAIN_W - 60} y={infoTop + 140} fontSize={memo.size} textAnchor="end" children={memo.text} />}
 
         {/* 스텁 (남색) */}
         <G clipPath={`url(#${id}-card)`}>
-          <Rect x={0} y={cut} width={PW} height={height - cut} fill={CONCERT_NAVY} />
+          <Rect x={MAIN_W} y={0} width={STUB_W} height={PH} fill={NAVY} />
         </G>
-        <Line x1={NOTCH + 12} y1={cut} x2={PW - NOTCH - 12} y2={cut} stroke={CONCERT_PAPER} strokeWidth={3} strokeDasharray="9 7" />
-        <T f="monoBold" x={PW / 2} y={cut + 62} fontSize={17} letterSpacing={7} textAnchor="middle" fill="#fff" children="TICKET" />
-        <Rect x={PW / 2 - 130} y={cut + 84} width={260} height={52} rx={26} fill={CONCERT_CORAL} />
-        <T f="monoBold" x={PW / 2} y={cut + 118} fontSize={22} letterSpacing={3} textAnchor="middle" fill="#fff" children={`No. ${serial}`} />
+        <Line x1={MAIN_W} y1={NOTCH + 6} x2={MAIN_W} y2={PH - NOTCH - 6} stroke={PAPER} strokeWidth={3} strokeDasharray="9 8" />
+        <T f="monoBold" x={MAIN_W + STUB_W / 2} y={56} fontSize={16} letterSpacing={7} textAnchor="middle" fill="#fff" children="TICKET" />
+        <Rect x={MAIN_W + 36} y={76} width={STUB_W - 72} height={46} rx={23} fill={CORAL} />
+        <T f="monoBold" x={MAIN_W + STUB_W / 2} y={106} fontSize={20} letterSpacing={2} textAnchor="middle" fill="#fff" children={`No. ${serial}`} />
         {[
           ['DATE', `${dotDateWithDay(r.date)}${r.time ? `  ${r.time}` : ''}`],
           ['VENUE', r.place.trim() || '공연장'],
           ['ADMISSION', r.seat.trim() || `${r.people}명`],
         ].map(([k, v], i) => {
-          const y = cut + 176 + i * 58;
-          const value = fitLine(v, PW - M * 2, 20, 14, 'sansBold');
+          const y = 158 + i * 56;
+          const value = fitLine(v, STUB_W - 60, 18, 12, 'sansBold');
           return (
             <G key={k}>
-              <T f="mono" x={M} y={y} fontSize={13} letterSpacing={2} fill="#fff" opacity={0.6} children={k} />
-              <T f="sansBold" x={M} y={y + 26} fontSize={value.size} fill="#fff" children={value.text} />
+              <T f="mono" x={MAIN_W + 30} y={y} fontSize={12} letterSpacing={2} fill="#fff" opacity={0.6} children={k} />
+              <T f="sansBold" x={MAIN_W + 30} y={y + 24} fontSize={value.size} fill="#fff" children={value.text} />
             </G>
           );
         })}
-        <Rect x={M} y={cut + 348} width={PW - M * 2} height={54} rx={4} fill="#fff" />
-        <Barcode seed={`${r.id}-concert`} x={M + 12} y={cut + 354} width={PW - M * 2 - 24} height={42} color={CONCERT_NAVY} />
+        <Rect x={MAIN_W + 30} y={326} width={STUB_W - 60} height={40} rx={4} fill="#fff" />
+        <Barcode seed={`${r.id}-retro`} x={MAIN_W + 38} y={331} width={STUB_W - 76} height={30} color={NAVY} />
 
-        <PaperOverlay id={id} d={shape} width={PW} height={height} wrinkle="none" surface="grain" />
+        <PaperOverlay id={id} d={shape} width={PW} height={PH} wrinkle="none" surface="grain" />
       </G>
     </Svg>
   );
