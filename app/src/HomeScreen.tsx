@@ -304,7 +304,7 @@ export function HomeScreen() {
         }}
         onBought={addOwned}
       />
-      <RecordForm visible={formOpen} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
+      <RecordForm visible={formOpen} records={records} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
     </View>
   );
 }

@@ -64,6 +64,7 @@ module.exports = () => {
     { name: '영화_티켓', record: movie },
     { name: '영화_티켓_흰색', record: { ...movie, id: 'sample-movie-white', paper: 'white' } },
     { name: '소비_영수증', record: spending },
+    { name: '소비_총액만', record: { ...spending, id: 'sample-spending-total', items: [{ name: '', qty: 1, price: 27400 }] } },
     { name: '소비_영수증_테마_흰무지', record: { ...spending, id: 'sample-spending-plain', theme: 'plain' } },
     { name: '소비_영수증_테마_모눈', record: { ...spending, id: 'sample-spending-grid', theme: 'grid' } },
     { name: '여행_사진0장', record: tr(0), px: 1100 },

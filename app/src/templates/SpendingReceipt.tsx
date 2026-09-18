@@ -89,7 +89,7 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
     );
   };
 
-  const items = r.items.filter((it) => it.name.trim()).slice(0, MAX_ROWS);
+  const items = r.items.filter((it) => it.name.trim() || it.price > 0).slice(0, MAX_ROWS);
   const total = items.reduce((sum, it) => sum + it.qty * it.price, 0);
   const [, m, d] = r.date.split('-').map((v) => parseInt(v, 10));
   const md = m && d ? `${m}/${d}` : '';
@@ -192,12 +192,14 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
           )}
           {items.map((it, i) => {
             const y = hBot + rowH * (i + 1) - 12;
+            // 총액만 적은 기록: 품목 칸은 비우고 금액만 적는다
+            const onlyTotal = !it.name.trim();
             return (
               <G key={i}>
                 {hand(`d${i}`, (cols[0] + cols[1]) / 2, y, md, 28, 58, 'middle')}
                 {hand(`n${i}`, cols[1] + 10, y, it.name, 31, cols[2] - cols[1] - 16)}
-                {hand(`q${i}`, (cols[2] + cols[3]) / 2, y, String(it.qty), 30, 48, 'middle')}
-                {hand(`p${i}`, cols[4] - 6, y, won(it.price), 28, cols[4] - cols[3] - 8, 'end')}
+                {!onlyTotal && hand(`q${i}`, (cols[2] + cols[3]) / 2, y, String(it.qty), 30, 48, 'middle')}
+                {!onlyTotal && hand(`p${i}`, cols[4] - 6, y, won(it.price), 28, cols[4] - cols[3] - 8, 'end')}
                 {hand(`a${i}`, R - 10, y, won(it.qty * it.price), 30, R - cols[4] - 16, 'end')}
               </G>
             );

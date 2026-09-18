@@ -53,12 +53,15 @@ import { MovieSmsPaste } from './MovieSmsPaste';
 import { QrImport } from './QrImport';
 import { QuickFill } from './QuickFill';
 import { STICKERS, StickerArt, stickerOf } from './Stickers';
+import { StoreSuggest } from './StoreSuggest';
 import { TheaterField } from './TheaterField';
 import { FoodDesignPicker, ThemePicker } from './ThemePicker';
 import { TitleSearch } from './TitleSearch';
 
 interface Props {
   visible: boolean;
+  /** 자주 가는 가게 추천에 쓰는 지금까지의 기록 */
+  records?: RecoRecord[];
   /** 메인에서 고른 카테고리로 열기 */
   initialKind?: RecordKind;
   /** 있으면 새로 만들지 않고 이 기록을 고친다 */
@@ -216,12 +219,15 @@ interface ItemDraft {
   price: string;
 }
 
-export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }: Props) {
+export function RecordForm({ visible, records = [], initialKind, editing, onClose, onSubmit }: Props) {
   const [kind, setKind] = useState<RecordKind>(initialKind ?? 'reading');
   const [reading, setReading] = useState(emptyReading);
   const [movie, setMovie] = useState(emptyMovie);
   const [spending, setSpending] = useState(emptySpending);
   const [items, setItems] = useState<ItemDraft[]>([{ name: '', qty: '1', price: '' }]);
+  // 품목 없이 총액만 적기
+  const [totalOnly, setTotalOnly] = useState(false);
+  const [onlyAmount, setOnlyAmount] = useState('');
   const [travel, setTravel] = useState(emptyTravel);
   const [fourcut, setFourcut] = useState(emptyFourcut);
   const [gift, setGift] = useState(emptyGift);
@@ -275,10 +281,15 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
       case 'movie':
         setMovie(rest);
         break;
-      case 'spending':
+      case 'spending': {
         setSpending({ date: rest.date, store: rest.store, category: rest.category, address: rest.address, memo: rest.memo, theme: rest.theme });
+        // 품목 이름 없이 금액만 있는 기록은 "총액만" 모드로 연다
+        const onlyOne = rest.items.length === 1 && !rest.items[0].name.trim();
+        setTotalOnly(onlyOne);
+        setOnlyAmount(onlyOne ? String(rest.items[0].price) : '');
         setItems(rest.items.map((it) => ({ name: it.name, qty: String(it.qty), price: String(it.price) })));
         break;
+      }
       case 'travel':
         setTravel({ ...rest, photos: [0, 1, 2, 3].map((i) => rest.photos[i] ?? null) });
         break;
@@ -303,6 +314,8 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
     setMovie(emptyMovie());
     setSpending(emptySpending());
     setItems([{ name: '', qty: '1', price: '' }]);
+    setTotalOnly(false);
+    setOnlyAmount('');
     setError('');
     setSearching(false);
   };
@@ -315,6 +328,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
       price: parseInt(it.price.replace(/[^0-9]/g, ''), 10) || 0,
     }));
   const total = parsedItems.reduce((s, it) => s + it.qty * it.price, 0);
+  const onlyTotalValue = parseInt(onlyAmount.replace(/[^0-9]/g, ''), 10) || 0;
 
   const submit = () => {
     const base = editing ? { id: editing.id, createdAt: editing.createdAt } : { id: newId(), createdAt: new Date().toISOString() };
@@ -327,8 +341,13 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
       record = { ...base, ...movie } as MovieRecord;
     } else if (kind === 'spending') {
       if (!spending.store.trim()) return setError('어디서 썼는지(상호)를 적어주세요.');
-      if (!parsedItems.length) return setError('품목을 하나 이상 적어주세요.');
-      record = { ...base, kind: 'spending', ...spending, items: parsedItems } as SpendingRecord;
+      if (totalOnly) {
+        if (!onlyTotalValue) return setError('쓴 금액을 적어주세요.');
+        record = { ...base, kind: 'spending', ...spending, items: [{ name: '', qty: 1, price: onlyTotalValue }] } as SpendingRecord;
+      } else {
+        if (!parsedItems.length) return setError('품목을 하나 이상 적어주세요.');
+        record = { ...base, kind: 'spending', ...spending, items: parsedItems } as SpendingRecord;
+      }
     } else if (kind === 'travel') {
       if (!travel.from.trim() || !travel.to.trim()) return setError('출발지와 도착지를 골라주세요. (예: 인천 → 도쿄)');
       record = { ...base, ...travel } as TravelRecord;
@@ -560,6 +579,10 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   onFill={(pay) => {
                     setSmsOpen(false);
                     setSpending((sp) => ({ ...sp, store: pay.store || sp.store, date: pay.date ?? sp.date }));
+                    if (totalOnly) {
+                      setOnlyAmount(String(pay.amount));
+                      return;
+                    }
                     // 품목이 비어 있으면 결제 한 줄로 채우고, 이미 적어둔 게 있으면 아래에 더한다
                     const line = { name: pay.time ? `${pay.time} 카드 결제` : '카드 결제', qty: '1', price: String(pay.amount) };
                     setItems((all) => (all.every((it) => !it.name.trim() && !it.price.trim()) ? [line] : [...all, line]));
@@ -569,6 +592,14 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   <Field label="어디서? (상호) *" value={spending.store} onChange={(v) => setSpending({ ...spending, store: v })} placeholder="달밤커피" />
                   <Field label="종류" value={spending.category} onChange={(v) => setSpending({ ...spending, category: v })} placeholder="카페" />
                 </Row>
+                <StoreSuggest
+                  records={records}
+                  kind="spending"
+                  query={spending.store}
+                  onPick={(hit) =>
+                    setSpending((sp) => ({ ...sp, store: hit.name, category: sp.category.trim() || hit.category, address: sp.address.trim() || hit.area }))
+                  }
+                />
                 <Row>
                   <DateField label="날짜" value={spending.date} onChange={(v) => setSpending({ ...spending, date: v })} />
                   <Field label="위치 (선택)" value={spending.address} onChange={(v) => setSpending({ ...spending, address: v })} placeholder="연남동" />
@@ -593,8 +624,25 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                 {!stickerOf(spending.memo) && (
                   <Field label="또는 짧게 적기" value={spending.memo} onChange={(v) => setSpending({ ...spending, memo: v })} placeholder="선물용" />
                 )}
-                <Label text="품목" />
-                {items.map((it, i) => (
+                <View style={styles.segment}>
+                  {[
+                    [false, '품목별로 적기'],
+                    [true, '총액만 적기'],
+                  ].map(([key, text]) => (
+                    <Pressable key={String(key)} onPress={() => setTotalOnly(key as boolean)} style={[styles.seg, totalOnly === key && styles.segOn]}>
+                      <Text style={[styles.segText, totalOnly === key && styles.segTextOn]}>{text as string}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                {totalOnly ? (
+                  <Row>
+                    <Field label="얼마 썼나요? *" value={onlyAmount} onChange={(v) => setOnlyAmount(v.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="12500" />
+                  </Row>
+                ) : (
+                  <Label text="품목" />
+                )}
+                {!totalOnly &&
+                  items.map((it, i) => (
                   <View key={i} style={styles.itemRow}>
                     <TextInput
                       inputAccessoryViewID={KEYBOARD_DONE_ID}
@@ -625,12 +673,12 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                     </Pressable>
                   </View>
                 ))}
-                {items.length < 15 && (
+                {!totalOnly && items.length < 15 && (
                   <Pressable onPress={() => setItems([...items, { name: '', qty: '1', price: '' }])} style={styles.addItem}>
                     <Text style={styles.addItemText}>+ 품목 추가</Text>
                   </Pressable>
                 )}
-                <Text style={styles.total}>합계 ₩ {won(total)}</Text>
+                <Text style={styles.total}>합계 ₩ {won(totalOnly ? onlyTotalValue : total)}</Text>
                 <ThemePicker label="영수증 종이" base="spending" value={spending.theme} onChange={(theme) => setSpending((sp) => ({ ...sp, theme }))} />
               </>
             )}
@@ -864,6 +912,7 @@ export function RecordForm({ visible, initialKind, editing, onClose, onSubmit }:
                   <Field label="가게 이름 *" value={food.place} onChange={(v) => setFood({ ...food, place: v })} placeholder="달밤커피" />
                   <DateField label="날짜" value={food.date} onChange={(v) => setFood({ ...food, date: v })} />
                 </Row>
+                <StoreSuggest records={records} kind="food" query={food.place} onPick={(hit) => setFood((f) => ({ ...f, place: hit.name, area: f.area.trim() || hit.area }))} />
                 <Row>
                   <Field label="위치 (선택)" value={food.area} onChange={(v) => setFood({ ...food, area: v })} placeholder="연남동" />
                   <Field label="누구랑? (선택)" value={food.withWhom} onChange={(v) => setFood({ ...food, withWhom: v })} placeholder="지민" />
