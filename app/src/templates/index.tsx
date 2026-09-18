@@ -58,10 +58,14 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
   }
 }
 
-/** 롤 폭(rollWidth) 기준 실제 표시 크기 */
-export function sizeOf(record: RecoRecord, rollWidth: number) {
+/**
+ * 롤 폭(rollWidth) 기준 실제 표시 크기.
+ * connected: 롤로 이어 붙일 때 — 인생네컷은 레이아웃(1×4·2×2·가로 2×2)마다 폭이 달라서
+ * 이으면 줄이 들쭉날쭉해진다. 가장 넓은 가로 2×2 에 맞춰 폭을 통일한다.
+ */
+export function sizeOf(record: RecoRecord, rollWidth: number, connected = false) {
   const l = layoutOf(record);
-  const width = rollWidth * l.displayRatio;
+  const width = rollWidth * (connected && record.kind === 'fourcut' ? 1 : l.displayRatio);
   const scale = width / l.width;
   return {
     width,

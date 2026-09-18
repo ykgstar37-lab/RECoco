@@ -20,7 +20,7 @@ interface Props {
 
 /** 인생네컷: 탭하면 앞(사진) ↔ 뒤(오늘의 하루)로 뒤집힌다 */
 function FlipCardBase({ record, rollWidth, connected = false, onLongPress }: Props) {
-  const { width, height } = sizeOf(record, rollWidth);
+  const { width, height } = sizeOf(record, rollWidth, connected);
   const flip = useSharedValue(0); // 0 앞면, 1 뒷면
   const tilt = useMemo(() => (connected ? 0 : (seededRandom(record.id)() - 0.5) * 3), [record.id, connected]);
 

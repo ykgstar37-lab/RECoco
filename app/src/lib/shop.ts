@@ -31,6 +31,7 @@ export const OUTFITS: OutfitItem[] = [
   { id: 'trapper', name: '털 방한모', unlock: { type: 'paid', productId: 'recoco.outfit.trapper', price: 1000 } },
   { id: 'glasses', name: '빨간 안경', unlock: { type: 'paid', productId: 'recoco.outfit.glasses', price: 1000 } },
   { id: 'cat', name: '고양이', unlock: { type: 'paid', productId: 'recoco.outfit.cat', price: 1000 } },
+  { id: 'dog', name: '강아지 귀', unlock: { type: 'paid', productId: 'recoco.outfit.dog', price: 1000 } },
 ];
 
 export interface ThemeItem {

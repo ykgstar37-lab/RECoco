@@ -1,13 +1,14 @@
 // 코코 옷(머리 장식). 코코 그림과 같은 viewBox(400×320) 좌표로 그려서 CocoArt 위에 겹친다
 import { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
-export type OutfitId = 'ribbon' | 'heart' | 'cat' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses';
+export type OutfitId = 'ribbon' | 'heart' | 'cat' | 'dog' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses';
 
 // 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
 const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
   ribbon: { from: [268, 82], to: [300, 102], k: 1.1, r: 26, top: 70 },
-  heart: { from: [0, 0], to: [0, 0], k: 1, top: 6 },
+  heart: { from: [0, 0], to: [0, 0], k: 1, top: 4 },
   cat: { from: [0, 0], to: [0, 0], k: 1, top: 50 },
+  dog: { from: [0, 0], to: [0, 0], k: 1, top: 106 },
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
@@ -20,12 +21,14 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
 
 const HEART = '#fff'; // 하트 꼬랑지 (코코와 같은 흰색)
 const LINE = '#3a2a22'; // 고양이 귀·수염 (코코 눈과 같은 색)
+const EAR_LINE = '#ffc9a1'; // 강아지 귀 테두리 (흰 코코의 꼭지 주름과 같은 색)
 
 /** 머리를 덮는 옷은 만두 꼭지를 숨긴다 (리본은 꼭지 옆에 묶어서 꼭지가 보이게) */
 export const COVERS_KNOB: Record<OutfitId, boolean> = {
   ribbon: false,
   heart: true, // 꼭지 자리에서 하트가 솟는다
   cat: true, // 귀가 꼭지 자리를 대신한다
+  dog: false, // 귀가 머리 양옆에 달려서 꼭지는 그대로 보인다
   straw: true,
   beret: true,
   crown: true,
@@ -69,24 +72,37 @@ function Hat({ id }: { id: OutfitId }) {
     case 'heart':
       // 머리 한가운데서 솟아 하트로 끝나는 꼬랑지. 한 붓으로 그려서 끝이 시작점에 닿기 전에 멈춘다
       return (
-        <G stroke={HEART} strokeWidth={7} strokeLinecap="round" fill="none">
-          <Path d="M206,86 C201,74 200,62 200,52 C184,40 176,31 176,22.6 C176,15 182,10 188.5,10 C194,10 198,13 200,17.4 C202,13 206,10 211.6,10 C218,10 224,15 224,22.6 C224,30 219,37 206,47" />
-        </G>
+        <Path
+          d="M203,80 C201,74 200,70 200,66 C172.8,50 158.3,37 158.3,25.4 C158.3,15.3 168.3,8 180.1,8 C189.1,8 196.4,12.4 200,18.2 C203.6,12.4 210.9,8 219.9,8 C231.7,8 241.7,15.3 241.7,25.4 C241.7,37 236,44 219,53"
+          fill="none"
+          stroke={HEART}
+          strokeWidth={7}
+          strokeLinecap="round"
+        />
       );
     case 'cat':
       // 고양이: 머리 위에 작게 벌려 얹은 귀 + 볼 옆 짧은 수염 (코는 입과 붙어 보여서 뺐다)
       return (
-        <G stroke={LINE} strokeLinecap="round" fill="none">
-          <G strokeWidth={6}>
-            <Path d="M132,98 Q140,58 158,52 Q172,66 180,92" />
-            <Path d="M268,98 Q260,58 242,52 Q228,66 220,92" />
-          </G>
-          <G strokeWidth={5} opacity={0.9}>
-            <Path d="M146,210 C124,204 100,200 76,198" />
-            <Path d="M146,224 C124,226 100,230 76,235" />
-            <Path d="M254,210 C276,204 300,200 324,198" />
-            <Path d="M254,224 C276,226 300,230 324,235" />
-          </G>
+        <G>
+          {['M132,98 Q140,58 158,52 Q172,66 180,92', 'M268,98 Q260,58 242,52 Q228,66 220,92'].map((d) => (
+            <Path key={d} d={d} fill="none" stroke={LINE} strokeWidth={6} strokeLinecap="round" />
+          ))}
+          {[
+            'M146,210 C124,204 100,200 76,198',
+            'M146,224 C124,226 100,230 76,235',
+            'M254,210 C276,204 300,200 324,198',
+            'M254,224 C276,226 300,230 324,235',
+          ].map((d) => (
+            <Path key={d} d={d} fill="none" stroke={LINE} strokeWidth={5} strokeLinecap="round" opacity={0.9} />
+          ))}
+        </G>
+      );
+    case 'dog':
+      // 머리 양옆에 늘어진 강아지 귀 (흰 코코와 같은 색이라 테두리로 구분한다)
+      return (
+        <G fill="#fff" stroke={EAR_LINE} strokeWidth={5} strokeLinejoin="round">
+          <Path d="M100,110 C68,108 34,128 26,164 C19,194 28,224 48,230 C67,235 82,218 88,194 C95,170 99,134 100,110 Z" />
+          <Path d="M300,110 C332,108 366,128 374,164 C381,194 372,224 352,230 C333,235 318,218 312,194 C305,170 301,134 300,110 Z" />
         </G>
       );
     case 'straw':

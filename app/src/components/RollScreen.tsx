@@ -150,7 +150,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
               const prev = list[i - 1];
               // 여백만큼 당겨 붙인다. 1px 더 겹쳐서 반올림 탓에 실틈이 비치지 않게 (가장자리는 어차피 빈 종이)
               const overlap =
-                connected && prev ? sizeOf(prev, paperW).insetBottom + sizeOf(record, paperW).insetTop + 1 : 0;
+                connected && prev ? sizeOf(prev, paperW, true).insetBottom + sizeOf(record, paperW, true).insetTop + 1 : 0;
               const dateText = record.date.replace(/-/g, '.');
               return (
                 <Animated.View

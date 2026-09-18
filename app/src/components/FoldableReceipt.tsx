@@ -45,7 +45,7 @@ interface Props {
  * 아래 손잡이를 잡아당기거나 탭하면 종이가 펼쳐진다.
  */
 function FoldableReceiptBase({ record, rollWidth, initiallyOpen = false, connected = false, onLongPress }: Props) {
-  const size = sizeOf(record, rollWidth);
+  const size = sizeOf(record, rollWidth, connected);
   const { width, height } = size;
   // 접는 지점이 없는 짧은 카드(사진 없는 탑승권 등)는 항상 펼친 채로 둔다
   const foldable = size.foldHeight > 0 && !connected;
