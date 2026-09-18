@@ -39,6 +39,8 @@ export function HomeScreen() {
   const [picking, setPicking] = useState(false);
   const [focusKind, setFocusKind] = useState<RecordKind | null>(null);
   const [printing, setPrinting] = useState<RecoRecord | null>(null);
+  // 한 번에 여러 장을 기록할 때 다음에 뽑을 것들
+  const [queue, setQueue] = useState<RecoRecord[]>([]);
   const [rollOpen, setRollOpen] = useState(false);
   const [rollDate, setRollDate] = useState<string | null>(null);
   const [cheer, setCheer] = useState(false);
@@ -88,6 +90,14 @@ export function HomeScreen() {
     setTimeout(() => setPrinting(record), Platform.OS === 'ios' ? 450 : 250);
   };
 
+  // 캡처에서 고른 여러 건: 첫 장부터 뽑고, 뜯을 때마다 다음 장
+  const handleSubmitMany = (list: RecoRecord[]) => {
+    if (!list.length) return;
+    setFormOpen(false);
+    setQueue(list.slice(1));
+    setTimeout(() => setPrinting(list[0]), Platform.OS === 'ios' ? 450 : 250);
+  };
+
   const handleTorn = (record: RecoRecord) => {
     setPrinting(null);
     // 기록한 날짜가 있는 주로 이동해서 도장이 찍히는 걸 보여준다
@@ -107,6 +117,12 @@ export function HomeScreen() {
       setGift(null);
     }, reward ? 5000 : 3500);
     update([record, ...records]);
+    // 남은 장이 있으면 이어서 뽑는다
+    if (queue.length) {
+      const [next, ...rest] = queue;
+      setQueue(rest);
+      setTimeout(() => setPrinting(next), 900);
+    }
   };
 
   const handleEdit = useCallback((next: RecoRecord) => update(records.map((r) => (r.id === next.id ? next : r))), [records, update]);
@@ -254,7 +270,10 @@ export function HomeScreen() {
         )}
       </View>
 
-      {printing && <PrintJob record={printing} rollWidth={Math.min((stage.width - 80) * 0.72, 360) || 280} onDone={handleTorn} onCancel={() => setPrinting(null)} outfit={outfit} />}
+      {printing && <PrintJob record={printing} rollWidth={Math.min((stage.width - 80) * 0.72, 360) || 280} onDone={handleTorn} onCancel={() => {
+            setPrinting(null);
+            setQueue([]);
+          }} outfit={outfit} />}
 
       <RollScreen
         visible={rollOpen}
@@ -304,7 +323,7 @@ export function HomeScreen() {
         }}
         onBought={addOwned}
       />
-      <RecordForm visible={formOpen} records={records} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
+      <RecordForm visible={formOpen} records={records} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} onSubmitMany={handleSubmitMany} />
     </View>
   );
 }

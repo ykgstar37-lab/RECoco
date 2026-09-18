@@ -6,10 +6,12 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onFill: (payment: CardPayment) => void;
+  /** 캡처에서 고른 여러 건을 한꺼번에 기록 */
+  onFillMany?: (payments: CardPayment[]) => void;
 }
 
 /** 카드 결제 문자를 붙여넣으면 가게·금액·날짜를 읽어서 소비 기록을 채운다 */
-export function CardSmsPaste({ visible, onClose, onFill }: Props) {
+export function CardSmsPaste({ visible, onClose, onFill, onFillMany }: Props) {
   return (
     <PasteFill
       visible={visible}
@@ -33,6 +35,7 @@ export function CardSmsPaste({ visible, onClose, onFill }: Props) {
       failMessage="결제 금액을 찾지 못했어요. 카드 승인 문자인지 확인해 주세요."
       onClose={onClose}
       onFill={onFill}
+      onFillMany={onFillMany}
     />
   );
 }

@@ -74,6 +74,13 @@ export function parseMovieBooking(raw: string, today = new Date()): MovieBooking
     branch = branch.replace(/\s*점$/, '').replace(/\s+/g, ' ');
   }
   if (/^(영화|예매|완료)/.test(branch) || /님/.test(branch)) branch = '';
+  if (!branch && screenMatch) {
+    // 모바일 티켓처럼 지점 이름만 한 줄에 있는 경우: 상영관 줄 바로 위 줄
+    const lines = text.split('\n').map((l) => l.trim());
+    const at = lines.findIndex((l) => l.includes(screenMatch[1].trim()));
+    const above = at > 0 ? lines[at - 1] : '';
+    if (/^[가-힣]{2,8}(점)?$/.test(above) && !/입장|확대|상영|좌석|인원|영화|예매|관람/.test(above)) branch = above.replace(/점$/, '');
+  }
   const theater = [chain, branch].filter(Boolean).join(' ');
 
   // 좌석: "H11", "H열 11번"
@@ -86,6 +93,11 @@ export function parseMovieBooking(raw: string, today = new Date()): MovieBooking
   const peopleText = label(text, '인원|관람인원');
   let people = peopleText ? [...peopleText.matchAll(/\d+/g)].reduce((sum, m) => sum + +m[0], 0) : 0;
   if (!people) people = +(/(\d+)\s*명/.exec(text)?.[1] ?? 0);
+  if (!people)
+    people = text
+      .split('\n')
+      .filter((l) => /^(성인|어른|일반|청소년|경로|우대|어린이|학생)\s*\d+/.test(l.trim()))
+      .reduce((sum, l) => sum + +(/\d+/.exec(l)?.[0] ?? 0), 0);
   if (!people) people = Math.max(1, seats.size);
 
   // 제목: 라벨이 있으면 그대로, 없으면 날짜·극장·좌석·안내가 아닌 첫 줄
@@ -99,6 +111,10 @@ export function parseMovieBooking(raw: string, today = new Date()): MovieBooking
           (l) =>
             l &&
             !/예매|완료|고객|님|안내|감사|번호|좌석|인원|명$|\d{1,2}:\d{2}|관람|CGV|메가박스|롯데|씨네/.test(l) &&
+            !/TICKET|MEGABOX|LOTTE|CINEMA|MEET\s*PLAY|SHARE|QR|확대|입장|상영|모바일|발권/i.test(l) &&
+            // 지점 이름(검단 등)·인원 줄(성인 3)은 제목이 아니다
+            !(branch && l.replace(/점$/, '') === branch) &&
+            !/^(성인|어른|일반|청소년|경로|우대|어린이|학생)\s*\d/.test(l) &&
             !SCREEN.test(l) &&
             !/^\d/.test(l),
         ) ?? '';

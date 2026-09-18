@@ -72,6 +72,8 @@ interface Props {
   editing?: RecoRecord | null;
   onClose: () => void;
   onSubmit: (record: RecoRecord) => void;
+  /** 캡처에서 고른 여러 건을 한 번에 기록할 때 (한 장씩 이어서 뽑는다) */
+  onSubmitMany?: (records: RecoRecord[]) => void;
 }
 
 const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
@@ -257,7 +259,7 @@ interface ItemDraft {
   price: string;
 }
 
-export function RecordForm({ visible, records = [], initialKind, editing, onClose, onSubmit }: Props) {
+export function RecordForm({ visible, records = [], initialKind, editing, onClose, onSubmit, onSubmitMany }: Props) {
   const [kind, setKind] = useState<RecordKind>(initialKind ?? 'reading');
   const [reading, setReading] = useState(emptyReading);
   const [movie, setMovie] = useState(emptyMovie);
@@ -630,6 +632,24 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <CardSmsPaste
                   visible={smsOpen}
                   onClose={() => setSmsOpen(false)}
+                  onFillMany={(list) => {
+                    setSmsOpen(false);
+                    // 고른 건마다 영수증 한 장씩 (가게·금액·날짜만 넣고 나머지는 지금 폼 그대로)
+                    const made = list.map((pay) => ({
+                      id: newId(),
+                      createdAt: new Date().toISOString(),
+                      kind: 'spending' as const,
+                      date: pay.date ?? spending.date,
+                      store: pay.store || spending.store,
+                      category: spending.category,
+                      address: spending.address,
+                      memo: spending.memo,
+                      theme: spending.theme,
+                      items: [{ name: pay.time ? `${pay.time} 결제` : '', qty: 1, price: pay.amount }],
+                    }));
+                    onSubmitMany?.(made);
+                    reset();
+                  }}
                   onFill={(pay) => {
                     setSmsOpen(false);
                     setSpending((sp) => ({ ...sp, store: pay.store || sp.store, date: pay.date ?? sp.date }));

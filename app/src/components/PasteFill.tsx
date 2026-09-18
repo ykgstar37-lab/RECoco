@@ -31,12 +31,15 @@ interface Props<T> {
   failMessage: string;
   onClose: () => void;
   onFill: (result: T) => void;
+  /** 여러 건을 한꺼번에 기록할 수 있으면 (고른 것 전부) */
+  onFillMany?: (results: T[]) => void;
 }
 
 /** 문자·알림을 붙여넣거나 캡처를 고르면 바로 읽은 내용을 보여주고, 그대로 기록을 채운다 */
-export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAll, optionLabel, rows, warning, failMessage, onClose, onFill }: Props<T>) {
+export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAll, optionLabel, rows, warning, failMessage, onClose, onFill, onFillMany }: Props<T>) {
   const [text, setText] = useState('');
-  const [picked, setPicked] = useState(0);
+  // 고른 줄 번호들 (여러 건 기록이 가능하면 여러 개)
+  const [picked, setPicked] = useState<number[]>([0]);
   const [reading, setReading] = useState(false);
   const [ocrNotice, setOcrNotice] = useState('');
 
@@ -44,7 +47,7 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAl
     if (!visible) return;
     setText('');
     setOcrNotice('');
-    setPicked(0);
+    setPicked([0]);
   }, [visible]);
 
   // 알림·앱 화면 캡처에서 글자를 읽어 칸에 넣는다 (그다음은 붙여넣기와 똑같이)
@@ -57,7 +60,7 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAl
       const found = await readImageText(shot.assets[0].uri);
       if (found.trim()) {
         setText(found);
-        setPicked(0);
+        setPicked([0]);
       } else {
         setOcrNotice('캡처에서 글자를 찾지 못했어요.');
       }
@@ -84,12 +87,19 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAl
   const changeText = (next: string) => {
     if (next.length - text.length > 15) Keyboard.dismiss();
     setText(next);
-    setPicked(0);
+    setPicked([0]);
   };
 
   const found = text.trim() && parseAll ? parseAll(text) : [];
-  const result = text.trim() ? (parseAll ? (found[Math.min(picked, found.length - 1)] ?? null) : parse(text)) : null;
+  const chosen = picked.filter((i) => i < found.length).sort((a, b) => a - b);
+  const first = chosen.length ? chosen[0] : 0;
+  const result = text.trim() ? (parseAll ? (found[first] ?? null) : parse(text)) : null;
   const warn = result && warning ? warning(result) : null;
+  const many = !!onFillMany && chosen.length > 1;
+  const toggle = (i: number) => {
+    if (!onFillMany) return setPicked([i]);
+    setPicked((prev) => (prev.includes(i) ? (prev.length > 1 ? prev.filter((x) => x !== i) : prev) : [...prev, i]));
+  };
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -113,13 +123,17 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAl
 
             {found.length > 1 && (
               <View style={styles.pickList}>
-                <Text style={styles.pickHead}>{found.length}건을 찾았어요. 기록할 것을 골라주세요.</Text>
+                <Text style={styles.pickHead}>
+                  {found.length}건을 찾았어요. {onFillMany ? '여러 개를 골라 한 번에 기록할 수 있어요.' : '기록할 것을 골라주세요.'}
+                </Text>
                 {found.map((f, i) => {
                   const label = optionLabel?.(f) ?? { title: `${i + 1}번째`, sub: '' };
-                  const on = Math.min(picked, found.length - 1) === i;
+                  const on = chosen.includes(i);
                   return (
-                    <Pressable key={`${label.title}-${i}`} onPress={() => setPicked(i)} style={[styles.pickRow, on && styles.pickRowOn]}>
-                      <View style={[styles.radio, on && styles.radioOn]}>{on && <View style={styles.radioDot} />}</View>
+                    <Pressable key={`${label.title}-${i}`} onPress={() => toggle(i)} style={[styles.pickRow, on && styles.pickRowOn]}>
+                      <View style={[styles.radio, onFillMany && styles.checkbox, on && styles.radioOn]}>
+                        {on && (onFillMany ? <Text style={styles.checkMark}>✓</Text> : <View style={styles.radioDot} />)}
+                      </View>
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.pickRowTitle, on && { color: COLORS.orange }]} numberOfLines={1}>
                           {label.title}
@@ -153,10 +167,12 @@ export function PasteFill<T>({ visible, title, help, placeholder, parse, parseAl
             disabled={!result}
             onPress={() => {
               Keyboard.dismiss();
-              if (result) onFill(result);
+              if (!result) return;
+              if (many && onFillMany) onFillMany(chosen.map((i) => found[i]));
+              else onFill(result);
             }}
             style={({ pressed }) => [styles.fill, !result && styles.fillOff, pressed && { opacity: 0.85 }]}>
-            <Text style={[styles.fillText, !result && styles.fillTextOff]}>이 내용으로 채우기</Text>
+            <Text style={[styles.fillText, !result && styles.fillTextOff]}>{many ? `${chosen.length}건 모두 기록하기` : '이 내용으로 채우기'}</Text>
           </Pressable>
         </KeyboardAvoidingView>
         <KeyboardDone />
@@ -256,6 +272,8 @@ const styles = StyleSheet.create({
   },
   pickRowOn: { backgroundColor: COLORS.orangeSoft, borderColor: COLORS.orange },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: COLORS.placeholder, alignItems: 'center', justifyContent: 'center' },
+  checkbox: { borderRadius: 6 },
+  checkMark: { color: COLORS.orange, fontSize: 13, fontFamily: FONTS.sansBold, lineHeight: 15 },
   radioOn: { borderColor: COLORS.orange },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.orange },
   pickRowTitle: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },

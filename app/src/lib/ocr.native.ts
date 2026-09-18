@@ -11,9 +11,16 @@ export async function readImageText(uri: string): Promise<string> {
   if (!canReadImageText) throw new OcrUnavailable();
   const result = await TextRecognition.recognize(uri, TextRecognitionScript.KOREAN);
   const lines = result.blocks
-    .flatMap((b) => b.lines)
+    .flatMap((b) => (b.lines.length ? b.lines.map((l) => ({ text: l.text, frame: l.frame ?? b.frame })) : [{ text: b.text, frame: b.frame }]))
     .sort((a, b) => (a.frame?.top ?? 0) - (b.frame?.top ?? 0) || (a.frame?.left ?? 0) - (b.frame?.left ?? 0))
     .map((l) => l.text.trim())
     .filter(Boolean);
-  return lines.length ? lines.join('\n') : result.text;
+  if (!lines.length) return result.text;
+  // 줄 목록에서 빠진 글자가 전체 글자에는 있을 수 있어서(오른쪽 정렬된 값 등) 뒤에 덧붙인다
+  const joined = lines.join('\n');
+  const missed = result.text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l && !joined.includes(l));
+  return [...lines, ...missed].join('\n');
 }
