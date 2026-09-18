@@ -19,7 +19,7 @@ import { downloadPhoto, pickPhotos } from '../lib/photos';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
-import { ConcertDesignPicker, FoodDesignPicker, ThemePicker } from './ThemePicker';
+import { ConcertDesignPicker, FoodDesignPicker, ShowDesignPicker, ThemePicker } from './ThemePicker';
 import { SHOW_TYPES } from '../templates/ShowTicket';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
@@ -160,6 +160,7 @@ const emptyShow = (): Omit<ShowRecord, 'id' | 'createdAt'> => ({
   stars: 4,
   memo: '',
   photo: null,
+  design: 'ticket',
 });
 
 const emptyConcert = (): Omit<ConcertRecord, 'id' | 'createdAt'> => ({
@@ -1114,7 +1115,8 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     </Pressable>
                   ))}
                 </View>
-                <Field label="한 줄 감상" value={show.memo} onChange={(v) => setShow({ ...show, memo: v })} placeholder="앙코르 세 곡. 목이 다 쉬었다." multiline />
+                <Field label="한 줄 감상" value={show.memo} onChange={(v) => setShow({ ...show, memo: v })} placeholder="커튼콜에서 눈물 날 뻔했다." multiline />
+                <ShowDesignPicker value={show.design} onChange={(design) => setShow((x) => ({ ...x, design }))} />
               </>
             )}
 

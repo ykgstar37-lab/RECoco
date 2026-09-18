@@ -11,6 +11,7 @@ import { GiftCoupon, layoutGift } from './GiftCoupon';
 import { MovieTicket, layoutMovie } from './MovieTicket';
 import { ReadingReceipt, layoutReading } from './ReadingReceipt';
 import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
+import { ShowHolo, layoutShowHolo } from './ShowHolo';
 import { ShowTicket, layoutShow } from './ShowTicket';
 import { TemplateLayout } from './shared';
 import { TravelPass, layoutTravel } from './TravelPass';
@@ -35,7 +36,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'food':
       return record.design === 'house' ? layoutFoodHouse(record) : layoutFood(record);
     case 'show':
-      return layoutShow(record);
+      return record.design === 'holo' ? layoutShowHolo(record) : layoutShow(record);
     case 'concert':
       return record.design === 'band' ? layoutConcertBand(record) : record.design === 'kpop' ? layoutConcertKpop(record) : layoutConcert(record);
   }
@@ -73,7 +74,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
     case 'food':
       return record.design === 'house' ? <FoodHouse record={record} width={width} /> : <FoodOrder record={record} width={width} />;
     case 'show':
-      return <ShowTicket record={record} width={width} />;
+      return record.design === 'holo' ? <ShowHolo record={record} width={width} /> : <ShowTicket record={record} width={width} />;
     case 'concert':
       return record.design === 'band' ? (
         <ConcertBand record={record} width={width} />

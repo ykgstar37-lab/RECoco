@@ -2,7 +2,7 @@
 import { KIND_LABEL } from '../templates';
 import { RecoRecord, RecordKind } from '../types';
 import { sampleConcert, sampleFood, sampleFourcut, sampleGift, sampleShow, sampleSpending } from './previewSamples';
-import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, THEMES, ThemeItem } from './shop';
+import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
 
 export interface PreviewSample {
   record: RecoRecord;
@@ -100,6 +100,22 @@ export function concertDesignProduct(d: ConcertDesignItem): PreviewProduct {
 }
 
 export const concertDesignProductById = (id: ConcertDesignItem['id']) => concertDesignProduct(CONCERT_DESIGNS.find((d) => d.id === id)!);
+
+export function showDesignProduct(d: ShowDesignItem): PreviewProduct {
+  return {
+    title: d.name,
+    desc: d.desc,
+    productId: d.productId,
+    price: d.price,
+    tags: [KIND_LABEL.show],
+    samples: [
+      { record: { ...sampleShow('play'), id: `preview-show-${d.id}`, design: d.id }, caption: '뮤지컬·연극' },
+      { record: { ...sampleShow('exhibition'), id: `preview-show-${d.id}-ex`, design: d.id }, caption: '전시' },
+    ],
+  };
+}
+
+export const showDesignProductById = (id: ShowDesignItem['id']) => showDesignProduct(SHOW_DESIGNS.find((d) => d.id === id)!);
 
 export function categoryProduct(kind: RecordKind): PreviewProduct | null {
   const c = PAID_CATEGORIES[kind];

@@ -3,10 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, concertDesignProductById, foodDesignProductById, themeProductById } from '../lib/products';
-import { CONCERT_DESIGNS, FOOD_DESIGNS, THEMES, concertDesignUnlocked, foodDesignUnlocked, themeUnlocked, useShop } from '../lib/shop';
+import { PreviewProduct, concertDesignProductById, foodDesignProductById, showDesignProductById, themeProductById } from '../lib/products';
+import { CONCERT_DESIGNS, FOOD_DESIGNS, SHOW_DESIGNS, THEMES, concertDesignUnlocked, foodDesignUnlocked, showDesignUnlocked, themeUnlocked, useShop } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
-import { ConcertDesign, FoodDesign, PaperTheme } from '../types';
+import { ConcertDesign, FoodDesign, PaperTheme, ShowDesign } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 종이 테마 견본 그림 (기본 / 흰 무지 / 모눈종이) */
@@ -212,6 +212,75 @@ export function ConcertDesignPicker({ value, onChange }: { value: ConcertDesign 
             <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
               <View style={locked && { opacity: 0.55 }}>
                 <ConcertDesignSwatch design={o.id} />
+              </View>
+              <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
+                {locked ? '🔒 ' : ''}
+                {o.name}
+              </Text>
+              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
+            </Pressable>
+          );
+        })}
+      </View>
+      <ProductPreview
+        product={preview?.product ?? null}
+        onClose={() => setPreview(null)}
+        onBought={() => {
+          if (preview) onChange(preview.id);
+          setPreview(null);
+        }}
+      />
+    </View>
+  );
+}
+
+/** 공연·전시 모양 견본 (입장권 / 홀로그램 기록표) */
+export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | undefined; size?: number }) {
+  if (design === 'holo')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={2} fill="#17359b" />
+        <Path d="M2,50 L20,2 L27,2 L9,50 Z" fill="#8be9f7" opacity={0.18} />
+        <Rect x={7} y={8} width={26} height={12} fill="none" stroke="#fff" strokeWidth={1} opacity={0.6} />
+        <Rect x={14} y={12} width={12} height={4} rx={1} fill="#ffd84d" />
+        {[24, 34].map((y) => (
+          <Rect key={y} x={7} y={y} width={26} height={8} fill="none" stroke="#fff" strokeWidth={1} opacity={0.6} />
+        ))}
+      </Svg>
+    );
+  return (
+    <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+      <Rect x={2} y={2} width={36} height={48} rx={4} fill="#fdf3f6" stroke={COLORS.line} strokeWidth={1} />
+      <Rect x={2} y={2} width={36} height={11} rx={4} fill="#a4325a" />
+      <Rect x={10} y={17} width={20} height={16} rx={2} fill="#a4325a" opacity={0.2} />
+      <Line x1={2} y1={38} x2={38} y2={38} stroke={COLORS.line} strokeWidth={1.4} strokeDasharray="3 3" />
+      <Rect x={8} y={41} width={24} height={6} rx={1} fill="#a4325a" opacity={0.55} />
+    </Svg>
+  );
+}
+
+/** 공연·전시 폼의 모양 고르기 */
+export function ShowDesignPicker({ value, onChange }: { value: ShowDesign | undefined; onChange: (design: ShowDesign) => void }) {
+  const { owned } = useShop();
+  const [preview, setPreview] = useState<{ id: ShowDesign; product: PreviewProduct } | null>(null);
+  const options: { id: ShowDesign; name: string; price: number }[] = [{ id: 'ticket', name: '입장권', price: 0 }, ...SHOW_DESIGNS];
+
+  const choose = (id: ShowDesign) => {
+    if (showDesignUnlocked(id, owned)) return onChange(id);
+    setPreview({ id, product: showDesignProductById(id as Exclude<ShowDesign, 'ticket'>) });
+  };
+
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.label}>입장권 모양</Text>
+      <View style={styles.row}>
+        {options.map((o) => {
+          const on = (value ?? 'ticket') === o.id;
+          const locked = !showDesignUnlocked(o.id, owned);
+          return (
+            <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
+              <View style={locked && { opacity: 0.55 }}>
+                <ShowDesignSwatch design={o.id} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
                 {locked ? '🔒 ' : ''}

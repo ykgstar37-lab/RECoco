@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
 import type { OutfitId } from '../components/Outfits';
-import type { ConcertDesign, FoodDesign, PaperTheme, RecordKind } from '../types';
+import type { ConcertDesign, FoodDesign, PaperTheme, RecordKind, ShowDesign } from '../types';
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
@@ -78,6 +78,22 @@ export const CONCERT_DESIGNS: ConcertDesignItem[] = [
 
 export const concertDesignUnlocked = (id: ConcertDesign | undefined, owned: string[]) =>
   !id || id === 'ticket' || owned.includes(CONCERT_DESIGNS.find((d) => d.id === id)?.productId ?? '');
+
+export interface ShowDesignItem {
+  id: Exclude<ShowDesign, 'ticket'>;
+  name: string;
+  desc: string;
+  productId: string;
+  price: number;
+}
+
+/** 공연·전시 영수증 모양 테마 (기본은 입장권) */
+export const SHOW_DESIGNS: ShowDesignItem[] = [
+  { id: 'holo', name: '홀로그램 기록표', desc: '파란 홀로그램 종이에 칸칸이 적는 관람 기록표', productId: 'recoco.theme.show-holo', price: 1000 },
+];
+
+export const showDesignUnlocked = (id: ShowDesign | undefined, owned: string[]) =>
+  !id || id === 'ticket' || owned.includes(SHOW_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 /** 새 카테고리 (기본 5개는 무료) */
 export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; icon: string; productId: string; price: number }>> = {

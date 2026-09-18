@@ -152,7 +152,10 @@ export interface FoodRecord extends BaseRecord {
 
 export type ShowType = 'play' | 'exhibition';
 
-/** 공연·전시: 콘서트·뮤지컬/연극·전시 입장권 */
+/** ticket: 기본 입장권, holo: 홀로그램 기록표 */
+export type ShowDesign = 'ticket' | 'holo';
+
+/** 공연·전시: 뮤지컬·연극·전시 입장권 */
 export interface ShowRecord extends BaseRecord {
   kind: 'show';
   date: string; // YYYY-MM-DD
@@ -166,6 +169,7 @@ export interface ShowRecord extends BaseRecord {
   stars: number; // 0~5
   memo: string;
   photo: Photo | null; // 포스터·현장 사진
+  design?: ShowDesign; // 없으면 기본 입장권
 }
 
 /** order 대신 ticket: 기본 레트로 티켓, band: 스탠딩 팔찌, kpop: 핑크 포토 티켓 */
