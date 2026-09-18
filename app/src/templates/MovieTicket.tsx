@@ -32,7 +32,8 @@ function edge(forward: boolean) {
     .join(' ');
 }
 
-function ticketPath(h: number) {
+function ticketPath(h: number, connected: boolean) {
+  if (connected) return `M0,0 H${PW} V${h} H0 Z`;
   // 아래쪽은 위쪽 조각을 뒤집어서(y → h - y) 사용
   const bottom = edge(false).replace(/(-?\d+(?:\.\d+)?),0/g, (_, x) => `${x},${h}`).replace(/0 0 0/g, '0 0 0');
   return `M0,0 ${edge(true)} L${PW},0 L${PW},${h} ${bottom} L0,${h} Z`;
@@ -58,11 +59,11 @@ export function layoutMovie(r: MovieRecord): TemplateLayout {
   return { width: PW + PAD * 2, height: BASE_H + extra + PAD * 2 + 14, foldAt: 560 + extra + PAD, displayRatio: 0.9, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
-export function MovieTicket({ record: r, width }: { record: MovieRecord; width: number }) {
+export function MovieTicket({ record: r, width, connected = false }: { record: MovieRecord; width: number; connected?: boolean }) {
   const L = layoutMovie(r);
   const { title, extra } = computeLayout(r);
   const PH = BASE_H + extra;
-  const shape = ticketPath(PH);
+  const shape = ticketPath(PH, connected);
   const PAPER = MOVIE_PAPERS[r.paper ?? 'pink'];
 
   const rnd = seededRandom(r.id);
@@ -91,7 +92,7 @@ export function MovieTicket({ record: r, width }: { record: MovieRecord; width: 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} />
+        {!connected && <PaperShadow d={shape} />}
         <Path d={shape} fill={PAPER} />
 
         <T f="sansHeavy" x={PW / 2} y={138} fontSize={header.size} textAnchor="middle" children={header.text} />

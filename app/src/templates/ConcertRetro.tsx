@@ -28,8 +28,9 @@ export function layoutConcertRetro(_r: ConcertRecord): TemplateLayout {
 
 /** 스텁 경계가 반원으로 파인 가로 티켓 */
 function ticketPath(connected: boolean) {
+  if (connected) return `M0,0 H${PW} V${PH} H0 Z`;
   const x = MAIN_W;
-  const R = connected ? 0 : 14;
+  const R = 14;
   return [
     `M${R},0 H${x - NOTCH} A${NOTCH},${NOTCH} 0 0 1 ${x + NOTCH},0 H${PW - R} Q${PW},0 ${PW},${R}`,
     `V${PH - R} Q${PW},${PH} ${PW - R},${PH} H${x + NOTCH} A${NOTCH},${NOTCH} 0 0 1 ${x - NOTCH},${PH} H${R}`,

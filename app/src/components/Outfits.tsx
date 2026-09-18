@@ -6,8 +6,8 @@ export type OutfitId = 'ribbon' | 'heart' | 'cat' | 'straw' | 'beret' | 'crown' 
 // 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
 const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
   ribbon: { from: [268, 82], to: [300, 102], k: 1.1, r: 26, top: 70 },
-  heart: { from: [0, 0], to: [0, 0], k: 1, top: 10 },
-  cat: { from: [0, 0], to: [0, 0], k: 1, top: 46 },
+  heart: { from: [0, 0], to: [0, 0], k: 1, top: 6 },
+  cat: { from: [0, 0], to: [0, 0], k: 1, top: 50 },
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
@@ -18,14 +18,14 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   glasses: { from: [0, 0], to: [0, 0], k: 1, top: 160 },
 };
 
-const HEART = '#ff6f91'; // 하트 꼬랑지 (주황 배경·흰 배경 어디서든 보이는 분홍)
+const HEART = '#fff'; // 하트 꼬랑지 (코코와 같은 흰색)
 const LINE = '#3a2a22'; // 고양이 귀·수염 (코코 눈과 같은 색)
 
 /** 머리를 덮는 옷은 만두 꼭지를 숨긴다 (리본은 꼭지 옆에 묶어서 꼭지가 보이게) */
 export const COVERS_KNOB: Record<OutfitId, boolean> = {
   ribbon: false,
-  heart: false, // 머리에서 솟는 더듬이라 꼭지는 그대로 보인다
-  cat: false,
+  heart: true, // 꼭지 자리에서 하트가 솟는다
+  cat: true, // 귀가 꼭지 자리를 대신한다
   straw: true,
   beret: true,
   crown: true,
@@ -67,30 +67,26 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'heart':
-      // 머리에서 가늘게 솟아 하트로 끝나는 꼬랑지 (만두 꼭지를 피해 왼쪽에서 솟는다)
+      // 머리 한가운데서 솟아 하트로 끝나는 꼬랑지. 한 붓으로 그려서 끝이 시작점에 닿기 전에 멈춘다
       return (
-        <G stroke={HEART} strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" fill="none">
-          <Path d="M171,89 C162,76 159,66 162,56" />
-          <Path d="M162,56 C146.3,44.5 137.9,35 137.9,26.6 C137.9,19.3 143.6,14 150.5,14 C155.7,14 159.9,17.2 162,21.4 C164.1,17.2 168.3,14 173.6,14 C180.4,14 186.2,19.3 186.2,26.6 C186.2,35 177.8,44.5 162,56 Z" />
+        <G stroke={HEART} strokeWidth={7} strokeLinecap="round" fill="none">
+          <Path d="M206,86 C201,74 200,62 200,52 C184,40 176,31 176,22.6 C176,15 182,10 188.5,10 C194,10 198,13 200,17.4 C202,13 206,10 211.6,10 C218,10 224,15 224,22.6 C224,30 219,37 206,47" />
         </G>
       );
     case 'cat':
-      // 고양이: 가는 선 귀 + 볼 위로 뻗는 수염 + 작은 코
+      // 고양이: 머리 위에 작게 벌려 얹은 귀 + 볼 옆 짧은 수염 (코는 입과 붙어 보여서 뺐다)
       return (
-        <G>
-          <G stroke={LINE} strokeWidth={7} strokeLinecap="round" fill="none">
-            <Path d="M112,132 Q118,74 146,58 Q166,76 178,112" />
-            <Path d="M288,132 Q282,74 254,58 Q234,76 222,112" />
+        <G stroke={LINE} strokeLinecap="round" fill="none">
+          <G strokeWidth={6}>
+            <Path d="M132,98 Q140,58 158,52 Q172,66 180,92" />
+            <Path d="M268,98 Q260,58 242,52 Q228,66 220,92" />
           </G>
-          <G stroke={LINE} strokeWidth={5} strokeLinecap="round" fill="none" opacity={0.9}>
-            <Path d="M150,214 C118,204 84,198 50,196" />
-            <Path d="M150,228 C116,228 82,232 48,238" />
-            <Path d="M150,242 C120,250 90,262 60,276" />
-            <Path d="M250,214 C282,204 316,198 350,196" />
-            <Path d="M250,228 C284,228 318,232 352,238" />
-            <Path d="M250,242 C280,250 310,262 340,276" />
+          <G strokeWidth={5} opacity={0.9}>
+            <Path d="M146,210 C124,204 100,200 76,198" />
+            <Path d="M146,224 C124,226 100,230 76,235" />
+            <Path d="M254,210 C276,204 300,200 324,198" />
+            <Path d="M254,224 C276,226 300,230 324,235" />
           </G>
-          <Path d="M200,218 C196,212 190,207 185,209 C180,211 181,216 186,219 L200,227 L214,219 C219,216 220,211 215,209 C210,207 204,212 200,218 Z" fill={LINE} />
         </G>
       );
     case 'straw':

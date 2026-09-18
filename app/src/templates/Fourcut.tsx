@@ -159,11 +159,11 @@ function PhotoCell({
   );
 }
 
-export function FourcutFront({ record: r, width }: { record: FourcutRecord; width: number }) {
+export function FourcutFront({ record: r, width, connected = false }: { record: FourcutRecord; width: number; connected?: boolean }) {
   const L = layoutFourcut(r);
   const { w, h, image } = fourcutSize(r);
   const spec = FOURCUT_LAYOUTS[r.layout] ?? FOURCUT_LAYOUTS.strip;
-  const card = cardPath(w, h);
+  const card = cardPath(w, h, connected ? 0 : 8);
   const clip = `fc-clip-${r.id}`;
   const frame = FRAMES[r.frame] ?? FRAMES.white;
   const d = parseDate(r.date);
@@ -173,7 +173,7 @@ export function FourcutFront({ record: r, width }: { record: FourcutRecord; widt
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={card} strength={1.4} />
+        {!connected && <PaperShadow d={card} strength={1.4} />}
         <Defs>
           <ClipPath id={clip}>
             <Path d={card} />

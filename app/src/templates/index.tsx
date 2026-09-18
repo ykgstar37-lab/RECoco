@@ -81,13 +81,13 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
     case 'reading':
       return <ReadingReceipt record={record} width={width} />;
     case 'movie':
-      return <MovieTicket record={record} width={width} />;
+      return <MovieTicket record={record} width={width} connected={connected} />;
     case 'spending':
       return <SpendingReceipt record={record} width={width} />;
     case 'travel':
       return <TravelPass record={record} width={width} connected={connected} />;
     case 'fourcut':
-      return <FourcutFront record={record} width={width} />;
+      return <FourcutFront record={record} width={width} connected={connected} />;
     case 'gift':
       return <GiftCoupon record={record} width={width} connected={connected} />;
     case 'food':

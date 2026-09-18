@@ -13,14 +13,16 @@ import { FourcutRecord, RecoRecord } from '../types';
 interface Props {
   record: FourcutRecord;
   rollWidth: number;
+  /** 롤로 이어 붙일 때: 기울이지 않고 아래 여백 없이 */
+  connected?: boolean;
   onLongPress?: (record: RecoRecord) => void;
 }
 
 /** 인생네컷: 탭하면 앞(사진) ↔ 뒤(오늘의 하루)로 뒤집힌다 */
-function FlipCardBase({ record, rollWidth, onLongPress }: Props) {
+function FlipCardBase({ record, rollWidth, connected = false, onLongPress }: Props) {
   const { width, height } = sizeOf(record, rollWidth);
   const flip = useSharedValue(0); // 0 앞면, 1 뒷면
-  const tilt = useMemo(() => (seededRandom(record.id)() - 0.5) * 3, [record.id]);
+  const tilt = useMemo(() => (connected ? 0 : (seededRandom(record.id)() - 0.5) * 3), [record.id, connected]);
 
   const tap = Gesture.Tap()
     .maxDuration(250)
@@ -49,12 +51,12 @@ function FlipCardBase({ record, rollWidth, onLongPress }: Props) {
   const hint = useAnimatedStyle(() => ({ opacity: interpolate(flip.value, [0, 0.2], [1, 0], 'clamp') }));
 
   return (
-    <View style={{ alignItems: 'center', paddingBottom: 26 }}>
+    <View style={{ alignItems: 'center', paddingBottom: connected ? 0 : 26 }}>
       <GestureDetector gesture={Gesture.Exclusive(longPress, tap)}>
         <Animated.View style={[{ width, height, transform: [{ rotate: `${tilt}deg` }] }]}>
           <Animated.View style={[StyleSheet.absoluteFill, lift]}>
             <Animated.View style={[StyleSheet.absoluteFill, styles.face, front]}>
-              <FourcutFront record={record} width={width} />
+              <FourcutFront record={record} width={width} connected={connected} />
             </Animated.View>
             <Animated.View style={[StyleSheet.absoluteFill, styles.face, back]}>
               <FourcutBack record={record} width={width} />

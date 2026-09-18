@@ -28,8 +28,9 @@ export function layoutConcert(_r: ConcertRecord): TemplateLayout {
 
 /** 가운데가 삼각으로 파인 가로 티켓 */
 function ticketPath(connected: boolean) {
+  if (connected) return `M0,0 H${PW} V${PH} H0 Z`;
   const x = MAIN_W;
-  const R = connected ? 0 : 14;
+  const R = 14;
   return [
     `M${R},0 H${x - 26} L${x},${NOTCH} L${x + 26},0 H${PW - R} Q${PW},0 ${PW},${R}`,
     `V${PH - R} Q${PW},${PH} ${PW - R},${PH} H${x + 26} L${x},${PH - NOTCH} L${x - 26},${PH} H${R}`,

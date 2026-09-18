@@ -145,8 +145,8 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
               <Text style={styles.empty}>{kindLabel ? `아직 뽑은 ${kindLabel} 영수증이 없어요.` : '아직 뽑은 영수증이 없어요.'}</Text>
             )}
             {list.map((record, i) => {
-              // 카테고리를 골랐을 때는 영수증끼리 딱 붙여 하나의 긴 롤처럼 잇는다 (네컷은 카드라 따로)
-              const connected = !!kind && record.kind !== 'fourcut';
+              // 카테고리를 골랐을 때는 영수증끼리 딱 붙여 하나의 긴 롤처럼 잇는다
+              const connected = !!kind;
               const prev = list[i - 1];
               // 여백만큼 당겨 붙인다. 1px 더 겹쳐서 반올림 탓에 실틈이 비치지 않게 (가장자리는 어차피 빈 종이)
               const overlap =
@@ -161,7 +161,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
                     // 이음매 위에 올려둔 작은 절취선 라벨
                     <View style={[styles.seam, i === 0 && styles.seamFirst]} pointerEvents="box-none">
                       <Pressable onPress={() => open(record)} hitSlop={6} style={styles.seamChip}>
-                        <Text style={styles.seamText}>✂ {dateText}</Text>
+                        <Text style={styles.seamText}>{dateText}</Text>
                         <Text style={styles.seamMore}>크게 보기</Text>
                       </Pressable>
                     </View>
@@ -176,7 +176,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
                     </View>
                   )}
                   {record.kind === 'fourcut' ? (
-                    <FlipCard record={record} rollWidth={paperW} onLongPress={open} />
+                    <FlipCard record={record} rollWidth={paperW} connected={connected} onLongPress={open} />
                   ) : (
                     <FoldableReceipt record={record} rollWidth={paperW} connected={connected} onLongPress={open} />
                   )}
