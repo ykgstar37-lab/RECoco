@@ -91,6 +91,13 @@ module.exports = () => {
     { name: '영화_티켓', record: movie },
     { name: '영화_티켓_흰색', record: { ...movie, id: 'sample-movie-white', paper: 'white' } },
     { name: '소비_영수증', record: spending },
+    { name: '소비_여러곳', record: { ...spending, id: 'sample-spending-multi', store: '9월 16일 소비', date: '2026-09-16', memo: '', items: [
+      { name: '아이스 아메리카노', qty: 1, price: 2000, store: '메가MGC', date: '2026-09-16', time: '19:13' },
+      { name: '카페라떼', qty: 1, price: 1600, store: '메가MGC', date: '2026-09-15', time: '19:25' },
+      { name: '도시락', qty: 2, price: 2750, store: 'GS25고척점', date: '2026-09-13', time: '21:39' } ] } },
+    { name: '소비_여러곳_모눈', record: { ...spending, id: 'sample-spending-multi2', theme: 'grid', store: '이번 주 커피값', memo: '이번 주 커피값', items: [
+      { name: '라떼', qty: 2, price: 4500, store: '달밤커피', date: '2026-09-17', time: '14:05' },
+      { name: '', qty: 1, price: 4500, store: '골목 칼국수', date: '2026-09-18', time: '12:40' } ] } },
     { name: '소비_총액만', record: { ...spending, id: 'sample-spending-total', items: [{ name: '', qty: 1, price: 27400 }] } },
     { name: '소비_영수증_테마_흰무지', record: { ...spending, id: 'sample-spending-plain', theme: 'plain' } },
     { name: '소비_영수증_테마_모눈', record: { ...spending, id: 'sample-spending-grid', theme: 'grid' } },

@@ -90,6 +90,8 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
   };
 
   const items = r.items.filter((it) => it.name.trim() || it.price > 0).slice(0, MAX_ROWS);
+  // 여러 가게를 한 장에 적은 기록: 첫 칸을 월일 대신 시간으로 쓰고, 품목 칸에 가게 이름을 같이 적는다
+  const multi = new Set(items.map((it) => it.store?.trim()).filter(Boolean)).size > 1;
   const total = items.reduce((sum, it) => sum + it.qty * it.price, 0);
   const [, m, d] = r.date.split('-').map((v) => parseInt(v, 10));
   const md = m && d ? `${m}/${d}` : '';
@@ -155,7 +157,7 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
           <Text x={(L + R) / 2 + 7} y={gTop + 28} fontSize={20} textAnchor="middle" letterSpacing={14} fill={INK} fontFamily={FONTS.serif}>
             공급내역
           </Text>
-          {label((cols[0] + cols[1]) / 2, hTop + 26, '월일', 16)}
+          {label((cols[0] + cols[1]) / 2, hTop + 26, multi ? '시간' : '월일', 16)}
           {label((cols[1] + cols[2]) / 2, hTop + 26, '품      목', 16)}
           {label((cols[2] + cols[3]) / 2, hTop + 26, '수량', 16)}
           {label((cols[3] + cols[4]) / 2, hTop + 26, '단가', 16)}
@@ -193,11 +195,13 @@ export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; 
           {items.map((it, i) => {
             const y = hBot + rowH * (i + 1) - 12;
             // 총액만 적은 기록: 품목 칸은 비우고 금액만 적는다
-            const onlyTotal = !it.name.trim();
+            const onlyTotal = !it.name.trim() && !it.store?.trim();
+            const when = multi ? (it.time ?? '') : md;
+            const what = multi ? [it.store?.trim(), it.name.trim()].filter(Boolean).join(' ') : it.name;
             return (
               <G key={i}>
-                {hand(`d${i}`, (cols[0] + cols[1]) / 2, y, md, 28, 58, 'middle')}
-                {hand(`n${i}`, cols[1] + 10, y, it.name, 31, cols[2] - cols[1] - 16)}
+                {hand(`d${i}`, (cols[0] + cols[1]) / 2, y, when, 28, 58, 'middle')}
+                {hand(`n${i}`, cols[1] + 10, y, what, 31, cols[2] - cols[1] - (multi ? 30 : 16))}
                 {!onlyTotal && hand(`q${i}`, (cols[2] + cols[3]) / 2, y, String(it.qty), 30, 48, 'middle')}
                 {!onlyTotal && hand(`p${i}`, cols[4] - 6, y, won(it.price), 28, cols[4] - cols[3] - 8, 'end')}
                 {hand(`a${i}`, R - 10, y, won(it.qty * it.price), 30, R - cols[4] - 16, 'end')}

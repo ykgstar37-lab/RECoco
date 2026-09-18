@@ -43,6 +43,10 @@ export interface SpendingItem {
   name: string;
   qty: number;
   price: number;
+  /** 여러 곳에서 쓴 걸 한 장에 적을 때: 이 줄의 가게·날짜·시간 */
+  store?: string;
+  date?: string; // YYYY-MM-DD
+  time?: string; // HH:mm
 }
 
 export interface SpendingRecord extends BaseRecord {

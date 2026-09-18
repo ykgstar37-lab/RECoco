@@ -73,8 +73,6 @@ interface Props {
   editing?: RecoRecord | null;
   onClose: () => void;
   onSubmit: (record: RecoRecord) => void;
-  /** 캡처에서 고른 여러 건을 한 번에 기록할 때 (한 장씩 이어서 뽑는다) */
-  onSubmitMany?: (records: RecoRecord[]) => void;
 }
 
 const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
@@ -258,9 +256,13 @@ interface ItemDraft {
   name: string;
   qty: string;
   price: string;
+  /** 캡처에서 가져온 줄이면 그 줄의 가게·날짜·시간 */
+  store?: string;
+  date?: string;
+  time?: string;
 }
 
-export function RecordForm({ visible, records = [], initialKind, editing, onClose, onSubmit, onSubmitMany }: Props) {
+export function RecordForm({ visible, records = [], initialKind, editing, onClose, onSubmit }: Props) {
   const [kind, setKind] = useState<RecordKind>(initialKind ?? 'reading');
   const [reading, setReading] = useState(emptyReading);
   const [movie, setMovie] = useState(emptyMovie);
@@ -373,11 +375,14 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   };
 
   const parsedItems: SpendingItem[] = items
-    .filter((it) => it.name.trim())
+    .filter((it) => it.name.trim() || it.store?.trim())
     .map((it) => ({
       name: it.name.trim(),
       qty: Math.max(1, parseInt(it.qty, 10) || 1),
       price: parseInt(it.price.replace(/[^0-9]/g, ''), 10) || 0,
+      ...(it.store ? { store: it.store } : {}),
+      ...(it.date ? { date: it.date } : {}),
+      ...(it.time ? { time: it.time } : {}),
     }));
   const total = parsedItems.reduce((s, it) => s + it.qty * it.price, 0);
   const onlyTotalValue = parseInt(onlyAmount.replace(/[^0-9]/g, ''), 10) || 0;
@@ -392,13 +397,18 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
       if (!movie.title.trim()) return setError('영화 제목을 적어주세요.');
       record = { ...base, ...movie } as MovieRecord;
     } else if (kind === 'spending') {
-      if (!spending.store.trim()) return setError('어디서 썼는지(상호)를 적어주세요.');
+      const fromShot = items.some((it) => it.store?.trim());
+      if (!spending.store.trim() && !fromShot) return setError('어디서 썼는지(상호)를 적어주세요.');
       if (totalOnly) {
         if (!onlyTotalValue) return setError('쓴 금액을 적어주세요.');
         record = { ...base, kind: 'spending', ...spending, items: [{ name: '', qty: 1, price: onlyTotalValue }] } as SpendingRecord;
       } else {
         if (!parsedItems.length) return setError('품목을 하나 이상 적어주세요.');
-        record = { ...base, kind: 'spending', ...spending, items: parsedItems } as SpendingRecord;
+        const stores = [...new Set(parsedItems.map((it) => it.store?.trim()).filter(Boolean))] as string[];
+        // 여러 가게를 한 장에 적을 땐 상호 칸을 "9월 18일 소비" 처럼 (직접 적었으면 그대로)
+        const [, m, d] = spending.date.split('-');
+        const store = spending.store.trim() || (stores.length > 1 ? `${+m}월 ${+d}일 소비` : '');
+        record = { ...base, kind: 'spending', ...spending, store, items: parsedItems } as SpendingRecord;
       }
     } else if (kind === 'travel') {
       if (!travel.from.trim() || !travel.to.trim()) return setError('출발지와 도착지를 골라주세요. (예: 인천 → 도쿄)');
@@ -636,26 +646,18 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   onClose={() => setSmsOpen(false)}
                   onFillMany={(list) => {
                     setSmsOpen(false);
-                    // 고른 건마다 영수증 한 장씩 (가게·금액·날짜만 넣고 나머지는 지금 폼 그대로)
-                    const made = list.map((pay) => ({
-                      id: newId(),
-                      createdAt: new Date().toISOString(),
-                      kind: 'spending' as const,
-                      date: pay.date ?? spending.date,
-                      store: pay.store || spending.store,
-                      category: spending.category,
-                      address: spending.address,
-                      memo: spending.memo,
-                      theme: spending.theme,
-                      items: [{ name: pay.time ? `${pay.time} 결제` : '', qty: 1, price: pay.amount }],
-                    }));
-                    // iOS는 시트가 닫히기 전에 폼까지 닫으면 흰 화면이 돼서 한 박자 쉰다
-                    setTimeout(
-                      () => {
-                        onSubmitMany?.(made);
-                        reset();
-                      },
-                      Platform.OS === 'ios' ? 450 : 80,
+                    // 한 장에 여러 줄로 (품목은 비워두고 직접 적게)
+                    setTotalOnly(false);
+                    setSpending((sp) => ({ ...sp, date: list[0]?.date ?? sp.date }));
+                    setItems(
+                      list.map((pay) => ({
+                        name: '',
+                        qty: '1',
+                        price: String(pay.amount),
+                        store: pay.store,
+                        date: pay.date ?? spending.date,
+                        time: pay.time ?? undefined,
+                      })),
                     );
                   }}
                   onFill={(pay) => {
@@ -671,7 +673,12 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   }}
                 />
                 <Row>
-                  <Field label="어디서? (상호) *" value={spending.store} onChange={(v) => setSpending({ ...spending, store: v })} placeholder="달밤커피" />
+                  <Field
+                    label={items.some((it) => it.store) ? '영수증 제목 (상호)' : '어디서? (상호) *'}
+                    value={spending.store}
+                    onChange={(v) => setSpending({ ...spending, store: v })}
+                    placeholder={items.some((it) => it.store) ? '9월 18일 소비' : '달밤커피'}
+                  />
                   <Field label="종류" value={spending.category} onChange={(v) => setSpending({ ...spending, category: v })} placeholder="카페" />
                 </Row>
                 <StoreSuggest
@@ -725,7 +732,16 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 )}
                 {!totalOnly &&
                   items.map((it, i) => (
-                  <View key={i} style={styles.itemRow}>
+                  <View key={i} style={it.store ? styles.itemBox : undefined}>
+                  {!!it.store && (
+                    <View style={styles.itemHead}>
+                      <Text style={styles.itemStore} numberOfLines={1}>
+                        {it.store}
+                      </Text>
+                      {!!it.date && <Text style={styles.itemDate}>{it.date.replace(/-/g, '.').slice(2)}</Text>}
+                    </View>
+                  )}
+                  <View style={styles.itemRow}>
                     <TextInput
                       inputAccessoryViewID={KEYBOARD_DONE_ID}
                       style={[styles.input, { flex: 3 }]}
@@ -754,11 +770,15 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                       <Text style={styles.remove}>−</Text>
                     </Pressable>
                   </View>
+                  </View>
                 ))}
                 {!totalOnly && items.length < 15 && (
                   <Pressable onPress={() => setItems([...items, { name: '', qty: '1', price: '' }])} style={styles.addItem}>
                     <Text style={styles.addItemText}>+ 품목 추가</Text>
                   </Pressable>
+                )}
+                {items.some((it) => it.store) && (
+                  <Text style={styles.itemHint}>캡처에서 가져온 줄이에요. 품목·수량·단가를 적으면 영수증에 가게와 함께 찍혀요.</Text>
                 )}
                 <Text style={styles.total}>합계 ₩ {won(totalOnly ? onlyTotalValue : total)}</Text>
                 <ThemePicker label="영수증 종이" base="spending" value={spending.theme} onChange={(theme) => setSpending((sp) => ({ ...sp, theme }))} />
@@ -1372,6 +1392,11 @@ const styles = StyleSheet.create({
   star: { fontSize: 32, color: COLORS.line },
   starOn: { color: COLORS.orange },
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  itemBox: { gap: 6, padding: 10, borderRadius: 14, backgroundColor: COLORS.orangeSoft },
+  itemHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  itemStore: { flex: 1, color: COLORS.ink, fontSize: 14, fontFamily: FONTS.sansBold },
+  itemDate: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans },
+  itemHint: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
   remove: { fontSize: 22, color: COLORS.sub, paddingHorizontal: 4 },
   addItem: { alignSelf: 'flex-start', paddingVertical: 6 },
   addItemText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
