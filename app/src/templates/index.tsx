@@ -1,6 +1,9 @@
 import { memo } from 'react';
 
 import { RecoRecord } from '../types';
+import { ConcertBand, layoutConcertBand } from './ConcertBand';
+import { ConcertKpop, layoutConcertKpop } from './ConcertKpop';
+import { ConcertTicket, layoutConcert } from './ConcertTicket';
 import { FoodHouse, layoutFoodHouse } from './FoodHouse';
 import { FoodOrder, layoutFood } from './FoodOrder';
 import { FourcutBack, FourcutFront, layoutFourcut } from './Fourcut';
@@ -33,6 +36,8 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
       return record.design === 'house' ? layoutFoodHouse(record) : layoutFood(record);
     case 'show':
       return layoutShow(record);
+    case 'concert':
+      return record.design === 'band' ? layoutConcertBand(record) : record.design === 'kpop' ? layoutConcertKpop(record) : layoutConcert(record);
   }
 }
 
@@ -69,6 +74,14 @@ export const RecordPaper = memo(function RecordPaper({ record, width }: { record
       return record.design === 'house' ? <FoodHouse record={record} width={width} /> : <FoodOrder record={record} width={width} />;
     case 'show':
       return <ShowTicket record={record} width={width} />;
+    case 'concert':
+      return record.design === 'band' ? (
+        <ConcertBand record={record} width={width} />
+      ) : record.design === 'kpop' ? (
+        <ConcertKpop record={record} width={width} />
+      ) : (
+        <ConcertTicket record={record} width={width} />
+      );
   }
 });
 
@@ -81,4 +94,5 @@ export const KIND_LABEL: Record<RecoRecord['kind'], string> = {
   gift: '선물',
   food: '카페·맛집',
   show: '공연·전시',
+  concert: '콘서트',
 };

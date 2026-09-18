@@ -3,10 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, foodDesignProductById, themeProductById } from '../lib/products';
-import { FOOD_DESIGNS, THEMES, foodDesignUnlocked, themeUnlocked, useShop } from '../lib/shop';
+import { PreviewProduct, concertDesignProductById, foodDesignProductById, themeProductById } from '../lib/products';
+import { CONCERT_DESIGNS, FOOD_DESIGNS, THEMES, concertDesignUnlocked, foodDesignUnlocked, themeUnlocked, useShop } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
-import { FoodDesign, PaperTheme } from '../types';
+import { ConcertDesign, FoodDesign, PaperTheme } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 종이 테마 견본 그림 (기본 / 흰 무지 / 모눈종이) */
@@ -132,6 +132,88 @@ export function FoodDesignPicker({ value, onChange }: { value: FoodDesign | unde
                 <FoodDesignSwatch design={o.id} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]}>
+                {locked ? '🔒 ' : ''}
+                {o.name}
+              </Text>
+              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
+            </Pressable>
+          );
+        })}
+      </View>
+      <ProductPreview
+        product={preview?.product ?? null}
+        onClose={() => setPreview(null)}
+        onBought={() => {
+          if (preview) onChange(preview.id);
+          setPreview(null);
+        }}
+      />
+    </View>
+  );
+}
+
+/** 콘서트 티켓 모양 견본 (레트로 / 팔찌 / K-POP) */
+export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesign | undefined; size?: number }) {
+  if (design === 'band')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={13} y={4} width={14} height={45} rx={4} fill="#191a22" />
+        <Rect x={8} y={4} width={24} height={10} rx={3} fill="#2b2d3a" />
+        <Rect x={16} y={18} width={8} height={2} rx={1} fill="#d6f24a" />
+        <Rect x={16} y={40} width={8} height={2} rx={1} fill="#d6f24a" />
+        {[24, 28, 32].map((y) => (
+          <Line key={y} x1={16} y1={y} x2={24} y2={y} stroke="#fff" strokeWidth={1} opacity={0.5} />
+        ))}
+      </Svg>
+    );
+  if (design === 'kpop')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={2} fill="#fdf3f6" stroke={COLORS.line} strokeWidth={1} />
+        <Rect x={2} y={2} width={36} height={13} fill="#f7b8cc" />
+        <Rect x={2} y={19} width={36} height={6} fill="#141118" />
+        <Rect x={7} y={28} width={26} height={14} rx={1} fill="#f7b8cc" />
+        <Rect x={2} y={45} width={36} height={5} fill="#141118" />
+      </Svg>
+    );
+  return (
+    <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+      <Rect x={2} y={2} width={36} height={48} rx={3} fill="#fbf5ea" stroke={COLORS.line} strokeWidth={1} />
+      <Rect x={5} y={5} width={30} height={30} rx={2} fill="none" stroke="#1f2a44" strokeWidth={1} />
+      {[16, 19, 22].map((x, i) => (
+        <Rect key={x} x={x} y={13 - i} width={2} height={8 + i * 2} rx={1} fill="#e2685c" />
+      ))}
+      <Line x1={9} y1={26} x2={31} y2={26} stroke="#1f2a44" strokeWidth={1.4} />
+      <Rect x={2} y={38} width={36} height={12} fill="#1f2a44" />
+      <Rect x={12} y={42} width={16} height={4} rx={2} fill="#e2685c" />
+    </Svg>
+  );
+}
+
+/** 콘서트 폼의 티켓 모양 고르기 */
+export function ConcertDesignPicker({ value, onChange }: { value: ConcertDesign | undefined; onChange: (design: ConcertDesign) => void }) {
+  const { owned } = useShop();
+  const [preview, setPreview] = useState<{ id: ConcertDesign; product: PreviewProduct } | null>(null);
+  const options: { id: ConcertDesign; name: string; price: number }[] = [{ id: 'ticket', name: '레트로 티켓', price: 0 }, ...CONCERT_DESIGNS];
+
+  const choose = (id: ConcertDesign) => {
+    if (concertDesignUnlocked(id, owned)) return onChange(id);
+    setPreview({ id, product: concertDesignProductById(id as Exclude<ConcertDesign, 'ticket'>) });
+  };
+
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.label}>티켓 모양</Text>
+      <View style={styles.row}>
+        {options.map((o) => {
+          const on = (value ?? 'ticket') === o.id;
+          const locked = !concertDesignUnlocked(o.id, owned);
+          return (
+            <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
+              <View style={locked && { opacity: 0.55 }}>
+                <ConcertDesignSwatch design={o.id} />
+              </View>
+              <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>

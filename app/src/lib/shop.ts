@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
 import type { OutfitId } from '../components/Outfits';
-import type { FoodDesign, PaperTheme, RecordKind } from '../types';
+import type { ConcertDesign, FoodDesign, PaperTheme, RecordKind } from '../types';
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
@@ -62,11 +62,29 @@ export const FOOD_DESIGNS: FoodDesignItem[] = [
 export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) =>
   !id || id === 'order' || owned.includes(FOOD_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
+export interface ConcertDesignItem {
+  id: Exclude<ConcertDesign, 'ticket'>;
+  name: string;
+  desc: string;
+  productId: string;
+  price: number;
+}
+
+/** 콘서트 영수증 모양 테마 (기본은 레트로 티켓) */
+export const CONCERT_DESIGNS: ConcertDesignItem[] = [
+  { id: 'band', name: '스탠딩 팔찌', desc: '공연장에서 채워주는 손목 팔찌', productId: 'recoco.theme.concert-band', price: 1000 },
+  { id: 'kpop', name: 'K-POP 포토 티켓', desc: '분홍 줄무늬에 사진이 큼직하게 박힌 티켓', productId: 'recoco.theme.concert-kpop', price: 1000 },
+];
+
+export const concertDesignUnlocked = (id: ConcertDesign | undefined, owned: string[]) =>
+  !id || id === 'ticket' || owned.includes(CONCERT_DESIGNS.find((d) => d.id === id)?.productId ?? '');
+
 /** 새 카테고리 (기본 5개는 무료) */
 export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; icon: string; productId: string; price: number }>> = {
   gift: { name: '선물', desc: '받은·보낸 선물을 모바일 교환권처럼', icon: '🎁', productId: 'recoco.category.gift', price: 1500 },
   food: { name: '카페·맛집', desc: '먹은 메뉴마다 별점을 매기는 맛집 주문서', icon: '☕', productId: 'recoco.category.food', price: 1500 },
-  show: { name: '공연·전시', desc: '콘서트·뮤지컬·전시를 종류마다 다른 입장권으로', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
+  show: { name: '공연·전시', desc: '뮤지컬·연극·전시를 종류마다 다른 입장권으로', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
+  concert: { name: '콘서트', desc: '아티스트·좌석이 큼직하게 박힌 레트로 공연 티켓', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
 };
 
 export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {

@@ -22,5 +22,7 @@ export function shortLabel(r: RecoRecord) {
       return r.place.trim() || '카페·맛집';
     case 'show':
       return r.title.trim() || '공연·전시';
+    case 'concert':
+      return r.artist.trim() || r.title.trim() || '콘서트';
   }
 }

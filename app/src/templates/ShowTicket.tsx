@@ -17,7 +17,6 @@ const LINE = '#e6e2ea';
 
 /** 종류마다 종이·머리띠 색과 부르는 이름 */
 export const SHOW_TYPES: Record<ShowType, { label: string; head: string; deep: string; paper: string; kindWord: string; placeWord: string; castWord: string }> = {
-  concert: { label: '콘서트', head: '#3b2f63', deep: '#241d40', paper: '#f7f4fb', kindWord: '공연 입장권', placeWord: '공연장', castWord: '아티스트' },
   play: { label: '뮤지컬·연극', head: '#a4325a', deep: '#7c2344', paper: '#fdf3f6', kindWord: '공연 입장권', placeWord: '극장', castWord: '출연' },
   exhibition: { label: '전시', head: '#2f5d4a', deep: '#234637', paper: '#f7f6f0', kindWord: '전시 관람권', placeWord: '전시장', castWord: '작가' },
 };
@@ -32,7 +31,7 @@ type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
 
 function computeLayout(r: ShowRecord) {
-  const t = SHOW_TYPES[r.type] ?? SHOW_TYPES.concert;
+  const t = SHOW_TYPES[r.type] ?? SHOW_TYPES.play;
   const posterH = r.photo ? Math.round(Math.min(420, Math.max(260, (POSTER_W * r.photo.height) / Math.max(1, r.photo.width)))) : 300;
   const posterTop = HEAD_H + 34;
   const posterBot = posterTop + posterH;
@@ -86,19 +85,6 @@ function starPath(cx: number, cy: number, r: number) {
 function TypeArt({ type, x, y, w, h, color }: { type: ShowType; x: number; y: number; w: number; h: number; color: string }) {
   const cx = x + w / 2;
   const cy = y + h / 2;
-  if (type === 'concert') {
-    return (
-      <G>
-        <Rect x={cx - 26} y={cy - 96} width={52} height={104} rx={26} fill={color} />
-        <Path d={`M${cx - 52},${cy - 16} Q${cx - 52},${cy + 44} ${cx},${cy + 44} Q${cx + 52},${cy + 44} ${cx + 52},${cy - 16}`} stroke={color} strokeWidth={11} fill="none" strokeLinecap="round" />
-        <Rect x={cx - 6} y={cy + 40} width={12} height={54} rx={6} fill={color} />
-        <Rect x={cx - 34} y={cy + 90} width={68} height={12} rx={6} fill={color} />
-        {[-1, 1].map((s) => (
-          <Path key={s} d={`M${cx + s * 96},${cy - 40} q${s * 18},40 0,80`} stroke={color} strokeWidth={7} strokeLinecap="round" fill="none" opacity={0.45} />
-        ))}
-      </G>
-    );
-  }
   if (type === 'play') {
     return (
       <G>

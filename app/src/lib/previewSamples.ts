@@ -1,5 +1,5 @@
 // 상점 미리보기용 예시 기록 (저장되지 않음)
-import { FoodRecord, FourcutRecord, GiftCard, GiftRecord, PaperTheme, ShowRecord, ShowType, SpendingRecord } from '../types';
+import { ConcertRecord, FoodRecord, FourcutRecord, GiftCard, GiftRecord, PaperTheme, ShowRecord, ShowType, SpendingRecord } from '../types';
 
 export function sampleSpending(theme?: PaperTheme): SpendingRecord {
   return {
@@ -77,7 +77,7 @@ export function sampleFood(): FoodRecord {
   };
 }
 
-export function sampleShow(type: ShowType = 'concert'): ShowRecord {
+export function sampleShow(type: ShowType = 'play'): ShowRecord {
   const base = {
     id: `preview-show-${type}`,
     createdAt: '2026-09-13T21:30:00.000Z',
@@ -94,4 +94,24 @@ export function sampleShow(type: ShowType = 'concert'): ShowRecord {
   if (type === 'play')
     return { ...base, title: '레미제라블', artist: '조승우, 정성화', place: '블루스퀘어 신한카드홀', seat: '1층 7열 12번', memo: '커튼콜에서 눈물 날 뻔했다.' };
   return { ...base, title: '한여름밤의 콘서트', artist: '새벽밴드', place: '올림픽공원 올림픽홀', seat: '스탠딩 A구역 132번', memo: '앙코르 세 곡. 목이 다 쉬었다.' };
+}
+
+export function sampleConcert(): ConcertRecord {
+  return {
+    id: 'preview-concert',
+    createdAt: '2026-09-13T22:10:00.000Z',
+    kind: 'concert',
+    date: '2026-09-13',
+    time: '19:00',
+    title: '한여름밤의 라이브',
+    artist: '새벽밴드',
+    place: '올림픽공원 올림픽홀',
+    seat: '스탠딩 A구역 132번',
+    people: 2,
+    price: 99000,
+    stars: 5,
+    memo: '앙코르 세 곡. 목이 다 쉬었다.',
+    photo: null,
+    design: 'ticket',
+  };
 }

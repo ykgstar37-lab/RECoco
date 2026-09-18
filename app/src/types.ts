@@ -1,4 +1,4 @@
-export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food' | 'show';
+export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food' | 'show' | 'concert';
 
 interface BaseRecord {
   id: string;
@@ -150,7 +150,7 @@ export interface FoodRecord extends BaseRecord {
   design?: FoodDesign; // 없으면 주문서
 }
 
-export type ShowType = 'concert' | 'play' | 'exhibition';
+export type ShowType = 'play' | 'exhibition';
 
 /** 공연·전시: 콘서트·뮤지컬/연극·전시 입장권 */
 export interface ShowRecord extends BaseRecord {
@@ -168,4 +168,24 @@ export interface ShowRecord extends BaseRecord {
   photo: Photo | null; // 포스터·현장 사진
 }
 
-export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord | ShowRecord;
+/** order 대신 ticket: 기본 레트로 티켓, band: 스탠딩 팔찌, kpop: 핑크 포토 티켓 */
+export type ConcertDesign = 'ticket' | 'band' | 'kpop';
+
+/** 콘서트: 공연·전시와 따로, 티켓 모양을 골라 뽑는다 */
+export interface ConcertRecord extends BaseRecord {
+  kind: 'concert';
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  title: string; // 공연 이름
+  artist: string;
+  place: string; // 공연장
+  seat: string; // 스탠딩 A구역 132번 / 2층 3열 7번
+  people: number;
+  price: number; // 0 이면 표시 안 함
+  stars: number; // 0~5
+  memo: string;
+  photo: Photo | null;
+  design?: ConcertDesign; // 없으면 기본 티켓
+}
+
+export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord | ShowRecord | ConcertRecord;

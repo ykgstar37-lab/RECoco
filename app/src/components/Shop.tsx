@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, THEME_TAGS, categoryProduct, foodDesignProduct, themeProduct } from '../lib/products';
-import { FOOD_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { PreviewProduct, THEME_TAGS, categoryProduct, concertDesignProduct, foodDesignProduct, themeProduct } from '../lib/products';
+import { CONCERT_DESIGNS, FOOD_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecordKind } from '../types';
 import { CocoArt } from './Coco';
 import { CategoryTags, ProductPreview } from './ProductPreview';
 import { StickerArt } from './Stickers';
-import { FoodDesignSwatch, ThemeSwatch } from './ThemePicker';
+import { ConcertDesignSwatch, FoodDesignSwatch, ThemeSwatch } from './ThemePicker';
 
 interface Props {
   visible: boolean;
@@ -75,7 +75,7 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
               })}
             </View>
             <Pressable onPress={onOpenCloset} hitSlop={8} style={styles.closetLink}>
-              <HangerIcon />
+              <CocoArt size={26} tone="orange" id="closet-link" />
               <Text style={styles.rowLink}>옷장에서 입어보기 ›</Text>
             </Pressable>
           </Section>
@@ -155,6 +155,28 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                 </Pressable>
               );
             })}
+            {CONCERT_DESIGNS.map((d) => {
+              const have = owned.includes(d.productId);
+              return (
+                <Pressable key={d.id} onPress={() => setPreview(concertDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
+                  <ConcertDesignSwatch design={d.id} size={34} />
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.themeName}>{d.name}</Text>
+                      <CategoryTags tags={[KIND_LABEL.concert]} />
+                    </View>
+                    <Text style={styles.themeDesc}>{d.desc}</Text>
+                    <Text style={styles.peek}>미리보기 ›</Text>
+                  </View>
+                  <Pressable
+                    disabled={have || busy}
+                    onPress={() => run(() => buy(d.productId))}
+                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
+                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(d.price)}원`}</Text>
+                  </Pressable>
+                </Pressable>
+              );
+            })}
             <Text style={styles.soon}>산 테마는 기록을 쓸 때 "종이"나 "영수증 모양"에서 고르면 돼요.</Text>
           </Section>
 
@@ -166,19 +188,6 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
         <ProductPreview product={preview} onClose={() => setPreview(null)} onBought={() => setPreview(null)} />
       </SafeAreaView>
     </Modal>
-  );
-}
-
-/** 동그라미 안 옷걸이 (옷장 링크 아이콘) */
-function HangerIcon() {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24">
-      <Circle cx={12} cy={12} r={11} fill={COLORS.orangeSoft} />
-      <Path d="M12,8.2 Q12,6.2 10.4,6.2 Q9.2,6.2 9.2,7.3" stroke={COLORS.orange} strokeWidth={1.5} strokeLinecap="round" fill="none" />
-      <Path d="M12,8.4 L5.6,12.6 Q5,13 5.3,13.7 Q5.6,14.3 6.4,14.3 H17.6 Q18.4,14.3 18.7,13.7 Q19,13 18.4,12.6 Z" fill={COLORS.orange} />
-      <Circle cx={9} cy={16.6} r={0.9} fill={COLORS.orange} opacity={0.5} />
-      <Circle cx={15} cy={16.6} r={0.9} fill={COLORS.orange} opacity={0.5} />
-    </Svg>
   );
 }
 
@@ -214,7 +223,7 @@ const styles = StyleSheet.create({
   closetLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    gap: 3,
     alignSelf: 'flex-end',
     backgroundColor: '#fff',
     borderRadius: 999,

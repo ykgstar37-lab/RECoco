@@ -1,8 +1,8 @@
 // 상점 미리보기에 보여줄 상품 정보: 이름·설명·가격·쓰는 곳 태그·예시 기록
 import { KIND_LABEL } from '../templates';
 import { RecoRecord, RecordKind } from '../types';
-import { sampleFood, sampleFourcut, sampleGift, sampleShow, sampleSpending } from './previewSamples';
-import { FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, THEMES, ThemeItem } from './shop';
+import { sampleConcert, sampleFood, sampleFourcut, sampleGift, sampleShow, sampleSpending } from './previewSamples';
+import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, THEMES, ThemeItem } from './shop';
 
 export interface PreviewSample {
   record: RecoRecord;
@@ -72,6 +72,35 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
 
 export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignProduct(FOOD_DESIGNS.find((d) => d.id === id)!);
 
+export function concertDesignProduct(d: ConcertDesignItem): PreviewProduct {
+  return {
+    title: d.name,
+    desc: d.desc,
+    productId: d.productId,
+    price: d.price,
+    tags: [KIND_LABEL.concert],
+    samples: [
+      { record: { ...sampleConcert(), id: `preview-concert-${d.id}`, design: d.id }, caption: d.name },
+      {
+        record: {
+          ...sampleConcert(),
+          id: `preview-concert-${d.id}-2`,
+          design: d.id,
+          artist: '달빛소년단',
+          title: '월드투어 서울',
+          place: 'KSPO DOME',
+          seat: '2층 F구역 7열 21번',
+          stars: 4,
+          memo: '앵콜 때 은박지 폭죽이 터졌다.',
+        },
+        caption: '다른 공연',
+      },
+    ],
+  };
+}
+
+export const concertDesignProductById = (id: ConcertDesignItem['id']) => concertDesignProduct(CONCERT_DESIGNS.find((d) => d.id === id)!);
+
 export function categoryProduct(kind: RecordKind): PreviewProduct | null {
   const c = PAID_CATEGORIES[kind];
   if (!c) return null;
@@ -106,10 +135,17 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
           ]
         : kind === 'show'
           ? [
-              { record: sampleShow('concert'), caption: '콘서트' },
               { record: sampleShow('play'), caption: '뮤지컬·연극' },
               { record: sampleShow('exhibition'), caption: '전시' },
             ]
-          : [];
+          : kind === 'concert'
+            ? [
+                { record: sampleConcert(), caption: '콘서트 티켓' },
+                {
+                  record: { ...sampleConcert(), id: 'preview-concert-2', artist: '달빛소년단', title: '월드투어 서울', place: 'KSPO DOME', seat: '2층 F구역 7열 21번', price: 154000, stars: 4, memo: '' },
+                  caption: '다른 공연',
+                },
+              ]
+            : [];
   return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };
 }
