@@ -262,7 +262,7 @@ export function HomeScreen() {
 
       <MonthStamps
         visible={calendarOpen}
-        counts={counts}
+        records={records}
         onClose={() => setCalendarOpen(false)}
         onPickDate={(date) => {
           setCalendarOpen(false);

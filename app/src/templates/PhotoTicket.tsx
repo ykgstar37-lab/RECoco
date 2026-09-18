@@ -36,7 +36,8 @@ function computeLayout(r: PhotoTicketRecord) {
   const photoBot = photoTop + photoH;
   const infoTop = photoBot + 34;
   const memo = r.memo.trim() ? fitLines(r.memo.trim(), PW - M * 2 - 20, 26, 20, 2, 'sans') : null;
-  const infoBot = infoTop + 224 + (memo ? memo.lines.length * 32 : 0);
+  // 별점 아래에 소감을 따로 깔고(같은 줄이면 긴 소감이 별점 위로 넘어온다) 그만큼 아래를 늘린다
+  const infoBot = infoTop + 224 + (memo ? 44 + (memo.lines.length - 1) * 32 : 0);
   const height = infoBot + 150;
   return { photoH, headBot, artist, artistTop, bigTop, photoTop, photoBot, infoTop, memo, infoBot, height };
 }
@@ -146,7 +147,7 @@ export function PhotoTicket({ record: r, width }: { record: PhotoTicketRecord; w
         <T f="sansBold" x={M} y={infoTop + 200} fontSize={22} fill={PINK_DEEP} children={'★'.repeat(r.stars) + '☆'.repeat(5 - r.stars)} />
         {memo &&
           memo.lines.map((line, i) => (
-            <T key={i} x={PW - M} y={infoTop + 196 + i * 32} fontSize={memo.size} textAnchor="end" fill={DARK} opacity={0.75} children={line} />
+            <T key={i} x={PW - M} y={infoTop + 236 + i * 32} fontSize={memo.size} textAnchor="end" fill={DARK} opacity={0.75} children={line} />
           ))}
 
         {/* 바코드 */}

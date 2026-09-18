@@ -4,7 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { pad2 } from '../lib/format';
+import { shortLabel } from '../lib/summary';
+import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
+import { RecoRecord } from '../types';
 import { dateKey } from './WeekStamps';
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -37,16 +40,23 @@ function monthGrid(year: number, month: number) {
 interface Props {
   visible: boolean;
   onClose: () => void;
-  counts: Record<string, number>;
-  /** 날짜를 누르면 그날 영수증 보기 */
+  records: RecoRecord[];
+  /** 아래 목록에서 영수증을 누르면 그날 영수증 크게 보기 */
   onPickDate: (date: string) => void;
 }
 
-/** 달 단위 기록 달력: 한 달에 며칠 적었는지 한눈에 보고, 날짜를 누르면 그날 영수증으로 */
-export function MonthStamps({ visible, onClose, counts, onPickDate }: Props) {
+/** 달 단위 기록 달력: 한 달에 며칠 적었는지 한눈에 보고, 도장을 누르면 아래에 그날 기록이 펼쳐진다 */
+export function MonthStamps({ visible, onClose, records, onPickDate }: Props) {
   const now = new Date();
   // 이번 달부터 몇 달 전인지 (0 = 이번 달)
   const [back, setBack] = useState(0);
+  const [picked, setPicked] = useState<string | null>(null);
+
+  const counts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const r of records) map[r.date] = (map[r.date] ?? 0) + 1;
+    return map;
+  }, [records]);
 
   const shown = new Date(now.getFullYear(), now.getMonth() - back, 1);
   const year = shown.getFullYear();
@@ -65,6 +75,14 @@ export function MonthStamps({ visible, onClose, counts, onPickDate }: Props) {
     return { cells, days, total };
   }, [year, month, counts]);
 
+  const dayRecords = useMemo(() => (picked ? records.filter((r) => r.date === picked) : []), [records, picked]);
+
+  // 달을 넘기면 펼쳐둔 날은 접는다
+  const goMonth = (next: number) => {
+    setBack(next);
+    setPicked(null);
+  };
+
   // 기록이 하나라도 있는 가장 이른 달까지만 넘길 수 있게
   const firstKey = Object.keys(counts).sort()[0];
   const canGoBack = !!firstKey && `${year}-${pad2(month + 1)}` > firstKey.slice(0, 7);
@@ -80,7 +98,7 @@ export function MonthStamps({ visible, onClose, counts, onPickDate }: Props) {
         </View>
 
         <View style={styles.monthRow}>
-          <Pressable onPress={() => canGoBack && setBack(back + 1)} hitSlop={12} disabled={!canGoBack} accessibilityLabel="지난달">
+          <Pressable onPress={() => canGoBack && goMonth(back + 1)} hitSlop={12} disabled={!canGoBack} accessibilityLabel="지난달">
             <Text style={[styles.arrow, !canGoBack && styles.arrowOff]}>‹</Text>
           </Pressable>
           <View style={styles.monthBox}>
@@ -89,7 +107,7 @@ export function MonthStamps({ visible, onClose, counts, onPickDate }: Props) {
             </Text>
             <Text style={styles.sum}>{days ? `${days}일 · 영수증 ${total}장` : '아직 없어요'}</Text>
           </View>
-          <Pressable onPress={() => back > 0 && setBack(back - 1)} hitSlop={12} disabled={back === 0} accessibilityLabel="다음달">
+          <Pressable onPress={() => back > 0 && goMonth(back - 1)} hitSlop={12} disabled={back === 0} accessibilityLabel="다음달">
             <Text style={[styles.arrow, back === 0 && styles.arrowOff]}>›</Text>
           </Pressable>
         </View>
@@ -115,9 +133,9 @@ export function MonthStamps({ visible, onClose, counts, onPickDate }: Props) {
                   key={key}
                   style={styles.cell}
                   disabled={!count}
-                  onPress={() => onPickDate(key)}
+                  onPress={() => setPicked(picked === key ? null : key)}
                   accessibilityLabel={`${month + 1}월 ${d.getDate()}일 기록 ${count}개`}>
-                  <View style={styles.slot}>
+                  <View style={[styles.slot, picked === key && styles.slotOn]}>
                     {count > 0 ? (
                       <>
                         <Stamp size={34} />
@@ -137,7 +155,24 @@ export function MonthStamps({ visible, onClose, counts, onPickDate }: Props) {
             })}
           </View>
 
-          <Text style={styles.help}>도장이 찍힌 날을 누르면 그날 영수증을 볼 수 있어요.</Text>
+          {picked ? (
+            <View style={styles.list}>
+              <Text style={styles.listHead}>{`${Number(picked.slice(5, 7))}월 ${Number(picked.slice(8, 10))}일 · ${dayRecords.length}장`}</Text>
+              {dayRecords.map((r) => (
+                <Pressable key={r.id} onPress={() => onPickDate(r.date)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>
+                  <View style={styles.kind}>
+                    <Text style={styles.kindText}>{KIND_LABEL[r.kind]}</Text>
+                  </View>
+                  <Text style={styles.rowLabel} numberOfLines={1}>
+                    {shortLabel(r)}
+                  </Text>
+                  <Text style={styles.chevron}>›</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.help}>도장이 찍힌 날을 누르면 그날 기록이 펼쳐져요.</Text>
+          )}
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -162,7 +197,8 @@ const styles = StyleSheet.create({
   sunday: { color: COLORS.orange },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: { width: `${100 / 7}%`, alignItems: 'center', paddingVertical: 6, gap: 3 },
-  slot: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  slot: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  slotOn: { borderWidth: 2, borderColor: COLORS.ink },
   empty: { width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#dedee3' },
   emptyToday: { borderColor: COLORS.orange },
   emptyFuture: { opacity: 0.4 },
@@ -183,4 +219,21 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: '#fff', fontSize: 10, fontFamily: FONTS.sansBold },
   help: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, textAlign: 'center', marginTop: 10 },
+  list: { marginTop: 10, gap: 8, paddingHorizontal: 4 },
+  listHead: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sansBold, paddingHorizontal: 4 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.line,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  kind: { backgroundColor: COLORS.orangeSoft, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
+  kindText: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold },
+  rowLabel: { flex: 1, color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
+  chevron: { color: COLORS.placeholder, fontSize: 20, fontFamily: FONTS.sansBold },
 });
