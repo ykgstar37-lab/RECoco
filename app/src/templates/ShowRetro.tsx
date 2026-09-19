@@ -6,6 +6,7 @@ import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
 import { ShowRecord } from '../types';
+import { RETRO_COLORS, retroColorOf } from './ConcertRetro';
 import { SHOW_TYPES } from './ShowTicket';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
@@ -13,8 +14,6 @@ const PW = 600;
 const PAD = 16;
 const M = 46;
 export const SHOW_PAPER = '#fbf5ea';
-export const SHOW_NAVY = '#1f2a44';
-export const SHOW_CORAL = '#e2685c';
 const INK = '#20242f';
 const SUB = '#8a8578';
 const LINE = '#ded5c4';
@@ -97,6 +96,7 @@ function MiniIcon({ kind, x, y, color }: { kind: 'date' | 'pin' | 'seat'; x: num
 
 export function ShowRetro({ record: r, width, connected = false }: { record: ShowRecord; width: number; connected?: boolean }) {
   const L = layoutShowRetro(r);
+  const { deep: SHOW_NAVY, accent: SHOW_CORAL } = retroColorOf(r);
   const { title, artist, titleTop, artistTop, photoTop, photoH, infoTop, infoBot, starsTop, memo, memoTop, bandTop, cut, height } = computeLayout(r);
   const shape = ticketShape(height, cut, PW, connected);
   const id = `showretro-${r.id}`;

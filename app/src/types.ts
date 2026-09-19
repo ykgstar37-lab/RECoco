@@ -220,8 +220,11 @@ export type PhotoColor = 'pink' | 'sky' | 'butter' | 'mint';
 /** 홀로그램 기록표 색 */
 export type HoloColor = 'blue' | 'violet' | 'teal' | 'wine';
 
+/** 레트로 티켓 색 (크림 종이에 얹는 조각·포인트 색) */
+export type RetroColor = 'navy' | 'forest' | 'burgundy' | 'sepia' | 'charcoal';
+
 /** 티켓 모양들이 같이 쓰는 색 (어느 팔레트인지는 고른 모양이 정한다) */
-export type TicketColor = BandColor | PhotoColor | HoloColor;
+export type TicketColor = BandColor | PhotoColor | HoloColor | RetroColor;
 
 /** 콘서트: 공연·전시와 따로, 티켓 모양을 골라 뽑는다 */
 export interface ConcertRecord extends BaseRecord {

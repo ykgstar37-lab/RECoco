@@ -1,5 +1,6 @@
 // 상점 미리보기에 보여줄 상품 정보: 이름·설명·가격·쓰는 곳 태그·예시 기록
 import { KIND_LABEL } from '../templates';
+import { RETRO_COLORS, RETRO_COLOR_IDS } from '../templates/ConcertRetro';
 import { HOUSE_COLORS } from '../templates/FoodHouse';
 import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
 import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
@@ -134,7 +135,9 @@ export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignPro
 /** 콘서트·공연전시 영수증 모양 하나의 미리보기 (두 카테고리가 같이 쓰면 양쪽 예시를 다 보여준다) */
 /** 이 모양에서 고를 수 있는 색 (없으면 단색 모양) */
 const designColors = (id: ConcertDesign | ShowDesign): { id: TicketColor; name: string }[] =>
-  id === 'band'
+  id === 'retro'
+    ? RETRO_COLOR_IDS.map((c) => ({ id: c as TicketColor, name: RETRO_COLORS[c].name }))
+    : id === 'band'
     ? BAND_COLOR_IDS.map((c) => ({ id: c as TicketColor, name: BAND_COLORS[c].name }))
     : id === 'kpop'
       ? PHOTO_COLOR_IDS.map((c) => ({ id: c as TicketColor, name: PHOTO_COLORS[c].name }))

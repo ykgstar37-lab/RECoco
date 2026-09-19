@@ -19,6 +19,7 @@ import {
   themeUnlocked,
   useShop,
 } from '../lib/shop';
+import { RETRO_COLORS, RETRO_COLOR_IDS } from '../templates/ConcertRetro';
 import { HOUSE_COLORS, HOUSE_COLOR_IDS } from '../templates/FoodHouse';
 import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
 import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
@@ -45,13 +46,15 @@ export function ColorDots<T extends string>({ colors, value, onPick }: { colors:
 
 /** 티켓 모양마다 고를 수 있는 색 (단색 모양은 빈 배열) */
 export const ticketColors = (design: ConcertDesign | ShowDesign | undefined): { id: TicketColor; name: string; swatch: string }[] =>
-  design === 'band'
-    ? BAND_COLOR_IDS.map((id) => ({ id, name: BAND_COLORS[id].name, swatch: BAND_COLORS[id].neon }))
-    : design === 'kpop'
-      ? PHOTO_COLOR_IDS.map((id) => ({ id, name: PHOTO_COLORS[id].name, swatch: PHOTO_COLORS[id].deep }))
-      : design === 'holo'
-        ? HOLO_COLOR_IDS.map((id) => ({ id, name: HOLO_COLORS[id].name, swatch: HOLO_COLORS[id].base }))
-        : [];
+  design === 'retro' || design === 'ticket'
+    ? RETRO_COLOR_IDS.map((id) => ({ id, name: RETRO_COLORS[id].name, swatch: RETRO_COLORS[id].deep }))
+    : design === 'band'
+      ? BAND_COLOR_IDS.map((id) => ({ id, name: BAND_COLORS[id].name, swatch: BAND_COLORS[id].neon }))
+      : design === 'kpop'
+        ? PHOTO_COLOR_IDS.map((id) => ({ id, name: PHOTO_COLORS[id].name, swatch: PHOTO_COLORS[id].deep }))
+        : design === 'holo'
+          ? HOLO_COLOR_IDS.map((id) => ({ id, name: HOLO_COLORS[id].name, swatch: HOLO_COLORS[id].base }))
+          : [];
 
 /** 그 모양에서 못 쓰는 색이면 첫 색으로 (단색 모양이면 색 없음) */
 const pickTicketColor = (design: ConcertDesign | ShowDesign, color: TicketColor | undefined) => {
@@ -263,6 +266,7 @@ export function FoodDesignPicker({
 export function ConcertDesignSwatch({ design, size = 44, color }: { design: ConcertDesign | undefined; size?: number; color?: TicketColor }) {
   const neon = BAND_COLORS[(color as keyof typeof BAND_COLORS) in BAND_COLORS ? (color as keyof typeof BAND_COLORS) : 'lime'].neon;
   const ph = PHOTO_COLORS[(color as keyof typeof PHOTO_COLORS) in PHOTO_COLORS ? (color as keyof typeof PHOTO_COLORS) : 'pink'];
+  const rt = RETRO_COLORS[(color as keyof typeof RETRO_COLORS) in RETRO_COLORS ? (color as keyof typeof RETRO_COLORS) : 'navy'];
   if (design === 'plain')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -281,13 +285,13 @@ export function ConcertDesignSwatch({ design, size = 44, color }: { design: Conc
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
         <Rect x={2} y={2} width={36} height={48} rx={3} fill="#fbf5ea" stroke={COLORS.line} strokeWidth={1} />
-        <Rect x={5} y={5} width={30} height={30} rx={2} fill="none" stroke="#1f2a44" strokeWidth={1} />
+        <Rect x={5} y={5} width={30} height={30} rx={2} fill="none" stroke={rt.deep} strokeWidth={1} />
         {[16, 19, 22].map((x, i) => (
-          <Rect key={x} x={x} y={13 - i} width={2} height={8 + i * 2} rx={1} fill="#e2685c" />
+          <Rect key={x} x={x} y={13 - i} width={2} height={8 + i * 2} rx={1} fill={rt.accent} />
         ))}
-        <Line x1={9} y1={26} x2={31} y2={26} stroke="#1f2a44" strokeWidth={1.4} />
-        <Rect x={2} y={38} width={36} height={12} fill="#1f2a44" />
-        <Rect x={12} y={42} width={16} height={4} rx={2} fill="#e2685c" />
+        <Line x1={9} y1={26} x2={31} y2={26} stroke={rt.deep} strokeWidth={1.4} />
+        <Rect x={2} y={38} width={36} height={12} fill={rt.deep} />
+        <Rect x={12} y={42} width={16} height={4} rx={2} fill={rt.accent} />
       </Svg>
     );
   if (design === 'band')

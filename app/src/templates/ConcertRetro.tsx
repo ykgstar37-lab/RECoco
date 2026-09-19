@@ -5,7 +5,7 @@ import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'r
 import { dotDateWithDay, seededRandom, won } from '../lib/format';
 import { fitLine } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
-import { ConcertRecord } from '../types';
+import { ConcertRecord, RetroColor } from '../types';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
 const PW = 980;
@@ -14,13 +14,24 @@ const PAD = 18;
 const STUB_W = 292;
 const MAIN_W = PW - STUB_W;
 const PAPER = '#fbf5ea';
-const NAVY = '#1f2a44';
-const CORAL = '#e2685c';
+/** 레트로 티켓 색: 크림 종이는 그대로 두고 조각(deep)과 포인트(accent)만 바꾼다 */
+export const RETRO_COLORS: Record<RetroColor, { name: string; deep: string; accent: string }> = {
+  navy: { name: '남색', deep: '#1f2a44', accent: '#e2685c' },
+  forest: { name: '숲 초록', deep: '#24402f', accent: '#d9a441' },
+  burgundy: { name: '버건디', deep: '#5c1f33', accent: '#e8a79c' },
+  sepia: { name: '세피아', deep: '#4a3524', accent: '#e07a3c' },
+  charcoal: { name: '먹색', deep: '#2c2c31', accent: '#5aa9d6' },
+};
+
+export const RETRO_COLOR_IDS = Object.keys(RETRO_COLORS) as RetroColor[];
+
+export const retroColorOf = (r: { color?: string }) => RETRO_COLORS[(r.color as RetroColor) in RETRO_COLORS ? (r.color as RetroColor) : 'navy'];
+
 const LINE = '#ded5c4';
 const NOTCH = 15;
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
-const T = ({ f = 'sans', ...p }: TProps) => <Text fill={NAVY} fontFamily={FONTS[f]} {...p} />;
+const T = ({ f = 'sans', ...p }: TProps) => <Text fontFamily={FONTS[f]} {...p} />;
 
 export function layoutConcertRetro(_r: ConcertRecord): TemplateLayout {
   return { width: PW + PAD * 2, height: PH + PAD * 2 + 14, foldAt: 0, displayRatio: 1, inset: { top: PAD, bottom: PAD + 14 } };
@@ -82,6 +93,7 @@ function MiniIcon({ kind, x, y, color }: { kind: 'date' | 'pin' | 'seat'; x: num
 
 export function ConcertRetro({ record: r, width, connected = false }: { record: ConcertRecord; width: number; connected?: boolean }) {
   const L = layoutConcertRetro(r);
+  const { deep: NAVY, accent: CORAL } = retroColorOf(r);
   const shape = ticketPath(connected);
   const id = `retro-${r.id}`;
   const rnd = seededRandom(r.id);
@@ -101,7 +113,7 @@ export function ConcertRetro({ record: r, width, connected = false }: { record: 
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
-      <G transform={`translate(${PAD} ${PAD})`}>
+      <G transform={`translate(${PAD} ${PAD})`} fill={NAVY}>
         {!connected && <PaperShadow d={shape} />}
         <Defs>
           <ClipPath id={`${id}-card`}>

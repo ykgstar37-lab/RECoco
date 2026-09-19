@@ -75,7 +75,7 @@ export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) 
 const BOTH = ['concert', 'show'] as RecordKind[];
 const PHOTO_TICKET = { name: '포토 티켓', desc: '사진이 큼직하게 박힌 티켓 · 색 4가지', productId: 'recoco.theme.photo-ticket', price: 1000, kinds: BOTH };
 const WRIST_BAND = { name: '스탠딩 팔찌', desc: '공연장에서 채워주는 손목 팔찌 · 형광 색 4가지', productId: 'recoco.theme.wristband', price: 1000, kinds: BOTH };
-const RETRO_TICKET = { name: '레트로 티켓', desc: '크림 종이에 남색 조각이 붙은 옛날 극장 티켓', productId: 'recoco.theme.retro', price: 1000, kinds: BOTH };
+const RETRO_TICKET = { name: '레트로 티켓', desc: '크림 종이에 색 조각이 붙은 옛날 극장 티켓 · 색 5가지', productId: 'recoco.theme.retro', price: 1000, kinds: BOTH };
 
 export interface ConcertDesignItem {
   id: Exclude<ConcertDesign, 'ticket'>;
