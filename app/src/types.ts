@@ -185,7 +185,7 @@ export type ShowType = 'play' | 'exhibition';
 
 /**
  * plain: 흰 무지 티켓, poster: 포스터 입장권 (여기까지 무료)
- * retro: 레트로 티켓, holo: 홀로그램 기록표, kpop: 포토 티켓, band: 스탠딩 팔찌 (홀로 빼고 콘서트와 같이 씀)
+ * retro: 레트로 티켓, holo: 별빛 티켓, kpop: 포토 티켓, band: 스탠딩 팔찌 (홀로 빼고 콘서트와 같이 씀)
  * ticket 은 예전 이름 (= retro)
  */
 export type ShowDesign = 'plain' | 'poster' | 'retro' | 'holo' | 'kpop' | 'band' | 'ticket';
@@ -205,7 +205,7 @@ export interface ShowRecord extends BaseRecord {
   memo: string;
   photo: Photo | null; // 포스터·현장 사진
   design?: ShowDesign; // 없으면 기본 입장권
-  color?: TicketColor; // 모양의 색 (팔찌·포토 티켓·홀로그램)
+  color?: TicketColor; // 모양의 색 (팔찌·포토 티켓·별빛 티켓)
 }
 
 /** ticket: 밤하늘 티켓(가로), plain: 흰 무지 티켓 (여기까지 무료) / retro: 레트로 티켓, band: 스탠딩 팔찌, kpop: 포토 티켓 (전부 공연·전시와 같이 씀) */
@@ -217,7 +217,7 @@ export type BandColor = 'lime' | 'pink' | 'sky' | 'orange';
 /** 포토 티켓 색 */
 export type PhotoColor = 'pink' | 'sky' | 'butter' | 'mint';
 
-/** 홀로그램 기록표 색 */
+/** 별빛 티켓 색 */
 export type HoloColor = 'blue' | 'violet' | 'teal' | 'wine' | 'black';
 
 /** 레트로 티켓 색 (크림 종이에 얹는 조각·포인트 색) */

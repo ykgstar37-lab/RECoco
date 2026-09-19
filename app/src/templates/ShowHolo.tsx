@@ -1,4 +1,4 @@
-// 공연·전시 영수증 테마 "홀로그램": 진한 파란 종이에 칸을 나눈 기록표 (Title / Cast / Rating / Review)
+// 공연·전시 영수증 테마 "별빛 티켓": 별이 뿌려진 진한 색 종이에 칸을 나눈 기록표 (Title / Cast / Rating / Review)
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
@@ -60,7 +60,7 @@ export function layoutShowHolo(r: ShowRecord): TemplateLayout {
   return { width: PW + PAD * 2, height: height + PAD * 2 + 14, foldAt: 0, displayRatio: 0.84, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
-/** 위아래가 뜯긴 톱니 (홀로그램 티켓 느낌) */
+/** 위아래가 뜯긴 톱니 */
 function toothPath(h: number, connected: boolean) {
   if (connected) return `M0,0 H${PW} V${h} H0 Z`;
   const n = Math.round(PW / TOOTH);

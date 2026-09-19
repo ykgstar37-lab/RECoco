@@ -119,7 +119,7 @@ export const FREE_SHOW_DESIGNS: { id: ShowDesign; name: string }[] = [
 
 export const SHOW_DESIGNS: ShowDesignItem[] = [
   { id: 'retro', ...RETRO_TICKET },
-  { id: 'holo', name: '홀로그램', desc: '칸칸이 나눠 적는 진한 색 관람 기록 · 색 5가지', productId: 'recoco.theme.holo', price: 1000, kinds: ['show'] },
+  { id: 'holo', name: '별빛 티켓', desc: '별이 뿌려진 밤하늘 종이에 칸칸이 적는 관람 기록 · 색 5가지', productId: 'recoco.theme.holo', price: 1000, kinds: ['show'] },
   { id: 'band', ...WRIST_BAND },
   { id: 'kpop', ...PHOTO_TICKET },
 ];

@@ -390,7 +390,7 @@ export function ConcertDesignPicker({
   );
 }
 
-/** 공연·전시 모양 견본 (입장권 / 홀로그램 기록표) */
+/** 공연·전시 모양 견본 (입장권 / 별빛 티켓) */
 export function ShowDesignSwatch({ design, size = 44, color }: { design: ShowDesign | undefined; size?: number; color?: TicketColor }) {
   const holo = HOLO_COLORS[(color as keyof typeof HOLO_COLORS) in HOLO_COLORS ? (color as keyof typeof HOLO_COLORS) : 'blue'];
   if (design === 'plain')
