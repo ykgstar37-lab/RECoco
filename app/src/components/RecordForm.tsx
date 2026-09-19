@@ -170,7 +170,7 @@ const emptyShow = (): Omit<ShowRecord, 'id' | 'createdAt'> => ({
   stars: 4,
   memo: '',
   photo: null,
-  design: 'ticket',
+  design: 'plain',
 });
 
 const emptyConcert = (): Omit<ConcertRecord, 'id' | 'createdAt'> => ({

@@ -263,6 +263,20 @@ export function FoodDesignPicker({
 export function ConcertDesignSwatch({ design, size = 44, color }: { design: ConcertDesign | undefined; size?: number; color?: TicketColor }) {
   const neon = BAND_COLORS[(color as keyof typeof BAND_COLORS) in BAND_COLORS ? (color as keyof typeof BAND_COLORS) : 'lime'].neon;
   const ph = PHOTO_COLORS[(color as keyof typeof PHOTO_COLORS) in PHOTO_COLORS ? (color as keyof typeof PHOTO_COLORS) : 'pink'];
+  if (design === 'plain')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={4} fill="#ffffff" stroke={COLORS.line} strokeWidth={1} />
+        <Rect x={7} y={8} width={10} height={2} rx={1} fill="#9a9aa2" />
+        <Line x1={7} y1={13} x2={33} y2={13} stroke="#2a2a2e" strokeWidth={1.4} />
+        <Rect x={7} y={17} width={20} height={4} rx={1} fill="#2a2a2e" />
+        {[26, 32].map((y) => (
+          <Line key={y} x1={7} y1={y} x2={33} y2={y} stroke="#e4e4e8" strokeWidth={1.2} />
+        ))}
+        <Line x1={4} y1={38} x2={36} y2={38} stroke="#e4e4e8" strokeWidth={1.2} strokeDasharray="2 2" />
+        <Rect x={7} y={42} width={13} height={3} rx={1} fill="#2a2a2e" />
+      </Svg>
+    );
   if (design === 'retro')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -375,6 +389,20 @@ export function ConcertDesignPicker({
 /** 공연·전시 모양 견본 (입장권 / 홀로그램 기록표) */
 export function ShowDesignSwatch({ design, size = 44, color }: { design: ShowDesign | undefined; size?: number; color?: TicketColor }) {
   const holo = HOLO_COLORS[(color as keyof typeof HOLO_COLORS) in HOLO_COLORS ? (color as keyof typeof HOLO_COLORS) : 'blue'];
+  if (design === 'plain')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={4} fill="#ffffff" stroke={COLORS.line} strokeWidth={1} />
+        <Rect x={7} y={8} width={10} height={2} rx={1} fill="#9a9aa2" />
+        <Line x1={7} y1={13} x2={33} y2={13} stroke="#2a2a2e" strokeWidth={1.4} />
+        <Rect x={7} y={17} width={20} height={4} rx={1} fill="#2a2a2e" />
+        {[26, 32].map((y) => (
+          <Line key={y} x1={7} y1={y} x2={33} y2={y} stroke="#e4e4e8" strokeWidth={1.2} />
+        ))}
+        <Line x1={4} y1={38} x2={36} y2={38} stroke="#e4e4e8" strokeWidth={1.2} strokeDasharray="2 2" />
+        <Rect x={7} y={42} width={13} height={3} rx={1} fill="#2a2a2e" />
+      </Svg>
+    );
   if (design === 'poster')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -398,7 +426,8 @@ export function ShowDesignSwatch({ design, size = 44, color }: { design: ShowDes
       </Svg>
     );
   // 핑크 포토 티켓·스탠딩 팔찌는 콘서트와 같은 모양이라 견본도 같이 쓴다
-  if (design === 'kpop' || design === 'band') return <ConcertDesignSwatch design={design} size={size} color={color} />;
+  if (design === 'kpop' || design === 'band' || design === 'retro' || design === 'ticket')
+    return <ConcertDesignSwatch design={design === 'ticket' ? 'retro' : design} size={size} color={color} />;
   // 기본: 크림 레트로 입장권
   return (
     <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -426,7 +455,8 @@ export function ShowDesignPicker({
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: ShowDesign; product: PreviewProduct } | null>(null);
   const options: { id: ShowDesign; name: string; price: number }[] = [...FREE_SHOW_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SHOW_DESIGNS];
-  const design = value ?? 'ticket';
+  // 'ticket' 은 레트로의 예전 이름
+  const design = value === 'ticket' ? 'retro' : (value ?? 'plain');
 
   const pick = (id: ShowDesign) => onChange(id, pickTicketColor(id, color));
 

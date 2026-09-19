@@ -183,8 +183,12 @@ export interface FoodRecord extends BaseRecord {
 
 export type ShowType = 'play' | 'exhibition';
 
-/** ticket: 기본 크림 입장권, poster: 포스터 입장권 (여기까지 무료) / holo: 홀로그램 기록표, kpop: 핑크 포토 티켓, band: 스탠딩 팔찌 (뒤 둘은 콘서트와 같이 씀) */
-export type ShowDesign = 'ticket' | 'poster' | 'holo' | 'kpop' | 'band';
+/**
+ * plain: 흰 무지 티켓, poster: 포스터 입장권 (여기까지 무료)
+ * retro: 레트로 티켓, holo: 홀로그램 기록표, kpop: 포토 티켓, band: 스탠딩 팔찌 (홀로 빼고 콘서트와 같이 씀)
+ * ticket 은 예전 이름 (= retro)
+ */
+export type ShowDesign = 'plain' | 'poster' | 'retro' | 'holo' | 'kpop' | 'band' | 'ticket';
 
 /** 공연·전시: 뮤지컬·연극·전시 입장권 */
 export interface ShowRecord extends BaseRecord {
@@ -204,8 +208,8 @@ export interface ShowRecord extends BaseRecord {
   color?: TicketColor; // 모양의 색 (팔찌·포토 티켓·홀로그램)
 }
 
-/** ticket: 가로 공연 티켓, retro: 크림 레트로 티켓 (여기까지 무료) / band: 스탠딩 팔찌, kpop: 핑크 포토 티켓(공연·전시와 같이 씀) */
-export type ConcertDesign = 'ticket' | 'retro' | 'band' | 'kpop';
+/** ticket: 가로 공연 티켓, plain: 흰 무지 티켓 (여기까지 무료) / retro: 레트로 티켓, band: 스탠딩 팔찌, kpop: 포토 티켓 (전부 공연·전시와 같이 씀) */
+export type ConcertDesign = 'ticket' | 'plain' | 'retro' | 'band' | 'kpop';
 
 /** 스탠딩 팔찌 끈 색 */
 export type BandColor = 'lime' | 'pink' | 'sky' | 'orange';

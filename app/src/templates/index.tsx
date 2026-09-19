@@ -12,6 +12,7 @@ import { PhotoTicket, layoutPhotoTicket } from './PhotoTicket';
 import { ReadingReceipt, layoutReading } from './ReadingReceipt';
 import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
 import { ShowHolo, layoutShowHolo } from './ShowHolo';
+import { PlainTicket, layoutPlainTicket } from './PlainTicket';
 import { ShowRetro, layoutShowRetro } from './ShowRetro';
 import { ShowTicket, layoutShow } from './ShowTicket';
 import { TemplateLayout } from './shared';
@@ -44,9 +45,11 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
           ? layoutWristBand(record)
           : record.design === 'holo'
             ? layoutShowHolo(record)
-            : record.design === 'poster'
-              ? layoutShow(record)
-              : layoutShowRetro(record);
+            : record.design === 'retro' || record.design === 'ticket'
+              ? layoutShowRetro(record)
+              : record.design === 'poster'
+                ? layoutShow(record)
+                : layoutPlainTicket(record);
     case 'concert':
       return record.design === 'band'
         ? layoutWristBand(record)
@@ -54,7 +57,9 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
           ? layoutPhotoTicket(record)
           : record.design === 'retro'
             ? layoutConcertRetro(record)
-            : layoutConcert(record);
+            : record.design === 'plain'
+              ? layoutPlainTicket(record)
+              : layoutConcert(record);
   }
 }
 
@@ -104,10 +109,12 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
         <WristBand record={record} width={width} connected={connected} />
       ) : record.design === 'holo' ? (
         <ShowHolo record={record} width={width} connected={connected} />
+      ) : record.design === 'retro' || record.design === 'ticket' ? (
+        <ShowRetro record={record} width={width} connected={connected} />
       ) : record.design === 'poster' ? (
         <ShowTicket record={record} width={width} connected={connected} />
       ) : (
-        <ShowRetro record={record} width={width} connected={connected} />
+        <PlainTicket record={record} width={width} connected={connected} />
       );
     case 'concert':
       return record.design === 'band' ? (
@@ -116,6 +123,8 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
         <PhotoTicket record={record} width={width} connected={connected} />
       ) : record.design === 'retro' ? (
         <ConcertRetro record={record} width={width} connected={connected} />
+      ) : record.design === 'plain' ? (
+        <PlainTicket record={record} width={width} connected={connected} />
       ) : (
         <ConcertTicket record={record} width={width} connected={connected} />
       );

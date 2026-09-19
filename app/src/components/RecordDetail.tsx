@@ -61,7 +61,8 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
           <Text style={styles.topTitle}>
             {record.date.replace(/-/g, '.')} · {KIND_LABEL[record.kind]}
           </Text>
-          <View style={styles.iconBtn} />
+          {/* 제목을 가운데 두려고 닫기 버튼만큼 비워둔 자리 (버튼 아님) */}
+          <View style={styles.topSpacer} />
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -145,6 +146,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.orange },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 8 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)' },
+  topSpacer: { width: 40, height: 40 },
   iconText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   topTitle: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   scroll: { alignItems: 'center', paddingVertical: 12, paddingBottom: 40 },

@@ -210,14 +210,14 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
           ]
         : kind === 'show'
           ? [
-              { record: sampleShow('play'), caption: '입장권' },
+              { record: { ...sampleShow('play'), id: 'preview-show-plain', design: 'plain' }, caption: '흰 무지' },
               { record: { ...sampleShow('play'), id: 'preview-show-poster', design: 'poster' }, caption: '포스터 입장권' },
-              { record: sampleShow('exhibition'), caption: '전시' },
+              { record: { ...sampleShow('exhibition'), id: 'preview-show-ex', design: 'poster' }, caption: '전시' },
             ]
           : kind === 'concert'
             ? [
                 { record: sampleConcert(), caption: '가로 티켓' },
-                { record: { ...sampleConcert(), id: 'preview-concert-retro', design: 'retro' }, caption: '레트로 티켓' },
+                { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain' }, caption: '흰 무지' },
               ]
             : [];
   return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };
