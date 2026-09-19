@@ -18,7 +18,8 @@ export const HOLO_COLORS: Record<HoloColor, { name: string; base: string; deep: 
   violet: { name: '보라', base: '#4b2a9b', deep: '#331a70', gold: '#ffd84d', holo: ['#c9a8f7', '#ffe27a', '#f7a8d8', '#a8f0f7'], shine: 0.09 },
   teal: { name: '청록', base: '#0e6b6b', deep: '#074f4f', gold: '#ffe08a', holo: ['#8be9f7', '#ffe27a', '#9bf5c0', '#a8d8f7'], shine: 0.09 },
   wine: { name: '와인', base: '#7a1f45', deep: '#571030', gold: '#ffd07a', holo: ['#f7a8d8', '#ffe27a', '#f7c8a8', '#e9a8f7'], shine: 0.09 },
-  black: { name: '검정', base: '#17171c', deep: '#0b0b0e', gold: '#ffd84d', holo: ['#8be9f7', '#f7a8d8', '#ffe27a', '#9bf5c0'], shine: 0.2 },
+  // 검정은 띠 없이 깜깜한 종이 그대로 (shine 0)
+  black: { name: '검정', base: '#17171c', deep: '#0b0b0e', gold: '#ffd84d', holo: [], shine: 0 },
 };
 
 export const HOLO_COLOR_IDS = Object.keys(HOLO_COLORS) as HoloColor[];
@@ -126,7 +127,7 @@ export function ShowHolo({ record: r, width, connected = false }: { record: Show
         {/* 머리 */}
         <T f="monoBold" x={M} y={58} fontSize={15} letterSpacing={3} fill="#fff" opacity={0.85} children="ORIGINAL TICKET" />
         <T f="mono" x={PW - M} y={58} fontSize={15} textAnchor="end" fill="#fff" opacity={0.7} children={`(${year})`} />
-        <T f="sansBold" x={M} y={92} fontSize={16} fill={HOLO[1]} children={`${t.label} · ${BRAND.ko}`} />
+        <T f="sansBold" x={M} y={92} fontSize={16} fill={HOLO[1] ?? GOLD} children={`${t.label} · ${BRAND.ko}`} />
 
         {/* 제목 칸 */}
         {box(M, titleTop, PW - M * 2, titleBoxH, 'title')}

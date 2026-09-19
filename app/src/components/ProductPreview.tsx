@@ -41,6 +41,16 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
   // 한 장은 크게, 여러 장이면 옆으로 넘겨 보기
   const many = (product?.samples.length ?? 0) > 1;
   const maxH = screenH * 0.5;
+  // 칸마다 종이 폭·높이를 먼저 재서, 가장 높은 칸에 나머지를 맞춘다
+  const cellW = many ? screenW * 0.62 : screenW - 60;
+  const sized = (product?.samples ?? []).map((sample) => {
+    const l = layoutOf(sample.record);
+    const stack = [sample.record, ...(sample.more ?? [])];
+    const room = (maxH - (stack.length - 1) * 10) / stack.length;
+    const w = Math.min(cellW, (room * l.width) / l.height);
+    return { sample, stack, w, h: (w * l.height) / l.width };
+  });
+  const rowH = sized.reduce((m, s) => Math.max(m, s.h * s.stack.length), 0);
 
   return (
     <Modal visible={!!product} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -61,17 +71,14 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
             <Text style={styles.desc}>{product.desc}</Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.samples}>
-              {product.samples.map((s, i) => {
-                const l = layoutOf(s.record);
-                const stack = [s.record, ...(s.more ?? [])];
-                // 화면 높이의 절반 안에 들어오게 폭을 정한다 (여러 장을 쌓으면 그만큼 나눠 쓴다)
-                const room = (maxH - (stack.length - 1) * 10) / stack.length;
-                const w = Math.min(many ? screenW * 0.62 : screenW - 60, (room * l.width) / l.height);
+              {sized.map(({ sample: s, stack, w, h }, i) => {
+                // 쌓은 칸은 옆 칸만큼 키운다 (남는 자리를 장 사이에 나눠 넣는다)
+                const gap = stack.length > 1 ? Math.max(10, (rowH - h * stack.length) / (stack.length - 1)) : 0;
                 return (
                   <View key={i} style={styles.sample}>
                     <View style={styles.paper}>
                       {stack.map((record, j) => (
-                        <View key={j} style={j > 0 && { marginTop: 10 }}>
+                        <View key={j} style={j > 0 && { marginTop: gap }}>
                           {s.side === 'back' && record.kind === 'fourcut' ? <FourcutBack record={record} width={w} /> : <RecordPaper record={record} width={w} />}
                         </View>
                       ))}
