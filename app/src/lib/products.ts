@@ -227,9 +227,20 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
             ]
           : kind === 'concert'
             ? [
-                  { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain' }, caption: '흰 무지' },
-                  { record: sampleConcert(), caption: '밤하늘 티켓' },
+                { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain' }, caption: '흰 무지' },
+                { record: sampleConcert(), caption: '밤하늘 티켓' },
+              ]
+            : kind === 'exercise'
+              ? [
+                  { record: sampleExercise('run'), caption: '기록표 · 러닝' },
+                  { record: { ...sampleExercise('gym'), id: 'preview-exercise-gym-slip' }, caption: '기록표 · 헬스' },
+                  { record: { ...sampleExercise('run'), id: 'preview-exercise-card', design: 'card' }, caption: '기록 카드' },
                 ]
+              : kind === 'music'
+                ? [
+                    { record: sampleMusic('album'), caption: '앨범 카드' },
+                    { record: sampleMusic('list'), caption: '플레이리스트 영수증' },
+                  ]
                 : [];
   return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };
 }

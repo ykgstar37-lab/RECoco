@@ -98,7 +98,7 @@ export function WristBand({ record: r, width, connected = false }: { record: Wri
         {/* 천 짜임 무늬 */}
         <G clipPath={`url(#${id}-band)`}>
           {Array.from({ length: Math.ceil(height / 7) }, (_, i) => (
-            <Line key={i} x1={BAND_X - 26} y1={i * 7} x2={BAND_X + BAND_W + 26} y2={i * 7} stroke={INK} strokeWidth={0.8} opacity={0.06} />
+            <Line key={i} x1={BAND_X - 26} y1={i * 7} x2={BAND_X + BAND_W + 26} y2={i * 7} stroke={INK} strokeWidth={0.8} opacity={0.045} />
           ))}
           {/* 잠금 고리 */}
           <Rect x={BAND_X - 26} y={TOP} width={BAND_W + 52} height={LOCK_H} fill={SOFT} />

@@ -138,6 +138,25 @@ function Shape({ emoji }: { emoji: string }) {
           <Path d="M17,41 H31" {...s} />
         </G>
       );
+    case '🏃':
+      // 운동화 (옆모습)
+      return (
+        <G>
+          <Path d="M7,33 V24 Q7,22 9,22 H16 L22,26 L33,28 Q40,29 41,33 V35 Q41,37 39,37 H9 Q7,37 7,35 Z" fill="#8fd6a8" {...s} />
+          <Path d="M7,33 H41" {...s} fill="none" />
+          <Path d="M16,22 L19,26 M21,23 L24,27 M26,25 L28,28" stroke={LINE} strokeWidth={1.6} strokeLinecap="round" />
+          <Path d="M12,17 L16,22 M17,15 L20,20" stroke="#5aa87a" strokeWidth={2.4} strokeLinecap="round" />
+        </G>
+      );
+    case '🎧':
+      // 헤드폰
+      return (
+        <G>
+          <Path d="M11,29 V23 A13,13 0 0 1 37,23 V29" {...s} fill="none" />
+          <Path d="M8,29 H15 V40 H8 Q6,40 6,38 V31 Q6,29 8,29 Z" fill="#b9c8ff" {...s} />
+          <Path d="M40,29 H33 V40 H40 Q42,40 42,38 V31 Q42,29 40,29 Z" fill="#b9c8ff" {...s} />
+        </G>
+      );
     default:
       return null;
   }
