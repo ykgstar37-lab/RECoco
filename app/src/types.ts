@@ -212,7 +212,7 @@ export interface ShowRecord extends BaseRecord {
 export type ConcertDesign = 'ticket' | 'plain' | 'retro' | 'band' | 'kpop';
 
 /** 팔찌 티켓 끈 색 */
-export type BandColor = 'black' | 'orange' | 'white' | 'navy' | 'pink';
+export type BandColor = 'black' | 'orange' | 'white' | 'navy' | 'pink' | 'sky';
 
 /** 포토 티켓 색 */
 export type PhotoColor = 'pink' | 'sky' | 'butter' | 'mint';

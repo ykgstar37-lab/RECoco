@@ -26,6 +26,7 @@ export const BAND_COLORS: Record<BandColor, { name: string; band: string; lock: 
   white: { name: '흰색', band: '#f4f2ec', lock: '#e2ded2', ink: '#26242a', accent: '#e2685c' },
   navy: { name: '남색', band: '#22335c', lock: '#172542', ink: '#ffffff', accent: '#7fd4ff' },
   pink: { name: '분홍', band: '#f2a0bd', lock: '#dd87a6', ink: '#3b1f2b', accent: '#8c3155' },
+  sky: { name: '하늘', band: '#8fc7e8', lock: '#6da9cd', ink: '#17303f', accent: '#1d6a99' },
 };
 
 export const BAND_COLOR_IDS = Object.keys(BAND_COLORS) as BandColor[];
