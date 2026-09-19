@@ -216,8 +216,8 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
             ]
           : kind === 'concert'
             ? [
-                { record: sampleConcert(), caption: '가로 티켓' },
                 { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain' }, caption: '흰 무지' },
+                { record: sampleConcert(), caption: '밤하늘 티켓' },
               ]
             : [];
   return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };

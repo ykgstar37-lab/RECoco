@@ -208,7 +208,7 @@ export interface ShowRecord extends BaseRecord {
   color?: TicketColor; // 모양의 색 (팔찌·포토 티켓·홀로그램)
 }
 
-/** ticket: 가로 공연 티켓, plain: 흰 무지 티켓 (여기까지 무료) / retro: 레트로 티켓, band: 스탠딩 팔찌, kpop: 포토 티켓 (전부 공연·전시와 같이 씀) */
+/** ticket: 밤하늘 티켓(가로), plain: 흰 무지 티켓 (여기까지 무료) / retro: 레트로 티켓, band: 스탠딩 팔찌, kpop: 포토 티켓 (전부 공연·전시와 같이 씀) */
 export type ConcertDesign = 'ticket' | 'plain' | 'retro' | 'band' | 'kpop';
 
 /** 스탠딩 팔찌 끈 색 */

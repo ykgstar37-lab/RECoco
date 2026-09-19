@@ -89,8 +89,8 @@ export interface ConcertDesignItem {
 
 /** 카테고리를 사면 바로 쓰는 기본 모양 (무료) */
 export const FREE_CONCERT_DESIGNS: { id: ConcertDesign; name: string }[] = [
-  { id: 'ticket', name: '가로 티켓' },
   { id: 'plain', name: '흰 무지' },
+  { id: 'ticket', name: '밤하늘 티켓' },
 ];
 
 export const CONCERT_DESIGNS: ConcertDesignItem[] = [
@@ -140,7 +140,7 @@ export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: s
   gift: { name: '선물', desc: '받은·보낸 선물을 모바일 교환권처럼', icon: '🎁', productId: 'recoco.category.gift', price: 1500 },
   food: { name: '카페·맛집', desc: '메뉴마다 별점을 매기는 주문서 · 인쇄 색 4가지', icon: '☕', productId: 'recoco.category.food', price: 1500 },
   show: { name: '공연·전시', desc: '뮤지컬·연극·전시 · 흰 무지 티켓 · 포스터 입장권', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
-  concert: { name: '콘서트', desc: '가로 공연 티켓 · 흰 무지 티켓', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
+  concert: { name: '콘서트', desc: '밤하늘 티켓 · 흰 무지 티켓', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
 };
 
 export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {

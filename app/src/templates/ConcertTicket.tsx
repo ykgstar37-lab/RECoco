@@ -168,7 +168,10 @@ export function ConcertTicket({ record: r, width, connected = false }: { record:
         <T f="mono" x={MAIN_W + 153} y={69} fontSize={17} textAnchor="middle" fill={CONCERT_DEEP} letterSpacing={1} children={serial.slice(0, 6)} />
         <T f="monoBold" x={MAIN_W + 153} y={112} fontSize={12} letterSpacing={2} textAnchor="middle" fill="#fff" opacity={0.85} children="TICKET NUMBER" />
         <Rect x={MAIN_W + 84} y={132} width={140} height={190} rx={4} fill="#fff" />
-        <Barcode seed={`${r.id}-stub`} x={MAIN_W + 94} y={144} width={120} height={166} color={CONCERT_DEEP} />
+        {/* 실제 티켓 스텁처럼 바코드를 세로로 세운다 (흰 판 가운데에서 90도) */}
+        <G transform={`rotate(90 ${MAIN_W + 154} 227)`}>
+          <Barcode seed={`${r.id}-stub`} x={MAIN_W + 71} y={167} width={166} height={120} color={CONCERT_DEEP} />
+        </G>
         <T f="mono" x={MAIN_W + 153} y={352} fontSize={15} textAnchor="middle" fill="#fff" children={dotDateWithDay(r.date).slice(2)} />
 
         <PaperOverlay id={id} d={shape} width={PW} height={PH} wrinkle="none" surface="grain" />
