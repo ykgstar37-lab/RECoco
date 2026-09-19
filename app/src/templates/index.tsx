@@ -12,6 +12,10 @@ import { PhotoTicket, layoutPhotoTicket } from './PhotoTicket';
 import { ReadingReceipt, layoutReading } from './ReadingReceipt';
 import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
 import { ShowHolo, layoutShowHolo } from './ShowHolo';
+import { ExerciseCard, layoutExerciseCard } from './ExerciseCard';
+import { ExerciseSlip, layoutExerciseSlip } from './ExerciseSlip';
+import { MusicAlbum, layoutMusicAlbum } from './MusicAlbum';
+import { MusicList, layoutMusicList } from './MusicList';
 import { PlainTicket, layoutPlainTicket } from './PlainTicket';
 import { ShowRetro, layoutShowRetro } from './ShowRetro';
 import { ShowTicket, layoutShow } from './ShowTicket';
@@ -60,6 +64,10 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
             : record.design === 'plain'
               ? layoutPlainTicket(record)
               : layoutConcert(record);
+    case 'exercise':
+      return record.design === 'card' ? layoutExerciseCard(record) : layoutExerciseSlip(record);
+    case 'music':
+      return record.design === 'list' ? layoutMusicList(record) : layoutMusicAlbum(record);
   }
 }
 
@@ -128,6 +136,10 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
       ) : (
         <ConcertTicket record={record} width={width} connected={connected} />
       );
+    case 'exercise':
+      return record.design === 'card' ? <ExerciseCard record={record} width={width} connected={connected} /> : <ExerciseSlip record={record} width={width} connected={connected} />;
+    case 'music':
+      return record.design === 'list' ? <MusicList record={record} width={width} connected={connected} /> : <MusicAlbum record={record} width={width} connected={connected} />;
   }
 });
 
@@ -141,4 +153,6 @@ export const KIND_LABEL: Record<RecoRecord['kind'], string> = {
   food: '카페·맛집',
   show: '공연·전시',
   concert: '콘서트',
+  exercise: '운동',
+  music: '음악',
 };

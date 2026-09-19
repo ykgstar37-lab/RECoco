@@ -7,7 +7,7 @@ import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
 import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { ConcertDesign, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
-import { sampleConcert, sampleFood, sampleFourcut, sampleGift, sampleShow, sampleSpending } from './previewSamples';
+import { sampleConcert, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
 import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
 
 export interface PreviewSample {
@@ -227,9 +227,9 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
             ]
           : kind === 'concert'
             ? [
-                { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain' }, caption: '흰 무지' },
-                { record: sampleConcert(), caption: '밤하늘 티켓' },
-              ]
-            : [];
+                  { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain' }, caption: '흰 무지' },
+                  { record: sampleConcert(), caption: '밤하늘 티켓' },
+                ]
+                : [];
   return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };
 }

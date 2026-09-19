@@ -1,4 +1,4 @@
-export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food' | 'show' | 'concert';
+export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food' | 'show' | 'concert' | 'exercise' | 'music';
 
 interface BaseRecord {
   id: string;
@@ -212,7 +212,7 @@ export interface ShowRecord extends BaseRecord {
 export type ConcertDesign = 'ticket' | 'plain' | 'retro' | 'band' | 'kpop';
 
 /** 팔찌 티켓 끈 색 */
-export type BandColor = 'black' | 'orange' | 'white' | 'navy' | 'pink' | 'sky';
+export type BandColor = 'black' | 'orange' | 'white' | 'pink' | 'sky';
 
 /** 포토 티켓 색 */
 export type PhotoColor = 'pink' | 'sky' | 'butter' | 'mint';
@@ -244,4 +244,62 @@ export interface ConcertRecord extends BaseRecord {
   color?: TicketColor; // 모양의 색 (팔찌·포토 티켓)
 }
 
-export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord | ShowRecord | ConcertRecord;
+export type ExerciseType = 'run' | 'gym' | 'yoga' | 'hike' | 'swim';
+
+/** slip: 운동 기록표(흰 영수증), card: 기록 카드(진한 색) — 둘 다 무료 */
+export type ExerciseDesign = 'slip' | 'card';
+
+/** 헬스일 때 종목마다 적는 줄 */
+export interface ExerciseSet {
+  name: string; // 스쿼트
+  weight: number; // kg, 0 이면 표시 안 함
+  reps: number; // 12회
+  sets: number; // 3세트
+}
+
+/** 운동: 종류에 따라 칸이 바뀐다 (러닝은 거리·페이스, 헬스는 종목별 세트) */
+export interface ExerciseRecord extends BaseRecord {
+  kind: 'exercise';
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  type: ExerciseType;
+  place: string;
+  minutes: number; // 운동한 시간(분)
+  distance: number; // km, 0 이면 표시 안 함 (러닝·등산·수영)
+  pace: string; // 6'12" 같은 자유 글자 (러닝)
+  moves: ExerciseSet[]; // 헬스 종목 (0~8개)
+  effort: number; // 힘든 정도 0~5
+  memo: string;
+  photo: Photo | null;
+  design?: ExerciseDesign; // 없으면 기록표
+  color?: string; // 모양의 색
+}
+
+/** album: 앨범 카드(커버 크게), list: 플레이리스트 영수증(곡이 주르르) — 둘 다 무료 */
+export type MusicDesign = 'album' | 'list';
+
+/** 플레이리스트 한 줄 */
+export interface MusicTrack {
+  title: string;
+  artist: string; // 비면 앨범 아티스트로 본다
+  stars: number; // 0~5
+}
+
+/** 음악: 앨범·노래 감상 (콘서트와 따로) */
+export interface MusicRecord extends BaseRecord {
+  kind: 'music';
+  date: string; // YYYY-MM-DD
+  title: string; // 앨범·플레이리스트 이름
+  artist: string;
+  label: string; // 발매사·장르 (선택)
+  year: string; // 발매 연도 (선택)
+  place: string; // 어디서 들었나 (지하철·침대…)
+  tracks: MusicTrack[]; // 0~10곡
+  stars: number; // 0~5
+  memo: string;
+  photo: Photo | null; // 앨범 커버
+  design?: MusicDesign; // 없으면 앨범 카드
+  color?: string; // 모양의 색
+}
+
+export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord | ShowRecord | ConcertRecord | ExerciseRecord | MusicRecord;

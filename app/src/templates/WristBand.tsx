@@ -24,7 +24,6 @@ export const BAND_COLORS: Record<BandColor, { name: string; band: string; lock: 
   black: { name: '검정', band: '#191a22', lock: '#2b2d3a', ink: '#ffffff', accent: '#d6f24a' },
   orange: { name: '주황', band: '#ef7d3d', lock: '#d1622a', ink: '#ffffff', accent: '#3c1d0c' },
   white: { name: '흰색', band: '#f4f2ec', lock: '#e2ded2', ink: '#26242a', accent: '#e2685c' },
-  navy: { name: '남색', band: '#22335c', lock: '#172542', ink: '#ffffff', accent: '#7fd4ff' },
   pink: { name: '분홍', band: '#f2a0bd', lock: '#dd87a6', ink: '#3b1f2b', accent: '#8c3155' },
   sky: { name: '하늘', band: '#8fc7e8', lock: '#6da9cd', ink: '#17303f', accent: '#1d6a99' },
 };

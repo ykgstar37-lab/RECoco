@@ -21,8 +21,9 @@ import { fillRect } from '../lib/photoCrop';
 import { downloadPhoto, pickPhotos } from '../lib/photos';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
+import { EXERCISE_TYPES, USES_DISTANCE } from '../templates/ExerciseSlip';
 import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
-import { ConcertDesignPicker, FoodDesignPicker, ShowDesignPicker, ThemePicker } from './ThemePicker';
+import { ConcertDesignPicker, ExerciseDesignPicker, FoodDesignPicker, MusicDesignPicker, ShowDesignPicker, ThemePicker } from './ThemePicker';
 import { SHOW_TYPES } from '../templates/ShowTicket';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
@@ -34,9 +35,12 @@ import {
   FourcutFrame,
   FourcutLayout,
   FourcutRecord,
+  ExerciseRecord,
+  ExerciseType,
   GiftCard,
   GiftRecord,
   GridColor,
+  MusicRecord,
   MoviePaper,
   MovieRecord,
   PaperTheme,
@@ -90,6 +94,8 @@ const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
   { kind: 'food', label: '카페·맛집', ready: true },
   { kind: 'show', label: '공연·전시', ready: true },
   { kind: 'concert', label: '콘서트', ready: true },
+  { kind: 'exercise', label: '운동', ready: true },
+  { kind: 'music', label: '음악', ready: true },
 ];
 
 const FRAMES: { key: FourcutFrame; label: string; color: string }[] = [
@@ -187,6 +193,37 @@ const emptyConcert = (): Omit<ConcertRecord, 'id' | 'createdAt'> => ({
   memo: '',
   photo: null,
   design: 'ticket',
+});
+
+const emptyExercise = (): Omit<ExerciseRecord, 'id' | 'createdAt'> => ({
+  kind: 'exercise',
+  date: today(),
+  time: nowTime(),
+  type: 'run',
+  place: '',
+  minutes: 30,
+  distance: 0,
+  pace: '',
+  moves: [{ name: '', weight: 0, reps: 0, sets: 0 }],
+  effort: 3,
+  memo: '',
+  photo: null,
+  design: 'slip',
+});
+
+const emptyMusic = (): Omit<MusicRecord, 'id' | 'createdAt'> => ({
+  kind: 'music',
+  date: today(),
+  title: '',
+  artist: '',
+  label: '',
+  year: '',
+  place: '',
+  tracks: [{ title: '', artist: '', stars: 5 }],
+  stars: 4,
+  memo: '',
+  photo: null,
+  design: 'album',
 });
 
 const STATUSES: ReadingStatus[] = ['완독', '읽는 중', '잠시 멈춤'];
@@ -310,6 +347,8 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   const [food, setFood] = useState(emptyFood);
   const [show, setShow] = useState(emptyShow);
   const [concert, setConcert] = useState(emptyConcert);
+  const [exercise, setExercise] = useState(emptyExercise);
+  const [music, setMusic] = useState(emptyMusic);
   const [foodSmsOpen, setFoodSmsOpen] = useState(false);
   const { owned } = useShop();
   const [qrOpen, setQrOpen] = useState(false);
@@ -402,6 +441,12 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
       case 'concert':
         setConcert(rest);
         break;
+      case 'exercise':
+        setExercise({ ...rest, moves: rest.moves.length ? rest.moves : [{ name: '', weight: 0, reps: 0, sets: 0 }] });
+        break;
+      case 'music':
+        setMusic({ ...rest, tracks: rest.tracks.length ? rest.tracks : [{ title: '', artist: '', stars: 5 }] });
+        break;
     }
   }, [visible, initialKind, editing]);
 
@@ -412,6 +457,8 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
     setFood(emptyFood());
     setShow(emptyShow());
     setConcert(emptyConcert());
+    setExercise(emptyExercise());
+    setMusic(emptyMusic());
     setReading(emptyReading());
     setMovie(emptyMovie());
     setSpending(emptySpending());
@@ -473,6 +520,14 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
     } else if (kind === 'concert') {
       if (!concert.artist.trim() && !concert.title.trim()) return setError('누구 공연이었는지 적어주세요.');
       record = { ...base, ...concert } as ConcertRecord;
+    } else if (kind === 'exercise') {
+      if (exercise.minutes <= 0 && exercise.distance <= 0) return setError('운동한 시간이나 거리를 적어주세요.');
+      const moves = exercise.moves.filter((m) => m.name.trim()).map((m) => ({ ...m, name: m.name.trim() }));
+      record = { ...base, ...exercise, moves } as ExerciseRecord;
+    } else if (kind === 'music') {
+      const tracks = music.tracks.filter((t) => t.title.trim()).map((t) => ({ ...t, title: t.title.trim(), artist: t.artist.trim() }));
+      if (!music.title.trim() && !tracks.length) return setError('앨범·노래 이름을 적어주세요.');
+      record = { ...base, ...music, tracks } as MusicRecord;
     } else {
       if (fourcut.source === 'qr' && !fourcut.frameImage) {
         return setError('QR로 사진을 가져오거나, "사진 4장 고르기"로 바꿔주세요.');
@@ -1396,6 +1451,212 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
               </>
             )}
 
+            {kind === 'exercise' && (
+              <>
+                <View style={styles.segment}>
+                  {(Object.entries(EXERCISE_TYPES) as [ExerciseType, { label: string }][]).map(([key, t]) => (
+                    <Pressable key={key} onPress={() => setExercise({ ...exercise, type: key })} style={[styles.seg, exercise.type === key && styles.segOn]}>
+                      <Text style={[styles.segText, exercise.type === key && styles.segTextOn]}>{t.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Row>
+                  <DateField label="날짜" value={exercise.date} onChange={(v) => setExercise({ ...exercise, date: v })} />
+                  <Field label="시간" value={exercise.time} onChange={(v) => setExercise({ ...exercise, time: v })} placeholder="07:10" />
+                </Row>
+                <Field label="어디서 (선택)" value={exercise.place} onChange={(v) => setExercise({ ...exercise, place: v })} placeholder="한강공원 망원지구" />
+                <Row>
+                  <Field
+                    label="얼마나 (분) *"
+                    value={exercise.minutes ? String(exercise.minutes) : ''}
+                    onChange={(v) => setExercise({ ...exercise, minutes: Number(v.replace(/[^0-9]/g, '')) || 0 })}
+                    keyboardType="number-pad"
+                    placeholder="40"
+                  />
+                  {USES_DISTANCE.includes(exercise.type) && (
+                    <Field
+                      label="거리 (km)"
+                      value={exercise.distance ? String(exercise.distance) : ''}
+                      onChange={(v) => setExercise({ ...exercise, distance: Number(v.replace(/[^0-9.]/g, '')) || 0 })}
+                      keyboardType="number-pad"
+                      placeholder="6.4"
+                    />
+                  )}
+                </Row>
+                {exercise.type === 'run' && (
+                  <Field label="페이스 (선택)" value={exercise.pace} onChange={(v) => setExercise({ ...exercise, pace: v })} placeholder="6'32&quot;" />
+                )}
+
+                {exercise.type === 'gym' && (
+                  <>
+                    <Label text="종목" />
+                    {exercise.moves.map((m, i) => (
+                      <Row key={i}>
+                        <Field
+                          label={i === 0 ? '이름' : ' '}
+                          value={m.name}
+                          onChange={(v) => setExercise((e) => ({ ...e, moves: e.moves.map((x, j) => (j === i ? { ...x, name: v } : x)) }))}
+                          placeholder="스쿼트"
+                        />
+                        <Field
+                          label={i === 0 ? 'kg' : ' '}
+                          value={m.weight ? String(m.weight) : ''}
+                          onChange={(v) => setExercise((e) => ({ ...e, moves: e.moves.map((x, j) => (j === i ? { ...x, weight: Number(v.replace(/[^0-9.]/g, '')) || 0 } : x)) }))}
+                          keyboardType="number-pad"
+                          placeholder="40"
+                        />
+                        <Field
+                          label={i === 0 ? '횟수' : ' '}
+                          value={m.reps ? String(m.reps) : ''}
+                          onChange={(v) => setExercise((e) => ({ ...e, moves: e.moves.map((x, j) => (j === i ? { ...x, reps: Number(v.replace(/[^0-9]/g, '')) || 0 } : x)) }))}
+                          keyboardType="number-pad"
+                          placeholder="12"
+                        />
+                        <Field
+                          label={i === 0 ? '세트' : ' '}
+                          value={m.sets ? String(m.sets) : ''}
+                          onChange={(v) => setExercise((e) => ({ ...e, moves: e.moves.map((x, j) => (j === i ? { ...x, sets: Number(v.replace(/[^0-9]/g, '')) || 0 } : x)) }))}
+                          keyboardType="number-pad"
+                          placeholder="4"
+                        />
+                      </Row>
+                    ))}
+                    {exercise.moves.length < 8 && (
+                      <Pressable onPress={() => setExercise((e) => ({ ...e, moves: [...e.moves, { name: '', weight: 0, reps: 0, sets: 0 }] }))} style={styles.addRow}>
+                        <Text style={styles.addRowText}>+ 종목 추가</Text>
+                      </Pressable>
+                    )}
+                  </>
+                )}
+
+                <Label text="사진 (선택)" />
+                <View style={styles.coverRow}>
+                  <Pressable
+                    onPress={async () => {
+                      await withPhotoBusy(async () => {
+                        const [pic] = await pickPhotos(1);
+                        if (pic) setExercise((x) => ({ ...x, photo: pic }));
+                      });
+                    }}
+                    style={styles.giftPhoto}
+                    accessibilityLabel="사진 고르기">
+                    {exercise.photo ? (
+                      <>
+                        <Image source={{ uri: exercise.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setExercise((x) => ({ ...x, photo: null }))}>
+                          <Text style={styles.slotRemoveText}>×</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <Text style={styles.slotText}>+</Text>
+                    )}
+                    {photoBusy && <PhotoBusy />}
+                  </Pressable>
+                  <Text style={styles.coverHelp}>기록표·기록 카드 가운데에 들어가요.</Text>
+                </View>
+
+                <Label text="힘든 정도" />
+                <View style={styles.stars}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Pressable key={n} onPress={() => setExercise({ ...exercise, effort: exercise.effort === n ? n - 1 : n })} hitSlop={6}>
+                      <Text style={[styles.star, n <= exercise.effort && styles.starOn]}>{n <= exercise.effort ? '★' : '☆'}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Field label="한 줄 (선택)" value={exercise.memo} onChange={(v) => setExercise({ ...exercise, memo: v })} placeholder="다리가 후들거렸다" multiline />
+                <ExerciseDesignPicker value={exercise.design} type={exercise.type} onChange={(design) => setExercise((e) => ({ ...e, design }))} />
+              </>
+            )}
+
+            {kind === 'music' && (
+              <>
+                <Row>
+                  <Field label="앨범·플레이리스트 이름 *" value={music.title} onChange={(v) => setMusic({ ...music, title: v })} placeholder="Golden Hour" />
+                  <DateField label="날짜" value={music.date} onChange={(v) => setMusic({ ...music, date: v })} />
+                </Row>
+                <Row>
+                  <Field label="아티스트" value={music.artist} onChange={(v) => setMusic({ ...music, artist: v })} placeholder="새벽밴드" />
+                  <Field label="어디서 들었나 (선택)" value={music.place} onChange={(v) => setMusic({ ...music, place: v })} placeholder="지하철" />
+                </Row>
+                <Row>
+                  <Field label="장르·레이블 (선택)" value={music.label} onChange={(v) => setMusic({ ...music, label: v })} placeholder="인디팝" />
+                  <Field label="발매 연도 (선택)" value={music.year} onChange={(v) => setMusic({ ...music, year: v.replace(/[^0-9]/g, '') })} keyboardType="number-pad" placeholder="2026" />
+                </Row>
+
+                <Label text="곡" />
+                {music.tracks.map((t, i) => (
+                  <View key={i} style={styles.trackRow}>
+                    <Row>
+                      <Field
+                        label={i === 0 ? '곡 이름' : ' '}
+                        value={t.title}
+                        onChange={(v) => setMusic((m) => ({ ...m, tracks: m.tracks.map((x, j) => (j === i ? { ...x, title: v } : x)) }))}
+                        placeholder="노을 사이"
+                      />
+                      <Field
+                        label={i === 0 ? '아티스트 (다르면)' : ' '}
+                        value={t.artist}
+                        onChange={(v) => setMusic((m) => ({ ...m, tracks: m.tracks.map((x, j) => (j === i ? { ...x, artist: v } : x)) }))}
+                        placeholder="새벽밴드"
+                      />
+                    </Row>
+                    <View style={styles.trackStars}>
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Pressable
+                          key={n}
+                          hitSlop={4}
+                          onPress={() => setMusic((m) => ({ ...m, tracks: m.tracks.map((x, j) => (j === i ? { ...x, stars: x.stars === n ? n - 1 : n } : x)) }))}>
+                          <Text style={[styles.trackStar, n <= t.stars && styles.starOn]}>{n <= t.stars ? '★' : '☆'}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                ))}
+                {music.tracks.length < 10 && (
+                  <Pressable onPress={() => setMusic((m) => ({ ...m, tracks: [...m.tracks, { title: '', artist: '', stars: 5 }] }))} style={styles.addRow}>
+                    <Text style={styles.addRowText}>+ 곡 추가</Text>
+                  </Pressable>
+                )}
+
+                <Label text="앨범 커버 (선택)" />
+                <View style={styles.coverRow}>
+                  <Pressable
+                    onPress={async () => {
+                      await withPhotoBusy(async () => {
+                        const [pic] = await pickPhotos(1);
+                        if (pic) setMusic((x) => ({ ...x, photo: pic }));
+                      });
+                    }}
+                    style={styles.giftPhoto}
+                    accessibilityLabel="앨범 커버 고르기">
+                    {music.photo ? (
+                      <>
+                        <Image source={{ uri: music.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setMusic((x) => ({ ...x, photo: null }))}>
+                          <Text style={styles.slotRemoveText}>×</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <Text style={styles.slotText}>+</Text>
+                    )}
+                    {photoBusy && <PhotoBusy />}
+                  </Pressable>
+                  <Text style={styles.coverHelp}>앨범 카드에 크게 들어가요.</Text>
+                </View>
+
+                <Label text="별점" />
+                <View style={styles.stars}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Pressable key={n} onPress={() => setMusic({ ...music, stars: music.stars === n ? n - 1 : n })} hitSlop={6}>
+                      <Text style={[styles.star, n <= music.stars && styles.starOn]}>{n <= music.stars ? '★' : '☆'}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Field label="한 줄 감상 (선택)" value={music.memo} onChange={(v) => setMusic({ ...music, memo: v })} placeholder="가을에 듣기 좋다" multiline />
+                <MusicDesignPicker value={music.design} onChange={(design) => setMusic((m) => ({ ...m, design }))} />
+              </>
+            )}
+
             {!!error && <Text style={styles.error}>{error}</Text>}
           </ScrollView>
           {/* 키보드가 올라와도 버튼이 가려지지 않게 KeyboardAvoidingView 안에 둔다 */}
@@ -1503,6 +1764,11 @@ function Field({
 }
 
 const styles = StyleSheet.create({
+  addRow: { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 12, backgroundColor: COLORS.surface },
+  addRowText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
+  trackRow: { gap: 4 },
+  trackStars: { flexDirection: 'row', gap: 6, marginTop: -2, marginBottom: 6 },
+  trackStar: { fontSize: 18, color: COLORS.line },
   sheet: { flex: 1, backgroundColor: COLORS.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 14 },
   close: { color: COLORS.sub, fontSize: 15, fontFamily: FONTS.sans },

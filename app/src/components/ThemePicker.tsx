@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, G, Line, Path, Rect } from 'react-native-svg';
 
 import { won } from '../lib/format';
 import { PreviewProduct, concertDesignProductById, foodDesignProductById, showDesignProductById, themeProductById } from '../lib/products';
@@ -8,7 +8,9 @@ import {
   CONCERT_DESIGNS,
   FOOD_DESIGNS,
   FREE_CONCERT_DESIGNS,
+  FREE_EXERCISE_DESIGNS,
   FREE_FOOD_DESIGNS,
+  FREE_MUSIC_DESIGNS,
   FREE_SHOW_DESIGNS,
   FREE_THEMES,
   SHOW_DESIGNS,
@@ -20,6 +22,7 @@ import {
   useShop,
 } from '../lib/shop';
 import { RETRO_COLORS, RETRO_COLOR_IDS } from '../templates/ConcertRetro';
+import { EXERCISE_TYPES } from '../templates/ExerciseSlip';
 import { HOUSE_COLORS, HOUSE_COLOR_IDS } from '../templates/FoodHouse';
 import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
 import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
@@ -27,7 +30,7 @@ import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { ORDER_COLORS, ORDER_COLOR_IDS } from '../templates/FoodOrder';
 import { COLORS, FONTS } from '../theme';
-import { ConcertDesign, FoodColor, FoodDesign, GridColor, HouseColor, PaperTheme, ShowDesign, TicketColor } from '../types';
+import { ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, TicketColor } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 모양을 고른 다음 그 모양의 색을 고르는 동그라미 줄 */
@@ -527,3 +530,103 @@ const styles = StyleSheet.create({
   dotOn: { borderColor: COLORS.orange },
   dotFill: { width: 22, height: 22, borderRadius: 11, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
 });
+
+/** 운동 모양 견본 (기록표 / 기록 카드) */
+export function ExerciseDesignSwatch({ design, type = 'run', size = 44 }: { design: ExerciseDesign; type?: ExerciseType; size?: number }) {
+  const accent = EXERCISE_TYPES[type]?.accent ?? EXERCISE_TYPES.run.accent;
+  if (design === 'card')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={5} fill="#1b1d22" />
+        <Rect x={2} y={2} width={36} height={3} rx={1.5} fill={accent} />
+        <Rect x={7} y={10} width={14} height={4} rx={2} fill="#fff" />
+        <Line x1={7} y1={19} x2={33} y2={19} stroke="#33363f" strokeWidth={1.2} />
+        {[8, 18, 28].map((x) => (
+          <Rect key={x} x={x} y={25} width={6} height={7} rx={1} fill="#fff" opacity={0.85} />
+        ))}
+        <Rect x={7} y={40} width={18} height={3} rx={1.5} fill={accent} opacity={0.8} />
+      </Svg>
+    );
+  return (
+    <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+      <Rect x={1} y={1} width={38} height={50} rx={3} fill="#fcfbf8" stroke={COLORS.line} strokeWidth={1} />
+      <Rect x={6} y={6} width={16} height={6} rx={3} fill={accent} />
+      <Line x1={6} y1={17} x2={34} y2={17} stroke="#23252b" strokeWidth={1.4} />
+      <Rect x={6} y={21} width={15} height={10} rx={1} fill={accent} />
+      {[36, 42].map((y) => (
+        <Line key={y} x1={6} y1={y} x2={34} y2={y} stroke="#e5e5e6" strokeWidth={1.2} />
+      ))}
+    </Svg>
+  );
+}
+
+/** 운동 폼의 모양 고르기 (둘 다 무료) */
+export function ExerciseDesignPicker({ value, type, onChange }: { value: ExerciseDesign | undefined; type: ExerciseType; onChange: (design: ExerciseDesign) => void }) {
+  const design = value ?? 'slip';
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.label}>기록 모양</Text>
+      <View style={styles.row}>
+        {FREE_EXERCISE_DESIGNS.map((o) => {
+          const on = design === o.id;
+          return (
+            <Pressable key={o.id} onPress={() => onChange(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={o.name}>
+              <ExerciseDesignSwatch design={o.id} type={type} />
+              <Text style={[styles.name, on && { color: COLORS.orange }]}>{o.name}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+/** 음악 모양 견본 (앨범 카드 / 플레이리스트 영수증) */
+export function MusicDesignSwatch({ design, size = 44 }: { design: MusicDesign; size?: number }) {
+  if (design === 'list')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={4} y={1} width={32} height={50} rx={2} fill="#fbfaf6" stroke={COLORS.line} strokeWidth={1} />
+        <Rect x={11} y={7} width={18} height={4} rx={2} fill="#24242a" />
+        <Line x1={8} y1={15} x2={32} y2={15} stroke="#24242a" strokeWidth={1} strokeDasharray="2 2" />
+        {[20, 27, 34].map((y) => (
+          <G key={y}>
+            <Rect x={8} y={y} width={13} height={3} rx={1.5} fill="#24242a" opacity={0.75} />
+            <Rect x={25} y={y} width={7} height={3} rx={1.5} fill="#c0563f" />
+          </G>
+        ))}
+        <Rect x={8} y={42} width={24} height={5} fill="#24242a" opacity={0.85} />
+      </Svg>
+    );
+  return (
+    <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+      <Rect x={1} y={1} width={38} height={50} rx={3} fill="#f7f5ef" stroke={COLORS.line} strokeWidth={1} />
+      <Rect x={6} y={8} width={28} height={28} rx={2} fill="#efece4" stroke={COLORS.line} strokeWidth={0.8} />
+      <Circle cx={20} cy={22} r={9} fill="#1c1a20" />
+      <Circle cx={20} cy={22} r={3} fill="#c0563f" />
+      <Rect x={6} y={40} width={18} height={4} rx={2} fill="#242129" />
+      <Rect x={6} y={46} width={10} height={3} rx={1.5} fill="#c0563f" />
+    </Svg>
+  );
+}
+
+/** 음악 폼의 모양 고르기 (둘 다 무료) */
+export function MusicDesignPicker({ value, onChange }: { value: MusicDesign | undefined; onChange: (design: MusicDesign) => void }) {
+  const design = value ?? 'album';
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.label}>기록 모양</Text>
+      <View style={styles.row}>
+        {FREE_MUSIC_DESIGNS.map((o) => {
+          const on = design === o.id;
+          return (
+            <Pressable key={o.id} onPress={() => onChange(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={o.name}>
+              <MusicDesignSwatch design={o.id} />
+              <Text style={[styles.name, on && { color: COLORS.orange }]}>{o.name}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}

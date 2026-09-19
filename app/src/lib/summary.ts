@@ -1,5 +1,6 @@
 import { RecoRecord } from '../types';
 import { airportOf } from './airports';
+import { EXERCISE_TYPES } from '../templates/ExerciseSlip';
 
 /** 쌓인 영수증 칸에 적을 짧은 이름: 책·영화는 제목, 네컷은 날짜, 여행은 여행지, 소비는 가게 */
 export function shortLabel(r: RecoRecord) {
@@ -24,5 +25,9 @@ export function shortLabel(r: RecoRecord) {
       return r.title.trim() || '공연·전시';
     case 'concert':
       return r.artist.trim() || r.title.trim() || '콘서트';
+    case 'exercise':
+      return EXERCISE_TYPES[r.type]?.label ?? '운동';
+    case 'music':
+      return r.title.trim() || r.artist.trim() || '음악';
   }
 }

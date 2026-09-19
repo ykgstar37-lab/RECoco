@@ -6,7 +6,7 @@ import { useSyncExternalStore } from 'react';
 import { PurchaseCancelled, buyProduct, canBuy, ownedProductIds, startBilling } from './billing';
 
 import type { OutfitId } from '../components/Outfits';
-import type { ConcertDesign, FoodDesign, PaperTheme, RecordKind, ShowDesign } from '../types';
+import type { ConcertDesign, ExerciseDesign, FoodDesign, MusicDesign, PaperTheme, RecordKind, ShowDesign } from '../types';
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
@@ -74,7 +74,7 @@ export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) 
 /** 콘서트·공연전시가 같이 쓰는 모양: 한 번 사면 두 카테고리 모두에서 고를 수 있다 */
 const BOTH = ['concert', 'show'] as RecordKind[];
 const PHOTO_TICKET = { name: '포토 티켓', desc: '사진이 큼직하게 박힌 티켓 · 색 4가지', productId: 'recoco.theme.photo-ticket', price: 1000, kinds: BOTH };
-const WRIST_BAND = { name: '팔찌 티켓', desc: '공연장에서 채워주는 손목 팔찌 · 색 6가지', productId: 'recoco.theme.wristband', price: 1000, kinds: BOTH };
+const WRIST_BAND = { name: '팔찌 티켓', desc: '공연장에서 채워주는 손목 팔찌 · 색 5가지', productId: 'recoco.theme.wristband', price: 1000, kinds: BOTH };
 const RETRO_TICKET = { name: '레트로 티켓', desc: '크림 종이에 색 조각이 붙은 옛날 극장 티켓 · 색 5가지', productId: 'recoco.theme.retro', price: 1000, kinds: BOTH };
 
 export interface ConcertDesignItem {
@@ -135,12 +135,25 @@ export const showDesignUnlocked = (id: ShowDesign | undefined, owned: string[]) 
   return !key || FREE_SHOW_DESIGNS.some((d) => d.id === key) || owned.includes(SHOW_DESIGNS.find((d) => d.id === key)?.productId ?? '');
 };
 
+/** 운동·음악의 무료 모양 (유료 테마는 아직 없다) */
+export const FREE_EXERCISE_DESIGNS: { id: ExerciseDesign; name: string }[] = [
+  { id: 'slip', name: '기록표' },
+  { id: 'card', name: '기록 카드' },
+];
+
+export const FREE_MUSIC_DESIGNS: { id: MusicDesign; name: string }[] = [
+  { id: 'album', name: '앨범 카드' },
+  { id: 'list', name: '플레이리스트' },
+];
+
 /** 새 카테고리 (기본 5개는 무료) */
 export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; icon: string; productId: string; price: number }>> = {
   gift: { name: '선물', desc: '받은·보낸 선물을 모바일 교환권처럼', icon: '🎁', productId: 'recoco.category.gift', price: 1500 },
   food: { name: '카페·맛집', desc: '메뉴마다 별점을 매기는 주문서 · 인쇄 색 4가지', icon: '☕', productId: 'recoco.category.food', price: 1500 },
   show: { name: '공연·전시', desc: '뮤지컬·연극·전시 · 흰 무지 티켓 · 포스터 입장권', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
   concert: { name: '콘서트', desc: '밤하늘 티켓 · 흰 무지 티켓', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
+  exercise: { name: '운동', desc: '러닝·헬스·요가·등산·수영 · 기록표와 기록 카드', icon: '🏃', productId: 'recoco.category.exercise', price: 1500 },
+  music: { name: '음악', desc: '앨범 감상과 플레이리스트 · 앨범 카드와 영수증', icon: '🎧', productId: 'recoco.category.music', price: 1500 },
 };
 
 export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {

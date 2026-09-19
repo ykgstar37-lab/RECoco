@@ -16,6 +16,8 @@ export const CATEGORIES: { kind: RecordKind; label: string; hint: string }[] = [
   { kind: 'food', label: '카페·맛집', hint: '뭐 맛있는 거 먹었어?' },
   { kind: 'show', label: '공연·전시', hint: '무슨 공연 봤어?' },
   { kind: 'concert', label: '콘서트', hint: '누구 콘서트 갔어?' },
+  { kind: 'exercise', label: '운동', hint: '오늘 뭐 했어?' },
+  { kind: 'music', label: '음악', hint: '무슨 노래 들었어?' },
 ];
 
 interface Props {

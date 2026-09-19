@@ -27,6 +27,8 @@ const PAPER_EDGE: Record<RecoRecord['kind'], string> = {
   food: '#e9e4d6',
   show: '#e7e3ea',
   concert: '#e8e0d2',
+  exercise: '#e6e6e4',
+  music: '#e6e2d9',
 };
 
 const SPRING = { damping: 18, stiffness: 150, mass: 0.9 };

@@ -1,5 +1,5 @@
 // 상점 미리보기용 예시 기록 (저장되지 않음)
-import { ConcertRecord, FoodRecord, FourcutRecord, GiftCard, GiftRecord, PaperTheme, ShowRecord, ShowType, SpendingRecord } from '../types';
+import { ConcertRecord, ExerciseRecord, FoodRecord, FourcutRecord, GiftCard, GiftRecord, MusicRecord, PaperTheme, ShowRecord, ShowType, SpendingRecord } from '../types';
 
 export function sampleSpending(theme?: PaperTheme): SpendingRecord {
   return {
@@ -113,5 +113,59 @@ export function sampleConcert(): ConcertRecord {
     memo: '앙코르 세 곡. 목이 다 쉬었다.',
     photo: null,
     design: 'ticket',
+  };
+}
+
+export function sampleExercise(type: ExerciseRecord['type'] = 'run'): ExerciseRecord {
+  const base = { id: `preview-exercise-${type}`, createdAt: '2026-09-19T08:00:00.000Z', kind: 'exercise' as const, date: '2026-09-19', time: '07:10', type, photo: null, design: 'slip' as const };
+  if (type === 'gym')
+    return {
+      ...base,
+      place: '집 근처 헬스장',
+      minutes: 65,
+      distance: 0,
+      pace: '',
+      effort: 3,
+      memo: '하체 하는 날. 계단 내려갈 때 후들거림.',
+      moves: [
+        { name: '스쿼트', weight: 40, reps: 12, sets: 4 },
+        { name: '레그프레스', weight: 80, reps: 12, sets: 3 },
+        { name: '런지', weight: 10, reps: 15, sets: 3 },
+      ],
+    };
+  return { ...base, place: '한강공원 망원지구', minutes: 42, distance: 6.4, pace: `6'32"`, effort: 4, memo: '강바람이 시원했다. 마지막 1km 는 걸었음.', moves: [] };
+}
+
+export function sampleMusic(design: MusicRecord['design'] = 'album'): MusicRecord {
+  const base = { id: `preview-music-${design}`, createdAt: '2026-09-17T23:00:00.000Z', kind: 'music' as const, date: '2026-09-17', photo: null, design };
+  if (design === 'list')
+    return {
+      ...base,
+      title: '가을 밤 플레이리스트',
+      artist: '',
+      label: '',
+      year: '',
+      place: '출퇴근길',
+      stars: 5,
+      memo: '이번 가을 무한반복.',
+      tracks: [
+        { title: 'Golden Hour', artist: '새벽밴드', stars: 5 },
+        { title: '밤산책', artist: '달빛', stars: 4 },
+        { title: '여름의 끝', artist: '미소', stars: 3 },
+      ],
+    };
+  return {
+    ...base,
+    title: 'Golden Hour',
+    artist: '새벽밴드',
+    label: '인디팝',
+    year: '2026',
+    place: '지하철',
+    stars: 5,
+    memo: '가을에 듣기 좋다. 3번 트랙 무한반복.',
+    tracks: [
+      { title: '노을 사이', artist: '', stars: 5 },
+      { title: '밤산책', artist: '', stars: 4 },
+    ],
   };
 }
