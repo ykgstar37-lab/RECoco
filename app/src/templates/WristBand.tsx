@@ -17,20 +17,20 @@ const PW = 600;
 const PAD = 16;
 const BAND_X = 92; // 팔찌 폭 (세로로 긴 띠)
 const BAND_W = PW - BAND_X * 2;
-const DARK = '#191a22';
-const SOFT = '#2b2d3a';
+const BARCODE = '#1b1b20'; // 흰 판 위에 찍히는 바코드
 
-/** 팔찌 끈에 찍힌 형광 글씨 색 */
-export const BAND_COLORS: Record<BandColor, { name: string; neon: string }> = {
-  lime: { name: '라임', neon: '#d6f24a' },
-  pink: { name: '핫핑크', neon: '#ff6fae' },
-  sky: { name: '하늘', neon: '#5bd1ff' },
-  orange: { name: '주황', neon: '#ffa23d' },
+/** 팔찌 끈 색 (바탕 · 잠금 고리 · 글씨 · 포인트) */
+export const BAND_COLORS: Record<BandColor, { name: string; band: string; lock: string; ink: string; accent: string }> = {
+  black: { name: '검정', band: '#191a22', lock: '#2b2d3a', ink: '#ffffff', accent: '#d6f24a' },
+  orange: { name: '주황', band: '#ef7d3d', lock: '#d1622a', ink: '#ffffff', accent: '#3c1d0c' },
+  white: { name: '흰색', band: '#f4f2ec', lock: '#e2ded2', ink: '#26242a', accent: '#e2685c' },
+  navy: { name: '남색', band: '#22335c', lock: '#172542', ink: '#ffffff', accent: '#7fd4ff' },
+  pink: { name: '분홍', band: '#f2a0bd', lock: '#dd87a6', ink: '#3b1f2b', accent: '#8c3155' },
 };
 
 export const BAND_COLOR_IDS = Object.keys(BAND_COLORS) as BandColor[];
 
-export const bandColorOf = (r: Pick<WristBandRecord, 'color'>) => BAND_COLORS[(r.color as BandColor) in BAND_COLORS ? (r.color as BandColor) : 'lime'];
+export const bandColorOf = (r: Pick<WristBandRecord, 'color'>) => BAND_COLORS[(r.color as BandColor) in BAND_COLORS ? (r.color as BandColor) : 'black'];
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fontFamily={FONTS[f]} {...p} />;
@@ -74,7 +74,7 @@ function bandPath(h: number, connected = false) {
 
 export function WristBand({ record: r, width, connected = false }: { record: WristBandRecord; width: number; connected?: boolean }) {
   const L = layoutWristBand(r);
-  const NEON = bandColorOf(r).neon;
+  const { band: DARK, lock: SOFT, ink: INK, accent: NEON } = bandColorOf(r);
   const k = ticketKindOf(r);
   const { rows, infoBot, height } = computeLayout(r);
   const shape = bandPath(height, connected);
@@ -98,7 +98,7 @@ export function WristBand({ record: r, width, connected = false }: { record: Wri
         {/* 천 짜임 무늬 */}
         <G clipPath={`url(#${id}-band)`}>
           {Array.from({ length: Math.ceil(height / 7) }, (_, i) => (
-            <Line key={i} x1={BAND_X - 26} y1={i * 7} x2={BAND_X + BAND_W + 26} y2={i * 7} stroke="#fff" strokeWidth={0.8} opacity={0.045} />
+            <Line key={i} x1={BAND_X - 26} y1={i * 7} x2={BAND_X + BAND_W + 26} y2={i * 7} stroke={INK} strokeWidth={0.8} opacity={0.06} />
           ))}
           {/* 잠금 고리 */}
           <Rect x={BAND_X - 26} y={TOP} width={BAND_W + 52} height={LOCK_H} fill={SOFT} />
@@ -110,13 +110,13 @@ export function WristBand({ record: r, width, connected = false }: { record: Wri
 
         {/* 머리 */}
         <T f="monoBold" x={PW / 2} y={TOP + LOCK_H + 56} fontSize={15} letterSpacing={6} textAnchor="middle" fill={NEON} children={k.band === 'CONCERT' ? 'STANDING' : k.band} />
-        <T f="sansHeavy" x={PW / 2} y={INFO_TOP + 60} fontSize={artist.size} textAnchor="middle" fill="#fff" children={artist.text} />
-        <T f="sansBold" x={PW / 2} y={INFO_TOP + 100} fontSize={title.size} textAnchor="middle" fill="#fff" opacity={0.66} children={title.text} />
+        <T f="sansHeavy" x={PW / 2} y={INFO_TOP + 60} fontSize={artist.size} textAnchor="middle" fill={INK} children={artist.text} />
+        <T f="sansBold" x={PW / 2} y={INFO_TOP + 100} fontSize={title.size} textAnchor="middle" fill={INK} opacity={0.66} children={title.text} />
 
         {/* 네온 선 사이 반복 무늬 */}
         <Line x1={BAND_X + 20} y1={INFO_TOP + 130} x2={BAND_X + BAND_W - 20} y2={INFO_TOP + 130} stroke={NEON} strokeWidth={2} />
         {[0, 1, 2].map((i) => (
-          <T key={i} f="monoBold" x={PW / 2} y={INFO_TOP + 174 + i * 40} fontSize={17} letterSpacing={7} textAnchor="middle" fill="#fff" opacity={0.22} children={`${k.chant} · ${k.chant} · ${k.chant}`} />
+          <T key={i} f="monoBold" x={PW / 2} y={INFO_TOP + 174 + i * 40} fontSize={17} letterSpacing={7} textAnchor="middle" fill={INK} opacity={0.22} children={`${k.chant} · ${k.chant} · ${k.chant}`} />
         ))}
         <Line x1={BAND_X + 20} y1={INFO_TOP + 296} x2={BAND_X + BAND_W - 20} y2={INFO_TOP + 296} stroke={NEON} strokeWidth={2} />
 
@@ -127,20 +127,20 @@ export function WristBand({ record: r, width, connected = false }: { record: Wri
           return (
             <G key={k}>
               <T f="mono" x={PW / 2} y={y} fontSize={12} letterSpacing={2} textAnchor="middle" fill={NEON} children={k} />
-              <T f="sansBold" x={PW / 2} y={y + 26} fontSize={value.size} textAnchor="middle" fill="#fff" children={value.text} />
+              <T f="sansBold" x={PW / 2} y={y + 26} fontSize={value.size} textAnchor="middle" fill={INK} children={value.text} />
             </G>
           );
         })}
 
         {/* 별점 */}
         <T f="mono" x={PW / 2} y={infoBot + 30} fontSize={12} letterSpacing={2} textAnchor="middle" fill={NEON} children="RATING" />
-        <T f="sansBold" x={PW / 2} y={infoBot + 66} fontSize={26} textAnchor="middle" fill="#fff" children={'★'.repeat(r.stars) + '☆'.repeat(5 - r.stars)} />
+        <T f="sansBold" x={PW / 2} y={infoBot + 66} fontSize={26} textAnchor="middle" fill={INK} children={'★'.repeat(r.stars) + '☆'.repeat(5 - r.stars)} />
 
         {/* 바코드 */}
         <Rect x={BAND_X + 16} y={infoBot + 100} width={BAND_W - 32} height={88} rx={4} fill="#fff" />
-        <Barcode seed={`${r.id}-band`} x={BAND_X + 26} y={infoBot + 108} width={BAND_W - 52} height={72} color={DARK} />
-        <T f="mono" x={PW / 2} y={infoBot + 214} fontSize={16} letterSpacing={4} textAnchor="middle" fill="#fff" opacity={0.8} children={serial} />
-        <T f="sans" x={PW / 2} y={infoBot + 250} fontSize={14} textAnchor="middle" fill="#fff" opacity={0.45} children={`${BRAND.ko} · 그날의 손목`} />
+        <Barcode seed={`${r.id}-band`} x={BAND_X + 26} y={infoBot + 108} width={BAND_W - 52} height={72} color={BARCODE} />
+        <T f="mono" x={PW / 2} y={infoBot + 214} fontSize={16} letterSpacing={4} textAnchor="middle" fill={INK} opacity={0.8} children={serial} />
+        <T f="sans" x={PW / 2} y={infoBot + 250} fontSize={14} textAnchor="middle" fill={INK} opacity={0.45} children={`${BRAND.ko} · 그날의 손목`} />
 
         <PaperOverlay id={id} d={shape} width={PW} height={height} wrinkle="none" surface="grain" />
       </G>

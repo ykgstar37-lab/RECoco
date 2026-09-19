@@ -49,7 +49,7 @@ export const ticketColors = (design: ConcertDesign | ShowDesign | undefined): { 
   design === 'retro' || design === 'ticket'
     ? RETRO_COLOR_IDS.map((id) => ({ id, name: RETRO_COLORS[id].name, swatch: RETRO_COLORS[id].deep }))
     : design === 'band'
-      ? BAND_COLOR_IDS.map((id) => ({ id, name: BAND_COLORS[id].name, swatch: BAND_COLORS[id].neon }))
+      ? BAND_COLOR_IDS.map((id) => ({ id, name: BAND_COLORS[id].name, swatch: BAND_COLORS[id].band }))
       : design === 'kpop'
         ? PHOTO_COLOR_IDS.map((id) => ({ id, name: PHOTO_COLORS[id].name, swatch: PHOTO_COLORS[id].deep }))
         : design === 'holo'
@@ -264,7 +264,7 @@ export function FoodDesignPicker({
 
 /** 콘서트 티켓 모양 견본 (레트로 / 팔찌 / 핑크 포토) */
 export function ConcertDesignSwatch({ design, size = 44, color }: { design: ConcertDesign | undefined; size?: number; color?: TicketColor }) {
-  const neon = BAND_COLORS[(color as keyof typeof BAND_COLORS) in BAND_COLORS ? (color as keyof typeof BAND_COLORS) : 'lime'].neon;
+  const bd = BAND_COLORS[(color as keyof typeof BAND_COLORS) in BAND_COLORS ? (color as keyof typeof BAND_COLORS) : 'black'];
   const ph = PHOTO_COLORS[(color as keyof typeof PHOTO_COLORS) in PHOTO_COLORS ? (color as keyof typeof PHOTO_COLORS) : 'pink'];
   const rt = RETRO_COLORS[(color as keyof typeof RETRO_COLORS) in RETRO_COLORS ? (color as keyof typeof RETRO_COLORS) : 'navy'];
   if (design === 'plain')
@@ -297,12 +297,12 @@ export function ConcertDesignSwatch({ design, size = 44, color }: { design: Conc
   if (design === 'band')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
-        <Rect x={13} y={4} width={14} height={45} rx={4} fill="#191a22" />
-        <Rect x={8} y={4} width={24} height={10} rx={3} fill="#2b2d3a" />
-        <Rect x={16} y={18} width={8} height={2} rx={1} fill={neon} />
-        <Rect x={16} y={40} width={8} height={2} rx={1} fill={neon} />
+        <Rect x={13} y={4} width={14} height={45} rx={4} fill={bd.band} />
+        <Rect x={8} y={4} width={24} height={10} rx={3} fill={bd.lock} />
+        <Rect x={16} y={18} width={8} height={2} rx={1} fill={bd.accent} />
+        <Rect x={16} y={40} width={8} height={2} rx={1} fill={bd.accent} />
         {[24, 28, 32].map((y) => (
-          <Line key={y} x1={16} y1={y} x2={24} y2={y} stroke="#fff" strokeWidth={1} opacity={0.5} />
+          <Line key={y} x1={16} y1={y} x2={24} y2={y} stroke={bd.ink} strokeWidth={1} opacity={0.5} />
         ))}
       </Svg>
     );
