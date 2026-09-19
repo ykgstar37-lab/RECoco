@@ -12,14 +12,13 @@ import { SHOW_TYPES } from './ShowTicket';
 const PW = 560;
 const PAD = 16;
 const M = 34;
-/** 기록표 종이 색 (바탕 · 그림자 · 위쪽 홀로그램 띠 · 의자 아이콘) */
-export const HOLO_COLORS: Record<HoloColor, { name: string; base: string; deep: string; gold: string; holo: string[]; shine: number }> = {
-  blue: { name: '파랑', base: '#17359b', deep: '#0f2470', gold: '#ffd84d', holo: ['#8be9f7', '#ffe27a', '#f7a8d8', '#9bf5c0'], shine: 0.09 },
-  violet: { name: '보라', base: '#4b2a9b', deep: '#331a70', gold: '#ffd84d', holo: ['#c9a8f7', '#ffe27a', '#f7a8d8', '#a8f0f7'], shine: 0.09 },
-  teal: { name: '청록', base: '#0e6b6b', deep: '#074f4f', gold: '#ffe08a', holo: ['#8be9f7', '#ffe27a', '#9bf5c0', '#a8d8f7'], shine: 0.09 },
-  wine: { name: '와인', base: '#7a1f45', deep: '#571030', gold: '#ffd07a', holo: ['#f7a8d8', '#ffe27a', '#f7c8a8', '#e9a8f7'], shine: 0.09 },
-  // 검정은 띠 없이 깜깜한 종이 그대로 (shine 0)
-  black: { name: '검정', base: '#17171c', deep: '#0b0b0e', gold: '#ffd84d', holo: [], shine: 0 },
+/** 종이 색 (바탕 · 위쪽 그림자 줄 · 글씨와 의자 아이콘) */
+export const HOLO_COLORS: Record<HoloColor, { name: string; base: string; deep: string; gold: string }> = {
+  blue: { name: '파랑', base: '#17359b', deep: '#0f2470', gold: '#ffd84d' },
+  violet: { name: '보라', base: '#4b2a9b', deep: '#331a70', gold: '#ffd84d' },
+  teal: { name: '청록', base: '#0e6b6b', deep: '#074f4f', gold: '#ffe08a' },
+  wine: { name: '와인', base: '#7a1f45', deep: '#571030', gold: '#ffd07a' },
+  black: { name: '검정', base: '#17171c', deep: '#0b0b0e', gold: '#ffd84d' },
 };
 
 export const HOLO_COLOR_IDS = Object.keys(HOLO_COLORS) as HoloColor[];
@@ -89,7 +88,7 @@ function SeatIcon({ x, y, s, on, gold }: { x: number; y: number; s: number; on: 
 export function ShowHolo({ record: r, width, connected = false }: { record: ShowRecord; width: number; connected?: boolean }) {
   const L = layoutShowHolo(r);
   const c = holoColorOf(r);
-  const { base: BLUE, deep: BLUE_DEEP, gold: GOLD, holo: HOLO, shine: SHINE } = c;
+  const { base: BLUE, deep: BLUE_DEEP, gold: GOLD } = c;
   const { t, title, titleTop, titleBoxH, photoTop, photoH, rowsTop, rows, rowsBot, ratingBot, memo, reviewH, height } = computeLayout(r);
   const shape = toothPath(height, connected);
   const id = `holo-${r.id}`;
@@ -114,11 +113,7 @@ export function ShowHolo({ record: r, width, connected = false }: { record: Show
         </Defs>
         <Path d={shape} fill={BLUE} />
 
-        {/* 홀로그램: 비스듬한 색 띠 */}
         <G clipPath={`url(#${id}-card)`}>
-          {HOLO.map((c, i) => (
-            <Path key={c} d={`M${-120 + i * 150},${height} L${120 + i * 150},0 L${190 + i * 150},0 L${-50 + i * 150},${height} Z`} fill={c} opacity={SHINE} />
-          ))}
           <Rect x={0} y={0} width={PW} height={10} fill={BLUE_DEEP} opacity={0.5} />
         </G>
         {/* 테두리 */}
@@ -127,7 +122,7 @@ export function ShowHolo({ record: r, width, connected = false }: { record: Show
         {/* 머리 */}
         <T f="monoBold" x={M} y={58} fontSize={15} letterSpacing={3} fill="#fff" opacity={0.85} children="ORIGINAL TICKET" />
         <T f="mono" x={PW - M} y={58} fontSize={15} textAnchor="end" fill="#fff" opacity={0.7} children={`(${year})`} />
-        <T f="sansBold" x={M} y={92} fontSize={16} fill={HOLO[1] ?? GOLD} children={`${t.label} · ${BRAND.ko}`} />
+        <T f="sansBold" x={M} y={92} fontSize={16} fill={GOLD} children={`${t.label} · ${BRAND.ko}`} />
 
         {/* 제목 칸 */}
         {box(M, titleTop, PW - M * 2, titleBoxH, 'title')}

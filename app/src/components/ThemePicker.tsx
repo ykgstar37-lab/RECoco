@@ -421,7 +421,6 @@ export function ShowDesignSwatch({ design, size = 44, color }: { design: ShowDes
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
         <Rect x={2} y={2} width={36} height={48} rx={2} fill={holo.base} />
-        <Path d="M2,50 L20,2 L27,2 L9,50 Z" fill={holo.holo[0]} opacity={0.18} />
         <Rect x={7} y={8} width={26} height={12} fill="none" stroke="#fff" strokeWidth={1} opacity={0.6} />
         <Rect x={14} y={12} width={12} height={4} rx={1} fill={holo.gold} />
         {[24, 34].map((y) => (
