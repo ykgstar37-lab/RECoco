@@ -36,68 +36,70 @@ const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f
 
 /**
  * 종류 그림. 24×24 칸 안에서 위아래·좌우 가운데에 오도록 그린다
- * (x, y 는 칸의 왼쪽 위, size 는 한 변)
+ * (x, y 는 칸의 왼쪽 위, size 는 한 변). 얇은 선이 아니라 굵은 픽토그램으로 그린다
  */
 export function ExerciseIcon({ type, x, y, size, color }: { type: ExerciseType; x: number; y: number; size: number; color: string }) {
   const s = size / 24;
   const at = (dx: number, dy: number) => `${(x + dx * s).toFixed(1)},${(y + dy * s).toFixed(1)}`;
-  const line = (d: string, w = 2.2) => <Path d={d} stroke={color} strokeWidth={w * s} fill="none" strokeLinecap="round" strokeLinejoin="round" />;
+  /** 굵은 팔다리 (둥근 끝) */
+  const limb = (d: string, w: number) => <Path d={d} stroke={color} strokeWidth={w * s} fill="none" strokeLinecap="round" strokeLinejoin="round" />;
+  /** 꽉 채운 덩어리 */
+  const solid = (d: string) => <Path d={d} fill={color} />;
   const dot = (dx: number, dy: number, r: number) => <Circle cx={x + dx * s} cy={y + dy * s} r={r * s} fill={color} />;
 
   if (type === 'gym')
     // 아령: 봉 + 안쪽 원판 + 바깥 원판
     return (
       <G>
-        {line(`M${at(8, 12)} L${at(16, 12)}`, 2.4)}
-        {line(`M${at(6.5, 6)} L${at(6.5, 18)}`, 3.2)}
-        {line(`M${at(17.5, 6)} L${at(17.5, 18)}`, 3.2)}
-        {line(`M${at(3.5, 9)} L${at(3.5, 15)}`, 2.6)}
-        {line(`M${at(20.5, 9)} L${at(20.5, 15)}`, 2.6)}
+        {limb(`M${at(8, 12)} L${at(16, 12)}`, 2.8)}
+        {limb(`M${at(6.5, 6.5)} L${at(6.5, 17.5)}`, 4)}
+        {limb(`M${at(17.5, 6.5)} L${at(17.5, 17.5)}`, 4)}
+        {limb(`M${at(3.4, 9.2)} L${at(3.4, 14.8)}`, 3)}
+        {limb(`M${at(20.6, 9.2)} L${at(20.6, 14.8)}`, 3)}
       </G>
     );
 
   if (type === 'yoga')
-    // 가부좌: 머리 · 몸통 · 무릎에 얹은 짧은 팔 · 나비 모양 다리
+    // 가부좌: 머리 · 굵은 몸통 · 무릎에 얹은 팔 · 아래로 넓게 퍼진 다리
     return (
       <G>
-        {dot(12, 5.2, 2.5)}
-        {line(`M${at(12, 8.8)} L${at(12, 14.6)}`)}
-        {line(`M${at(12, 11.4)} L${at(7.4, 14)}`)}
-        {line(`M${at(12, 11.4)} L${at(16.6, 14)}`)}
-        {line(`M${at(4.6, 20.2)} L${at(9.4, 17)} L${at(12, 18.8)} L${at(14.6, 17)} L${at(19.4, 20.2)}`)}
+        {dot(12, 5.4, 3)}
+        {solid(`M${at(4.4, 18.4)} Q${at(12, 13.6)} ${at(19.6, 18.4)} Q${at(12, 22)} ${at(4.4, 18.4)} Z`)}
+        {limb(`M${at(12, 10)} L${at(12, 15.4)}`, 6)}
+        {limb(`M${at(10.6, 11)} L${at(6.8, 15.4)}`, 3.4)}
+        {limb(`M${at(13.4, 11)} L${at(17.2, 15.4)}`, 3.4)}
       </G>
     );
 
   if (type === 'hike')
-    // 산 두 봉우리
+    // 산 두 봉우리 (채운 산 + 흰 눈금)
     return (
       <G>
-        {line(`M${at(2.5, 18.8)} L${at(9, 5.3)} L${at(13.5, 12.3)} L${at(16, 8.8)} L${at(21.5, 18.8)} Z`)}
-        {line(`M${at(7, 9.8)} L${at(11, 9.8)}`, 1.8)}
+        {solid(`M${at(1.8, 19.6)} L${at(9, 5.2)} L${at(13.6, 12.4)} L${at(16.2, 8.6)} L${at(22.2, 19.6)} Z`)}
       </G>
     );
 
   if (type === 'swim')
-    // 헤엄: 물 위로 뻗은 팔 · 머리 · 몸통 · 물결 두 줄
+    // 자유형: 물 위로 굽어 올라간 팔 · 머리 · 몸통 · 물결 두 줄
     return (
       <G>
-        {dot(13, 10, 2.4)}
-        {line(`M${at(3.8, 12.8)} L${at(10.2, 11.2)}`)}
-        {line(`M${at(14.6, 8)} L${at(16.6, 3.4)} L${at(20.2, 5.4)}`)}
-        {line(`M${at(3, 16.4)} q${(3 * s).toFixed(1)},${(-2.6 * s).toFixed(1)} ${(6 * s).toFixed(1)},0 t${(6 * s).toFixed(1)},0 t${(6 * s).toFixed(1)},0`, 1.9)}
-        {line(`M${at(3, 20.4)} q${(3 * s).toFixed(1)},${(-2.6 * s).toFixed(1)} ${(6 * s).toFixed(1)},0 t${(6 * s).toFixed(1)},0 t${(6 * s).toFixed(1)},0`, 1.9)}
+        {dot(17.2, 11.2, 2.9)}
+        {limb(`M${at(3.6, 14.6)} L${at(13.6, 12.4)}`, 3.6)}
+        {limb(`M${at(12.4, 10.4)} L${at(7, 5)} L${at(12.6, 3.2)}`, 3.2)}
+        {limb(`M${at(2.6, 17.6)} q${(3.2 * s).toFixed(1)},${(-2.8 * s).toFixed(1)} ${(6.4 * s).toFixed(1)},0 t${(6.4 * s).toFixed(1)},0 t${(6.4 * s).toFixed(1)},0`, 2.4)}
+        {limb(`M${at(2.6, 21.2)} q${(3.2 * s).toFixed(1)},${(-2.8 * s).toFixed(1)} ${(6.4 * s).toFixed(1)},0 t${(6.4 * s).toFixed(1)},0 t${(6.4 * s).toFixed(1)},0`, 2.4)}
       </G>
     );
 
-  // 러닝: 앞으로 기울여 달리는 사람 (팔·다리를 굽혀 십자로 보이지 않게)
+  // 러닝: 앞으로 기울여 달리는 사람
   return (
     <G>
-      {dot(15.2, 4.6, 2.4)}
-      {line(`M${at(14.2, 8)} L${at(10.8, 13.8)}`)}
-      {line(`M${at(13.6, 9.4)} L${at(17.6, 11.4)} L${at(16.2, 14.6)}`)}
-      {line(`M${at(13.6, 9.4)} L${at(9.6, 8.6)} L${at(7.4, 11.2)}`)}
-      {line(`M${at(10.8, 13.8)} L${at(13.4, 17.4)} L${at(11.8, 21)}`)}
-      {line(`M${at(10.8, 13.8)} L${at(6.6, 16)} L${at(7.6, 20.2)}`)}
+      {dot(16, 4.8, 3)}
+      {limb(`M${at(14.6, 8.4)} L${at(10.4, 14.4)}`, 4.8)}
+      {limb(`M${at(13.6, 9.6)} L${at(8.6, 8.4)} L${at(6.6, 11.8)}`, 3.4)}
+      {limb(`M${at(14.4, 10.4)} L${at(18.8, 12.8)}`, 3.4)}
+      {limb(`M${at(10.4, 14.4)} L${at(14, 17.2)} L${at(12.4, 21.2)}`, 3.8)}
+      {limb(`M${at(10.4, 14.4)} L${at(6, 16.8)} L${at(3.4, 20.8)}`, 3.8)}
     </G>
   );
 }
