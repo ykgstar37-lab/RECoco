@@ -39,8 +39,8 @@ export const HOUSE_COLOR_IDS = Object.keys(HOUSE_COLORS) as HouseColor[];
 export const randomHouseColor = () => HOUSE_COLOR_IDS[Math.floor(Math.random() * HOUSE_COLOR_IDS.length)];
 
 /** 색을 안 고른 기록(예전 기록)은 id 로 정해 열 때마다 바뀌지 않게 한다 */
-export const houseColorOf = (r: Pick<FoodRecord, 'id' | 'houseColor'>) =>
-  HOUSE_COLORS[r.houseColor ?? HOUSE_COLOR_IDS[Math.floor(seededRandom(`${r.id}-roof`)() * HOUSE_COLOR_IDS.length)]];
+export const houseColorOf = (r: Pick<FoodRecord, 'id' | 'color'>) =>
+  HOUSE_COLORS[(r.color as HouseColor) in HOUSE_COLORS ? (r.color as HouseColor) : HOUSE_COLOR_IDS[Math.floor(seededRandom(`${r.id}-roof`)() * HOUSE_COLOR_IDS.length)]];
 
 // 사진이 없을 때 창문에 들어가는 그림 (이건 가게 종류를 따른다)
 const WINDOW_EMOJI: Record<FoodType, string> = { cafe: '☕', meal: '🍚', dessert: '🍰', bar: '🍺' };

@@ -5,21 +5,28 @@ import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-nat
 import { dotDateWithDay, seededRandom, won } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
-import { FoodRecord, FoodType } from '../types';
+import { FoodRecord, FoodType, OrderColor } from '../types';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
 const PW = 600;
 const PAD = 16;
 const M = 36; // 좌우 여백
-const PAPER = '#fbf7ec';
-const GREEN = '#2f6b52';
-const GREEN_SOFT = '#cfe1d6';
-// 단색(plain) 테마: 초록 대신 먹색 한 가지로
-const PLAIN = { paper: '#fcfbf7', main: '#3b3a36', soft: '#dcdad2', star: '#3b3a36', note: '#f1efe7' };
 const INK = '#26241f';
 const SUB = '#8a8578';
-const STAR = '#ff8a3d';
-const NOTE = '#fff1a8';
+
+// 주문서 인쇄 색. 모양을 고른 다음 따로 고른다 (예전 '단색 주문서' = 먹색)
+export const ORDER_COLORS: Record<OrderColor, { name: string; paper: string; main: string; soft: string; star: string; note: string }> = {
+  green: { name: '초록', paper: '#fbf7ec', main: '#2f6b52', soft: '#cfe1d6', star: '#ff8a3d', note: '#fff1a8' },
+  ink: { name: '먹색', paper: '#fcfbf7', main: '#3b3a36', soft: '#dcdad2', star: '#3b3a36', note: '#f1efe7' },
+  navy: { name: '남색', paper: '#f8f9fc', main: '#2d4471', soft: '#d3dbe9', star: '#f0a02d', note: '#e7eefb' },
+  wine: { name: '팥색', paper: '#fdf7f4', main: '#8a3b46', soft: '#e8d3d2', star: '#e08a3c', note: '#fdeadf' },
+};
+
+export const ORDER_COLOR_IDS = Object.keys(ORDER_COLORS) as OrderColor[];
+
+/** 예전 '단색 주문서'는 먹색으로, 색을 안 고른 기록은 초록으로 */
+export const orderColorOf = (r: Pick<FoodRecord, 'design' | 'color'>) =>
+  ORDER_COLORS[(r.color as OrderColor) in ORDER_COLORS ? (r.color as OrderColor) : r.design === 'plain' ? 'ink' : 'green'];
 
 export const FOOD_TYPES: Record<FoodType, string> = { cafe: '카페', meal: '식당', dessert: '디저트', bar: '술집' };
 export const REVISIT: [FoodRecord['revisit'], string][] = [
@@ -86,12 +93,12 @@ function starPath(cx: number, cy: number, r: number) {
 }
 
 export function FoodOrder({ record: r, width, connected = false }: { record: FoodRecord; width: number; connected?: boolean }) {
-  const plain = r.design === 'plain';
-  const PAPER_C = plain ? PLAIN.paper : PAPER;
-  const GREEN_C = plain ? PLAIN.main : GREEN;
-  const SOFT_C = plain ? PLAIN.soft : GREEN_SOFT;
-  const STAR_C = plain ? PLAIN.star : STAR;
-  const NOTE_C = plain ? PLAIN.note : NOTE;
+  const c = orderColorOf(r);
+  const PAPER_C = c.paper;
+  const GREEN_C = c.main;
+  const SOFT_C = c.soft;
+  const STAR_C = c.star;
+  const NOTE_C = c.note;
   const L = layoutFood(r);
   const { info, infoBot, photoTop, photoH, menuTop, rows, menuBot, note, noteTop, noteH, revisitTop, height } = computeLayout(r);
   const shape = paperPath(height, r.id, connected);

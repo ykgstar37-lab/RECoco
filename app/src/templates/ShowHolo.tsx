@@ -5,17 +5,24 @@ import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-nat
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
-import { ShowRecord } from '../types';
+import { HoloColor, ShowRecord } from '../types';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 import { SHOW_TYPES } from './ShowTicket';
 
 const PW = 560;
 const PAD = 16;
 const M = 34;
-const BLUE = '#17359b';
-const BLUE_DEEP = '#0f2470';
-const HOLO = ['#8be9f7', '#ffe27a', '#f7a8d8', '#9bf5c0'];
-const GOLD = '#ffd84d';
+/** 기록표 종이 색 (바탕 · 그림자 · 위쪽 홀로그램 띠 · 의자 아이콘) */
+export const HOLO_COLORS: Record<HoloColor, { name: string; base: string; deep: string; gold: string; holo: string[] }> = {
+  blue: { name: '파랑', base: '#17359b', deep: '#0f2470', gold: '#ffd84d', holo: ['#8be9f7', '#ffe27a', '#f7a8d8', '#9bf5c0'] },
+  violet: { name: '보라', base: '#4b2a9b', deep: '#331a70', gold: '#ffd84d', holo: ['#c9a8f7', '#ffe27a', '#f7a8d8', '#a8f0f7'] },
+  teal: { name: '청록', base: '#0e6b6b', deep: '#074f4f', gold: '#ffe08a', holo: ['#8be9f7', '#ffe27a', '#9bf5c0', '#a8d8f7'] },
+  wine: { name: '와인', base: '#7a1f45', deep: '#571030', gold: '#ffd07a', holo: ['#f7a8d8', '#ffe27a', '#f7c8a8', '#e9a8f7'] },
+};
+
+export const HOLO_COLOR_IDS = Object.keys(HOLO_COLORS) as HoloColor[];
+
+export const holoColorOf = (r: Pick<ShowRecord, 'color'>) => HOLO_COLORS[(r.color as HoloColor) in HOLO_COLORS ? (r.color as HoloColor) : 'blue'];
 
 const ROW = 74;
 const TOOTH = 16;
@@ -65,8 +72,8 @@ function toothPath(h: number, connected: boolean) {
 }
 
 /** 접이식 극장 의자 (별점 대신) */
-function SeatIcon({ x, y, s, on }: { x: number; y: number; s: number; on: boolean }) {
-  const c = on ? GOLD : '#ffffff';
+function SeatIcon({ x, y, s, on, gold }: { x: number; y: number; s: number; on: boolean; gold: string }) {
+  const c = on ? gold : '#ffffff';
   const o = on ? 1 : 0.32;
   return (
     <G opacity={o}>
@@ -79,6 +86,8 @@ function SeatIcon({ x, y, s, on }: { x: number; y: number; s: number; on: boolea
 
 export function ShowHolo({ record: r, width, connected = false }: { record: ShowRecord; width: number; connected?: boolean }) {
   const L = layoutShowHolo(r);
+  const c = holoColorOf(r);
+  const { base: BLUE, deep: BLUE_DEEP, gold: GOLD, holo: HOLO } = c;
   const { t, title, titleTop, titleBoxH, photoTop, photoH, rowsTop, rows, rowsBot, ratingBot, memo, reviewH, height } = computeLayout(r);
   const shape = toothPath(height, connected);
   const id = `holo-${r.id}`;
@@ -161,7 +170,7 @@ export function ShowHolo({ record: r, width, connected = false }: { record: Show
         {box(M, rowsBot, PW - M * 2, 84, 'rating')}
         <T f="mono" x={M + 14} y={rowsBot + 30} fontSize={15} fill="#fff" opacity={0.7} children="Rating." />
         {[0, 1, 2, 3, 4].map((s) => (
-          <SeatIcon key={s} x={PW - M - 40 - (4 - s) * 46} y={rowsBot + 22} s={40} on={s < r.stars} />
+          <SeatIcon key={s} x={PW - M - 40 - (4 - s) * 46} y={rowsBot + 22} s={40} on={s < r.stars} gold={GOLD} />
         ))}
         <T f="mono" x={M + 14} y={rowsBot + 62} fontSize={14} fill="#fff" opacity={0.45} children={`( ${r.stars} / 5 )`} />
 

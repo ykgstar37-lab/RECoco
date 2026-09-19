@@ -10,6 +10,7 @@ import {
   FREE_CONCERT_DESIGNS,
   FREE_FOOD_DESIGNS,
   FREE_SHOW_DESIGNS,
+  FREE_THEMES,
   SHOW_DESIGNS,
   THEMES,
   concertDesignUnlocked,
@@ -18,22 +19,74 @@ import {
   themeUnlocked,
   useShop,
 } from '../lib/shop';
-import { HOUSE_COLORS, HOUSE_COLOR_IDS, randomHouseColor } from '../templates/FoodHouse';
+import { HOUSE_COLORS, HOUSE_COLOR_IDS } from '../templates/FoodHouse';
+import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
+import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
+import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
+import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
+import { ORDER_COLORS, ORDER_COLOR_IDS } from '../templates/FoodOrder';
 import { COLORS, FONTS } from '../theme';
-import { ConcertDesign, FoodDesign, HouseColor, PaperTheme, ShowDesign } from '../types';
+import { ConcertDesign, FoodColor, FoodDesign, GridColor, HouseColor, PaperTheme, ShowDesign, TicketColor } from '../types';
 import { ProductPreview } from './ProductPreview';
 
+/** 모양을 고른 다음 그 모양의 색을 고르는 동그라미 줄 */
+export function ColorDots<T extends string>({ colors, value, onPick }: { colors: { id: T; name: string; swatch: string }[]; value: T | undefined; onPick: (id: T) => void }) {
+  return (
+    <View style={styles.colors}>
+      {colors.map((c) => (
+        <Pressable key={c.id} onPress={() => onPick(c.id)} hitSlop={6} accessibilityLabel={c.name} style={[styles.dot, value === c.id && styles.dotOn]}>
+          <View style={[styles.dotFill, { backgroundColor: c.swatch }]} />
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+
+/** 티켓 모양마다 고를 수 있는 색 (단색 모양은 빈 배열) */
+export const ticketColors = (design: ConcertDesign | ShowDesign | undefined): { id: TicketColor; name: string; swatch: string }[] =>
+  design === 'band'
+    ? BAND_COLOR_IDS.map((id) => ({ id, name: BAND_COLORS[id].name, swatch: BAND_COLORS[id].neon }))
+    : design === 'kpop'
+      ? PHOTO_COLOR_IDS.map((id) => ({ id, name: PHOTO_COLORS[id].name, swatch: PHOTO_COLORS[id].deep }))
+      : design === 'holo'
+        ? HOLO_COLOR_IDS.map((id) => ({ id, name: HOLO_COLORS[id].name, swatch: HOLO_COLORS[id].base }))
+        : [];
+
+/** 그 모양에서 못 쓰는 색이면 첫 색으로 (단색 모양이면 색 없음) */
+const pickTicketColor = (design: ConcertDesign | ShowDesign, color: TicketColor | undefined) => {
+  const list = ticketColors(design);
+  return !list.length ? undefined : color && list.some((c) => c.id === color) ? color : list[0].id;
+};
+
+/** 종이 테마의 색 (모눈종이만 있다) */
+export const themeColors = (theme: PaperTheme | undefined): { id: GridColor; name: string; swatch: string }[] =>
+  theme === 'grid' ? GRID_COLOR_IDS.map((id) => ({ id, name: GRID_COLORS[id].name, swatch: GRID_COLORS[id].swatch })) : [];
+
+/** 모양마다 고를 수 있는 색 (없으면 단색 모양) */
+export const foodColors = (design: FoodDesign): { id: FoodColor; name: string; swatch: string }[] =>
+  design === 'house'
+    ? HOUSE_COLOR_IDS.map((id) => ({ id, name: HOUSE_COLORS[id].name, swatch: HOUSE_COLORS[id].roof }))
+    : ORDER_COLOR_IDS.map((id) => ({ id, name: ORDER_COLORS[id].name, swatch: ORDER_COLORS[id].main }));
+
+/** 그 모양에서 쓸 수 있는 색이 아니면 무작위로 하나 정해준다 */
+const pickFoodColor = (design: FoodDesign, color: FoodColor | undefined) => {
+  const list = foodColors(design);
+  return color && list.some((c) => c.id === color) ? color : list[Math.floor(Math.random() * list.length)].id;
+};
+
 /** 종이 테마 견본 그림 (기본 / 흰 무지 / 모눈종이) */
-export function ThemeSwatch({ theme, base, size = 44 }: { theme: PaperTheme | undefined; base: 'spending' | 'fourcut'; size?: number }) {
-  const paper = !theme ? (base === 'spending' ? '#faf8f1' : '#f7f2e8') : theme === 'plain' ? '#ffffff' : '#fbfdf8';
-  const line = !theme ? (base === 'spending' ? '#5a7ea6' : '#e0d6c3') : theme === 'plain' ? '#c9c9cf' : '#8fb9a0';
+export function ThemeSwatch({ theme, base, size = 44, color }: { theme: PaperTheme | undefined; base: 'spending' | 'fourcut'; size?: number; color?: GridColor }) {
+  const g = GRID_COLORS[color && color in GRID_COLORS ? color : 'green'];
+  const paper = !theme ? (base === 'spending' ? '#faf8f1' : '#f7f2e8') : theme === 'plain' ? '#ffffff' : g.paper;
+  const line = !theme ? (base === 'spending' ? '#5a7ea6' : '#e0d6c3') : theme === 'plain' ? '#c9c9cf' : g.ink;
   return (
     <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
       <Rect x={1} y={1} width={38} height={50} rx={3} fill={paper} stroke={COLORS.line} strokeWidth={1} />
       {theme === 'grid' &&
-        [8, 16, 24, 32].map((v) => <Line key={`v${v}`} x1={v} y1={3} x2={v} y2={49} stroke="#dcebe1" strokeWidth={0.8} />)}
+        [8, 16, 24, 32].map((v) => <Line key={`v${v}`} x1={v} y1={3} x2={v} y2={49} stroke={g.major} strokeWidth={0.8} />)}
       {theme === 'grid' &&
-        [9, 17, 25, 33, 41].map((v) => <Line key={`h${v}`} x1={3} y1={v} x2={37} y2={v} stroke="#dcebe1" strokeWidth={0.8} />)}
+        [9, 17, 25, 33, 41].map((v) => <Line key={`h${v}`} x1={3} y1={v} x2={37} y2={v} stroke={g.major} strokeWidth={0.8} />)}
       {[14, 22, 30, 38].map((y) => (
         <Line key={y} x1={7} y1={y} x2={33} y2={y} stroke={line} strokeWidth={1.2} />
       ))}
@@ -45,20 +98,24 @@ interface Props {
   label: string;
   base: 'spending' | 'fourcut';
   value: PaperTheme | undefined;
-  onChange: (theme: PaperTheme | undefined) => void;
+  color: GridColor | undefined;
+  /** 종이를 고르면 그 종이에서 쓸 수 있는 색도 같이 준다 (색이 없는 종이면 undefined) */
+  onChange: (theme: PaperTheme | undefined, color: GridColor | undefined) => void;
 }
 
 /** 기록 폼의 종이 고르기: 산 테마는 바로 고르고, 안 산 테마는 미리보기에서 사기 */
-export function ThemePicker({ label, base, value, onChange }: Props) {
+export function ThemePicker({ label, base, value, color, onChange }: Props) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: PaperTheme; product: PreviewProduct } | null>(null);
 
+  const pick = (id: PaperTheme | undefined) => onChange(id, id === 'grid' ? (themeColors(id).some((c) => c.id === color) ? color : 'green') : undefined);
+
   const choose = (id: PaperTheme | undefined) => {
-    if (themeUnlocked(id, owned)) return onChange(id);
+    if (themeUnlocked(id, owned)) return pick(id);
     setPreview({ id: id!, product: themeProductById(id!) });
   };
 
-  const options: { id: PaperTheme | undefined; name: string }[] = [{ id: undefined, name: '기본' }, ...THEMES];
+  const options: { id: PaperTheme | undefined; name: string }[] = [{ id: undefined, name: '기본' }, ...FREE_THEMES, ...THEMES];
 
   return (
     <View style={styles.wrap}>
@@ -71,7 +128,7 @@ export function ThemePicker({ label, base, value, onChange }: Props) {
           return (
             <Pressable key={o.name} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name} 종이${locked ? ' (잠김)' : ''}`}>
               <View style={locked && { opacity: 0.55 }}>
-                <ThemeSwatch theme={o.id} base={base} />
+                <ThemeSwatch theme={o.id} base={base} color={on ? color : undefined} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]}>
                 {locked ? '🔒 ' : ''}
@@ -82,11 +139,15 @@ export function ThemePicker({ label, base, value, onChange }: Props) {
           );
         })}
       </View>
+
+      {/* 고른 종이의 색 (모눈종이만) */}
+      <ColorDots colors={themeColors(value)} value={color} onPick={(c) => onChange(value, c)} />
+
       <ProductPreview
         product={preview?.product ?? null}
         onClose={() => setPreview(null)}
         onBought={() => {
-          if (preview) onChange(preview.id);
+          if (preview) pick(preview.id);
           setPreview(null);
         }}
       />
@@ -143,16 +204,18 @@ export function FoodDesignPicker({
   onChange,
 }: {
   value: FoodDesign | undefined;
-  color: HouseColor | undefined;
-  /** 집 모양을 처음 고르면 지붕 색도 무작위로 하나 정해서 같이 준다 */
-  onChange: (design: FoodDesign, color?: HouseColor) => void;
+  color: FoodColor | undefined;
+  /** 모양을 고르면 그 모양에서 쓸 수 있는 색도 같이 정해서 준다 */
+  onChange: (design: FoodDesign, color: FoodColor) => void;
 }) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: FoodDesign; product: PreviewProduct } | null>(null);
   const options: { id: FoodDesign; name: string; price: number }[] = [...FREE_FOOD_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOOD_DESIGNS];
-  const design = value ?? 'order';
+  // 예전 '단색 주문서' 기록은 주문서 + 먹색으로 보여준다
+  const design = value === 'plain' ? 'order' : (value ?? 'order');
+  const shown = value === 'plain' && !color ? 'ink' : color;
 
-  const pick = (id: FoodDesign) => onChange(id, id === 'house' && !color ? randomHouseColor() : undefined);
+  const pick = (id: FoodDesign) => onChange(id, pickFoodColor(id, shown));
 
   const choose = (id: FoodDesign) => {
     if (foodDesignUnlocked(id, owned)) return pick(id);
@@ -169,7 +232,7 @@ export function FoodDesignPicker({
           return (
             <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
               <View style={locked && { opacity: 0.55 }}>
-                <FoodDesignSwatch design={o.id} color={on ? color : undefined} />
+                <FoodDesignSwatch design={o.id} color={on ? (shown as HouseColor) : undefined} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]}>
                 {locked ? '🔒 ' : ''}
@@ -181,16 +244,8 @@ export function FoodDesignPicker({
         })}
       </View>
 
-      {/* 집 모양을 골랐을 때만: 지붕·차양 색 고르기 */}
-      {design === 'house' && (
-        <View style={styles.colors}>
-          {HOUSE_COLOR_IDS.map((c) => (
-            <Pressable key={c} onPress={() => onChange('house', c)} hitSlop={6} accessibilityLabel={`${HOUSE_COLORS[c].name} 지붕`} style={[styles.dot, color === c && styles.dotOn]}>
-              <View style={[styles.dotFill, { backgroundColor: HOUSE_COLORS[c].roof }]} />
-            </Pressable>
-          ))}
-        </View>
-      )}
+      {/* 고른 모양의 색 */}
+      <ColorDots colors={foodColors(design)} value={shown} onPick={(c) => onChange(design, c)} />
 
       <ProductPreview
         product={preview?.product ?? null}
@@ -205,7 +260,9 @@ export function FoodDesignPicker({
 }
 
 /** 콘서트 티켓 모양 견본 (레트로 / 팔찌 / 핑크 포토) */
-export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesign | undefined; size?: number }) {
+export function ConcertDesignSwatch({ design, size = 44, color }: { design: ConcertDesign | undefined; size?: number; color?: TicketColor }) {
+  const neon = BAND_COLORS[(color as keyof typeof BAND_COLORS) in BAND_COLORS ? (color as keyof typeof BAND_COLORS) : 'lime'].neon;
+  const ph = PHOTO_COLORS[(color as keyof typeof PHOTO_COLORS) in PHOTO_COLORS ? (color as keyof typeof PHOTO_COLORS) : 'pink'];
   if (design === 'retro')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -224,8 +281,8 @@ export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesi
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
         <Rect x={13} y={4} width={14} height={45} rx={4} fill="#191a22" />
         <Rect x={8} y={4} width={24} height={10} rx={3} fill="#2b2d3a" />
-        <Rect x={16} y={18} width={8} height={2} rx={1} fill="#d6f24a" />
-        <Rect x={16} y={40} width={8} height={2} rx={1} fill="#d6f24a" />
+        <Rect x={16} y={18} width={8} height={2} rx={1} fill={neon} />
+        <Rect x={16} y={40} width={8} height={2} rx={1} fill={neon} />
         {[24, 28, 32].map((y) => (
           <Line key={y} x1={16} y1={y} x2={24} y2={y} stroke="#fff" strokeWidth={1} opacity={0.5} />
         ))}
@@ -234,10 +291,10 @@ export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesi
   if (design === 'kpop')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
-        <Rect x={2} y={2} width={36} height={48} rx={2} fill="#fdf3f6" stroke={COLORS.line} strokeWidth={1} />
-        <Rect x={2} y={2} width={36} height={13} fill="#f7b8cc" />
+        <Rect x={2} y={2} width={36} height={48} rx={2} fill={ph.paper} stroke={COLORS.line} strokeWidth={1} />
+        <Rect x={2} y={2} width={36} height={13} fill={ph.light} />
         <Rect x={2} y={19} width={36} height={6} fill="#141118" />
-        <Rect x={7} y={28} width={26} height={14} rx={1} fill="#f7b8cc" />
+        <Rect x={7} y={28} width={26} height={14} rx={1} fill={ph.light} />
         <Rect x={2} y={45} width={36} height={5} fill="#141118" />
       </Svg>
     );
@@ -257,13 +314,24 @@ export function ConcertDesignSwatch({ design, size = 44 }: { design: ConcertDesi
 }
 
 /** 콘서트 폼의 티켓 모양 고르기 */
-export function ConcertDesignPicker({ value, onChange }: { value: ConcertDesign | undefined; onChange: (design: ConcertDesign) => void }) {
+export function ConcertDesignPicker({
+  value,
+  color,
+  onChange,
+}: {
+  value: ConcertDesign | undefined;
+  color: TicketColor | undefined;
+  onChange: (design: ConcertDesign, color: TicketColor | undefined) => void;
+}) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: ConcertDesign; product: PreviewProduct } | null>(null);
   const options: { id: ConcertDesign; name: string; price: number }[] = [...FREE_CONCERT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...CONCERT_DESIGNS];
+  const design = value ?? 'ticket';
+
+  const pick = (id: ConcertDesign) => onChange(id, pickTicketColor(id, color));
 
   const choose = (id: ConcertDesign) => {
-    if (concertDesignUnlocked(id, owned)) return onChange(id);
+    if (concertDesignUnlocked(id, owned)) return pick(id);
     setPreview({ id, product: concertDesignProductById(id as Exclude<ConcertDesign, 'ticket'>) });
   };
 
@@ -272,12 +340,12 @@ export function ConcertDesignPicker({ value, onChange }: { value: ConcertDesign 
       <Text style={styles.label}>티켓 모양</Text>
       <View style={styles.row}>
         {options.map((o) => {
-          const on = (value ?? 'ticket') === o.id;
+          const on = design === o.id;
           const locked = !concertDesignUnlocked(o.id, owned);
           return (
             <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
               <View style={locked && { opacity: 0.55 }}>
-                <ConcertDesignSwatch design={o.id} />
+                <ConcertDesignSwatch design={o.id} color={on ? color : undefined} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
                 {locked ? '🔒 ' : ''}
@@ -288,11 +356,15 @@ export function ConcertDesignPicker({ value, onChange }: { value: ConcertDesign 
           );
         })}
       </View>
+
+      {/* 고른 모양의 색 */}
+      <ColorDots colors={ticketColors(design)} value={color} onPick={(c) => onChange(design, c)} />
+
       <ProductPreview
         product={preview?.product ?? null}
         onClose={() => setPreview(null)}
         onBought={() => {
-          if (preview) onChange(preview.id);
+          if (preview) pick(preview.id);
           setPreview(null);
         }}
       />
@@ -301,7 +373,8 @@ export function ConcertDesignPicker({ value, onChange }: { value: ConcertDesign 
 }
 
 /** 공연·전시 모양 견본 (입장권 / 홀로그램 기록표) */
-export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | undefined; size?: number }) {
+export function ShowDesignSwatch({ design, size = 44, color }: { design: ShowDesign | undefined; size?: number; color?: TicketColor }) {
+  const holo = HOLO_COLORS[(color as keyof typeof HOLO_COLORS) in HOLO_COLORS ? (color as keyof typeof HOLO_COLORS) : 'blue'];
   if (design === 'poster')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -315,17 +388,17 @@ export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | u
   if (design === 'holo')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
-        <Rect x={2} y={2} width={36} height={48} rx={2} fill="#17359b" />
-        <Path d="M2,50 L20,2 L27,2 L9,50 Z" fill="#8be9f7" opacity={0.18} />
+        <Rect x={2} y={2} width={36} height={48} rx={2} fill={holo.base} />
+        <Path d="M2,50 L20,2 L27,2 L9,50 Z" fill={holo.holo[0]} opacity={0.18} />
         <Rect x={7} y={8} width={26} height={12} fill="none" stroke="#fff" strokeWidth={1} opacity={0.6} />
-        <Rect x={14} y={12} width={12} height={4} rx={1} fill="#ffd84d" />
+        <Rect x={14} y={12} width={12} height={4} rx={1} fill={holo.gold} />
         {[24, 34].map((y) => (
           <Rect key={y} x={7} y={y} width={26} height={8} fill="none" stroke="#fff" strokeWidth={1} opacity={0.6} />
         ))}
       </Svg>
     );
   // 핑크 포토 티켓·스탠딩 팔찌는 콘서트와 같은 모양이라 견본도 같이 쓴다
-  if (design === 'kpop' || design === 'band') return <ConcertDesignSwatch design={design} size={size} />;
+  if (design === 'kpop' || design === 'band') return <ConcertDesignSwatch design={design} size={size} color={color} />;
   // 기본: 크림 레트로 입장권
   return (
     <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -341,13 +414,24 @@ export function ShowDesignSwatch({ design, size = 44 }: { design: ShowDesign | u
 }
 
 /** 공연·전시 폼의 모양 고르기 */
-export function ShowDesignPicker({ value, onChange }: { value: ShowDesign | undefined; onChange: (design: ShowDesign) => void }) {
+export function ShowDesignPicker({
+  value,
+  color,
+  onChange,
+}: {
+  value: ShowDesign | undefined;
+  color: TicketColor | undefined;
+  onChange: (design: ShowDesign, color: TicketColor | undefined) => void;
+}) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: ShowDesign; product: PreviewProduct } | null>(null);
   const options: { id: ShowDesign; name: string; price: number }[] = [...FREE_SHOW_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SHOW_DESIGNS];
+  const design = value ?? 'ticket';
+
+  const pick = (id: ShowDesign) => onChange(id, pickTicketColor(id, color));
 
   const choose = (id: ShowDesign) => {
-    if (showDesignUnlocked(id, owned)) return onChange(id);
+    if (showDesignUnlocked(id, owned)) return pick(id);
     setPreview({ id, product: showDesignProductById(id as Exclude<ShowDesign, 'ticket'>) });
   };
 
@@ -356,12 +440,12 @@ export function ShowDesignPicker({ value, onChange }: { value: ShowDesign | unde
       <Text style={styles.label}>입장권 모양</Text>
       <View style={styles.row}>
         {options.map((o) => {
-          const on = (value ?? 'ticket') === o.id;
+          const on = design === o.id;
           const locked = !showDesignUnlocked(o.id, owned);
           return (
             <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
               <View style={locked && { opacity: 0.55 }}>
-                <ShowDesignSwatch design={o.id} />
+                <ShowDesignSwatch design={o.id} color={on ? color : undefined} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
                 {locked ? '🔒 ' : ''}
@@ -372,11 +456,15 @@ export function ShowDesignPicker({ value, onChange }: { value: ShowDesign | unde
           );
         })}
       </View>
+
+      {/* 고른 모양의 색 */}
+      <ColorDots colors={ticketColors(design)} value={color} onPick={(c) => onChange(design, c)} />
+
       <ProductPreview
         product={preview?.product ?? null}
         onClose={() => setPreview(null)}
         onBought={() => {
-          if (preview) onChange(preview.id);
+          if (preview) pick(preview.id);
           setPreview(null);
         }}
       />

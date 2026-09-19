@@ -1,7 +1,11 @@
 // 상점 미리보기에 보여줄 상품 정보: 이름·설명·가격·쓰는 곳 태그·예시 기록
 import { KIND_LABEL } from '../templates';
 import { HOUSE_COLORS } from '../templates/FoodHouse';
-import { ConcertDesign, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign } from '../types';
+import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
+import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
+import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
+import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
+import { ConcertDesign, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
 import { sampleConcert, sampleFood, sampleFourcut, sampleGift, sampleShow, sampleSpending } from './previewSamples';
 import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
 
@@ -28,17 +32,19 @@ export interface PreviewProduct {
 export const THEME_TAGS = [KIND_LABEL.spending, KIND_LABEL.fourcut];
 
 export function themeProduct(t: ThemeItem): PreviewProduct {
-  return {
-    title: t.name,
-    desc: t.desc,
-    productId: t.productId,
-    price: t.price,
-    tags: THEME_TAGS,
-    samples: [
-      { record: sampleSpending(t.id), caption: '소비 영수증' },
-      { record: sampleFourcut(t.id), side: 'back', caption: '인생네컷 뒷면' },
-    ],
-  };
+  // 모눈종이는 색마다 한 장씩, 소비 영수증과 인생네컷 뒷면을 번갈아 보여준다
+  const samples: PreviewSample[] =
+    t.id === 'grid'
+      ? GRID_COLOR_IDS.map((c, i) =>
+          i % 2 === 0
+            ? { record: { ...sampleSpending(t.id), id: `preview-spending-grid-${c}`, themeColor: c }, caption: `소비 · ${GRID_COLORS[c].name}` }
+            : { record: { ...sampleFourcut(t.id), id: `preview-fourcut-grid-${c}`, themeColor: c }, side: 'back', caption: `네컷 뒷면 · ${GRID_COLORS[c].name}` },
+        )
+      : [
+          { record: sampleSpending(t.id), caption: '소비 영수증' },
+          { record: sampleFourcut(t.id), side: 'back', caption: '인생네컷 뒷면' },
+        ];
+  return { title: t.name, desc: t.desc, productId: t.productId, price: t.price, tags: THEME_TAGS, samples };
 }
 
 export const themeProductById = (id: ThemeItem['id']) => themeProduct(THEMES.find((t) => t.id === id)!);
@@ -53,7 +59,7 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
     requires: ['food'],
     // 지붕 색이 여러 가지라는 걸 보여준다 (색은 가게 종류와 상관없이 고른다)
     samples: HOUSE_SAMPLES.map(({ color, type, place, menus, total, revisit, memo }) => ({
-      record: { ...sampleFood(), id: `preview-food-${d.id}-${color}`, design: d.id, houseColor: color, type, place, menus, total, revisit, memo },
+      record: { ...sampleFood(), id: `preview-food-${d.id}-${color}`, design: d.id, color, type, place, menus, total, revisit, memo },
       caption: `${HOUSE_COLORS[color].name} 지붕`,
     })),
   };
@@ -126,30 +132,37 @@ const HOUSE_SAMPLES: (Pick<FoodRecord, 'type' | 'place' | 'menus' | 'total' | 'r
 export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignProduct(FOOD_DESIGNS.find((d) => d.id === id)!);
 
 /** 콘서트·공연전시 영수증 모양 하나의 미리보기 (두 카테고리가 같이 쓰면 양쪽 예시를 다 보여준다) */
+/** 이 모양에서 고를 수 있는 색 (없으면 단색 모양) */
+const designColors = (id: ConcertDesign | ShowDesign): { id: TicketColor; name: string }[] =>
+  id === 'band'
+    ? BAND_COLOR_IDS.map((c) => ({ id: c as TicketColor, name: BAND_COLORS[c].name }))
+    : id === 'kpop'
+      ? PHOTO_COLOR_IDS.map((c) => ({ id: c as TicketColor, name: PHOTO_COLORS[c].name }))
+      : id === 'holo'
+        ? HOLO_COLOR_IDS.map((c) => ({ id: c as TicketColor, name: HOLO_COLORS[c].name }))
+        : [];
+
 export function designProduct(d: ConcertDesignItem | ShowDesignItem): PreviewProduct {
   const samples: PreviewSample[] = [];
   const both = d.kinds.length > 1;
-  if (d.kinds.includes('concert')) {
-    samples.push({ record: { ...sampleConcert(), id: `preview-${d.id}-concert`, design: d.id as ConcertDesign }, caption: both ? KIND_LABEL.concert : d.name });
-    if (!both)
-      samples.push({
-        record: {
-          ...sampleConcert(),
-          id: `preview-${d.id}-concert2`,
-          design: d.id as ConcertDesign,
-          artist: '달빛소년단',
-          title: '월드투어 서울',
-          place: 'KSPO DOME',
-          seat: '2층 F구역 7열 21번',
-          stars: 4,
-          memo: '앵콜 때 은박지 폭죽이 터졌다.',
-        },
-        caption: '다른 공연',
-      });
-  }
-  if (d.kinds.includes('show')) {
-    samples.push({ record: { ...sampleShow('play'), id: `preview-${d.id}-play`, design: d.id as ShowDesign }, caption: '뮤지컬·연극' });
-    samples.push({ record: { ...sampleShow('exhibition'), id: `preview-${d.id}-ex`, design: d.id as ShowDesign }, caption: '전시' });
+  const colors = designColors(d.id);
+
+  if (colors.length) {
+    // 색마다 한 장씩. 두 카테고리가 같이 쓰는 모양은 콘서트·공연을 번갈아 보여준다
+    colors.forEach((c, i) => {
+      const asShow = d.kinds.includes('show') && (!both || i % 2 === 1);
+      samples.push(
+        asShow
+          ? { record: { ...sampleShow(i % 4 === 3 ? 'exhibition' : 'play'), id: `preview-${d.id}-${c.id}`, design: d.id as ShowDesign, color: c.id }, caption: c.name }
+          : { record: { ...sampleConcert(), id: `preview-${d.id}-${c.id}`, design: d.id as ConcertDesign, color: c.id }, caption: c.name },
+      );
+    });
+  } else {
+    if (d.kinds.includes('concert')) samples.push({ record: { ...sampleConcert(), id: `preview-${d.id}-concert`, design: d.id as ConcertDesign }, caption: both ? KIND_LABEL.concert : d.name });
+    if (d.kinds.includes('show')) {
+      samples.push({ record: { ...sampleShow('play'), id: `preview-${d.id}-play`, design: d.id as ShowDesign }, caption: '뮤지컬·연극' });
+      samples.push({ record: { ...sampleShow('exhibition'), id: `preview-${d.id}-ex`, design: d.id as ShowDesign }, caption: '전시' });
+    }
   }
   return { title: d.name, desc: d.desc, productId: d.productId, price: d.price, tags: d.kinds.map((k) => KIND_LABEL[k]), requires: d.kinds, samples };
 }
@@ -171,8 +184,10 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
         ]
       : kind === 'food'
         ? [
-            { record: sampleFood(), caption: '주문서' },
-            { record: { ...sampleFood(), id: 'preview-food-plain', design: 'plain' }, caption: '단색 주문서' },
+            { record: sampleFood(), caption: '주문서 · 초록' },
+            { record: { ...sampleFood(), id: 'preview-food-ink', color: 'ink' }, caption: '주문서 · 먹색' },
+            { record: { ...sampleFood(), id: 'preview-food-navy', color: 'navy' }, caption: '주문서 · 남색' },
+            { record: { ...sampleFood(), id: 'preview-food-wine', color: 'wine' }, caption: '주문서 · 팥색' },
             {
               record: {
                 ...sampleFood(),

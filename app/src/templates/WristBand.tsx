@@ -7,6 +7,7 @@ import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { BandColor } from '../types';
 import { TicketRecord, ticketKindOf } from './ticketKind';
 
 /** 이 팔찌를 쓸 수 있는 기록 (콘서트 · 공연전시) */
@@ -16,9 +17,20 @@ const PW = 600;
 const PAD = 16;
 const BAND_X = 92; // 팔찌 폭 (세로로 긴 띠)
 const BAND_W = PW - BAND_X * 2;
-const NEON = '#d6f24a';
 const DARK = '#191a22';
 const SOFT = '#2b2d3a';
+
+/** 팔찌 끈에 찍힌 형광 글씨 색 */
+export const BAND_COLORS: Record<BandColor, { name: string; neon: string }> = {
+  lime: { name: '라임', neon: '#d6f24a' },
+  pink: { name: '핫핑크', neon: '#ff6fae' },
+  sky: { name: '하늘', neon: '#5bd1ff' },
+  orange: { name: '주황', neon: '#ffa23d' },
+};
+
+export const BAND_COLOR_IDS = Object.keys(BAND_COLORS) as BandColor[];
+
+export const bandColorOf = (r: Pick<WristBandRecord, 'color'>) => BAND_COLORS[(r.color as BandColor) in BAND_COLORS ? (r.color as BandColor) : 'lime'];
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fontFamily={FONTS[f]} {...p} />;
@@ -62,6 +74,7 @@ function bandPath(h: number, connected = false) {
 
 export function WristBand({ record: r, width, connected = false }: { record: WristBandRecord; width: number; connected?: boolean }) {
   const L = layoutWristBand(r);
+  const NEON = bandColorOf(r).neon;
   const k = ticketKindOf(r);
   const { rows, infoBot, height } = computeLayout(r);
   const shape = bandPath(height, connected);

@@ -6,7 +6,7 @@ import { parseDate, seededRandom, withParticle } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { FourcutFrame, FourcutLayout, FourcutRecord, PaperTheme, Photo } from '../types';
-import { GridLines, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { GridLines, PaperOverlay, PaperShadow, TemplateLayout, gridColorOf } from './shared';
 
 const PAD = 16;
 
@@ -231,7 +231,8 @@ export function FourcutBack({ record: r, width }: { record: FourcutRecord; width
   const VW = w / s;
   const V = h / s;
   const card = cardPath(w, h, 8);
-  const skin = BACK_SKINS[r.theme ?? 'default'];
+  const g = gridColorOf(r.themeColor);
+  const skin = r.theme === 'grid' ? { paper: g.backPaper, border: g.border, grid: { color: g.line, major: g.major } } : BACK_SKINS[r.theme ?? 'default'];
 
   const d = parseDate(r.date);
   const no = String(1 + Math.floor(seededRandom(r.id)() * 998)).padStart(3, '0');

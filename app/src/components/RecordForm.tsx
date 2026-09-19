@@ -36,6 +36,7 @@ import {
   FourcutRecord,
   GiftCard,
   GiftRecord,
+  GridColor,
   MoviePaper,
   MovieRecord,
   PaperTheme,
@@ -225,7 +226,7 @@ const emptyMovie = (): Omit<MovieRecord, 'id' | 'createdAt'> => ({
   paper: 'pink' as MoviePaper,
 });
 
-const emptySpending = (): { date: string; store: string; category: string; address: string; memo: string; theme?: PaperTheme } => ({
+const emptySpending = (): { date: string; store: string; category: string; address: string; memo: string; theme?: PaperTheme; themeColor?: GridColor } => ({
   date: today(),
   store: '',
   category: '',
@@ -879,7 +880,13 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   </Text>
                 )}
                 <Text style={styles.total}>합계 ₩ {won(mode === 'total' ? onlyTotalValue : total)}</Text>
-                <ThemePicker label="영수증 종이" base="spending" value={spending.theme} onChange={(theme) => setSpending((sp) => ({ ...sp, theme }))} />
+                <ThemePicker
+                  label="영수증 종이"
+                  base="spending"
+                  value={spending.theme}
+                  color={spending.themeColor}
+                  onChange={(theme, themeColor) => setSpending((sp) => ({ ...sp, theme, themeColor }))}
+                />
               </>
             )}
 
@@ -1007,7 +1014,13 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   </>
                 )}
                 <Label text="뒷면 — 오늘의 하루" />
-                <ThemePicker label="뒷면 종이" base="fourcut" value={fourcut.theme} onChange={(theme) => setFourcut((f) => ({ ...f, theme }))} />
+                <ThemePicker
+                  label="뒷면 종이"
+                  base="fourcut"
+                  value={fourcut.theme}
+                  color={fourcut.themeColor}
+                  onChange={(theme, themeColor) => setFourcut((f) => ({ ...f, theme, themeColor }))}
+                />
                 <Field label="오늘의 제목" value={fourcut.title} onChange={(v) => setFourcut({ ...fourcut, title: v })} placeholder="여름의 마지막 네컷" />
                 <Row>
                   <Field label="어디서" value={fourcut.place} onChange={(v) => setFourcut({ ...fourcut, place: v })} placeholder="연남동" />
@@ -1238,8 +1251,8 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <Field label="한 줄 후기 (포스트잇에 적혀요)" value={food.memo} onChange={(v) => setFood({ ...food, memo: v })} placeholder="치즈케이크 꾸덕해서 또 먹고 싶다" multiline />
                 <FoodDesignPicker
                   value={food.design}
-                  color={food.houseColor}
-                  onChange={(design, houseColor) => setFood((f) => ({ ...f, design, houseColor: houseColor ?? f.houseColor }))}
+                  color={food.color}
+                  onChange={(design, color) => setFood((f) => ({ ...f, design, color }))}
                 />
               </>
             )}
@@ -1313,7 +1326,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   ))}
                 </View>
                 <Field label="한 줄 감상" value={show.memo} onChange={(v) => setShow({ ...show, memo: v })} placeholder="커튼콜에서 눈물 날 뻔했다." multiline />
-                <ShowDesignPicker value={show.design} onChange={(design) => setShow((x) => ({ ...x, design }))} />
+                <ShowDesignPicker value={show.design} color={show.color} onChange={(design, color) => setShow((x) => ({ ...x, design, color }))} />
               </>
             )}
 
@@ -1379,7 +1392,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   ))}
                 </View>
                 <Field label="한 줄 감상" value={concert.memo} onChange={(v) => setConcert({ ...concert, memo: v })} placeholder="앙코르 세 곡. 목이 다 쉬었다." multiline />
-                <ConcertDesignPicker value={concert.design} onChange={(design) => setConcert((c) => ({ ...c, design }))} />
+                <ConcertDesignPicker value={concert.design} color={concert.color} onChange={(design, color) => setConcert((c) => ({ ...c, design, color }))} />
               </>
             )}
 

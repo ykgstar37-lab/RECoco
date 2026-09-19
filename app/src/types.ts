@@ -58,12 +58,16 @@ export interface SpendingRecord extends BaseRecord {
   items: SpendingItem[];
   memo: string;
   theme?: PaperTheme; // 없으면 기본 간이영수증
+  themeColor?: GridColor; // 모눈종이 격자 색
   /** 여러 가게를 한 장에 적을 때 표 첫 칸 (없으면 날짜가 다 같으면 시간, 다르면 날짜) */
   listBy?: 'date' | 'time';
 }
 
-/** 유료 영수증 테마 (종이·무늬만 바뀜) */
+/** 영수증 종이 테마 (종이·무늬만 바뀜). plain(흰 무지)은 무료, grid(모눈종이)는 유료 */
 export type PaperTheme = 'plain' | 'grid';
+
+/** 모눈종이 격자 색 */
+export type GridColor = 'green' | 'sky' | 'pink' | 'gray';
 
 /** 사진에서 실제로 보여줄 네모 (원본 픽셀 기준) */
 export interface PhotoCrop {
@@ -121,6 +125,7 @@ export interface FourcutRecord extends BaseRecord {
   frame: FourcutFrame;
   sourceUrl: string; // QR 링크 (있으면)
   theme?: PaperTheme; // 뒷면 종이 (없으면 기본 크림 줄노트)
+  themeColor?: GridColor; // 모눈종이 격자 색
 }
 
 export type GiftCard = 'yellow' | 'pink' | 'mint' | 'sky' | 'plain';
@@ -142,11 +147,17 @@ export interface GiftRecord extends BaseRecord {
 
 export type FoodType = 'cafe' | 'meal' | 'dessert' | 'bar';
 
-/** order: 초록 맛집 주문서, plain: 단색 주문서 (여기까지 무료) / house: 집 모양 */
-export type FoodDesign = 'order' | 'plain' | 'house';
+/** order: 맛집 주문서 (무료) / house: 집 모양 · plain 은 예전 '단색 주문서' (= 주문서 먹색) */
+export type FoodDesign = 'order' | 'house' | 'plain';
 
-/** 집 모양의 지붕·차양 색 (가게 종류와 상관없이 고른다) */
+/** 집 모양의 지붕·차양 색 */
 export type HouseColor = 'orange' | 'red' | 'pink' | 'blue' | 'green';
+
+/** 주문서 인쇄 색 */
+export type OrderColor = 'green' | 'ink' | 'navy' | 'wine';
+
+/** 모양마다 고를 수 있는 색 (모양을 고른 다음 고른다) */
+export type FoodColor = HouseColor | OrderColor;
 
 export interface FoodMenu {
   name: string;
@@ -167,7 +178,7 @@ export interface FoodRecord extends BaseRecord {
   memo: string; // 한 줄 후기
   photo: Photo | null;
   design?: FoodDesign; // 없으면 주문서
-  houseColor?: HouseColor; // 집 모양 지붕 색 (고를 때 무작위로 정해준다)
+  color?: FoodColor; // 모양의 색 (모양을 고를 때 무작위로 정해준다)
 }
 
 export type ShowType = 'play' | 'exhibition';
@@ -190,10 +201,23 @@ export interface ShowRecord extends BaseRecord {
   memo: string;
   photo: Photo | null; // 포스터·현장 사진
   design?: ShowDesign; // 없으면 기본 입장권
+  color?: TicketColor; // 모양의 색 (팔찌·포토 티켓·홀로그램)
 }
 
 /** ticket: 가로 공연 티켓, retro: 크림 레트로 티켓 (여기까지 무료) / band: 스탠딩 팔찌, kpop: 핑크 포토 티켓(공연·전시와 같이 씀) */
 export type ConcertDesign = 'ticket' | 'retro' | 'band' | 'kpop';
+
+/** 스탠딩 팔찌 끈 색 */
+export type BandColor = 'lime' | 'pink' | 'sky' | 'orange';
+
+/** 포토 티켓 색 */
+export type PhotoColor = 'pink' | 'sky' | 'butter' | 'mint';
+
+/** 홀로그램 기록표 색 */
+export type HoloColor = 'blue' | 'violet' | 'teal' | 'wine';
+
+/** 티켓 모양들이 같이 쓰는 색 (어느 팔레트인지는 고른 모양이 정한다) */
+export type TicketColor = BandColor | PhotoColor | HoloColor;
 
 /** 콘서트: 공연·전시와 따로, 티켓 모양을 골라 뽑는다 */
 export interface ConcertRecord extends BaseRecord {
@@ -210,6 +234,7 @@ export interface ConcertRecord extends BaseRecord {
   memo: string;
   photo: Photo | null;
   design?: ConcertDesign; // 없으면 기본 티켓
+  color?: TicketColor; // 모양의 색 (팔찌·포토 티켓)
 }
 
 export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord | ShowRecord | ConcertRecord;

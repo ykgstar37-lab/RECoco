@@ -7,7 +7,7 @@ import { fitLine } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
 import { PaperTheme, SpendingRecord } from '../types';
 import { StickerArt, stickerOf } from '../components/Stickers';
-import { GridLines, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { GridLines, PaperOverlay, PaperShadow, TemplateLayout, gridColorOf } from './shared';
 
 const PW = 640;
 const PH = 1340;
@@ -56,7 +56,9 @@ export function layoutSpending(_r: SpendingRecord): TemplateLayout {
 
 export function SpendingReceipt({ record: r, width }: { record: SpendingRecord; width: number }) {
   const lay = layoutSpending(r);
-  const skin = SKINS[r.theme ?? 'default'];
+  const g = gridColorOf(r.themeColor);
+  // 모눈종이는 고른 격자 색으로 (다른 종이는 정해진 색 그대로)
+  const skin = r.theme === 'grid' ? { paper: g.paper, ink: g.ink, fold: false, grid: { color: g.line, major: g.major } } : SKINS[r.theme ?? 'default'];
   const INK = skin.ink;
   const rnd = seededRandom(r.id);
   const jitter = () => (rnd() - 0.5) * 2.4;

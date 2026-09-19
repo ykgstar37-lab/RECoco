@@ -1,3 +1,4 @@
+import { GridColor } from '../types';
 import { ClipPath, Defs, G, Image, Line, Path, Pattern, Rect } from 'react-native-svg';
 
 import { seededRandom } from '../lib/format';
@@ -159,3 +160,14 @@ export function GridLines({
   );
 }
 
+/** 모눈종이 격자 색. 소비 영수증(ink=글씨)과 인생네컷 뒷면(border=테두리)이 같이 쓴다 */
+export const GRID_COLORS: Record<GridColor, { name: string; swatch: string; paper: string; ink: string; line: string; major: string; backPaper: string; border: string }> = {
+  green: { name: '연두', swatch: '#5f8f74', paper: '#fbfdf8', ink: '#5f8f74', line: '#e1eee5', major: '#c9e0d0', backPaper: '#fcfdf9', border: '#d3e4d8' },
+  sky: { name: '하늘', swatch: '#5b83b5', paper: '#f9fbfe', ink: '#5b83b5', line: '#e2eaf4', major: '#cadcee', backPaper: '#fafcfe', border: '#d4e0ee' },
+  pink: { name: '분홍', swatch: '#c1718e', paper: '#fefafb', ink: '#c1718e', line: '#f4e4ea', major: '#ecd0da', backPaper: '#fefbfc', border: '#eed8e0' },
+  gray: { name: '회색', swatch: '#7d7d86', paper: '#fbfbfc', ink: '#7d7d86', line: '#e8e8ec', major: '#d8d8de', backPaper: '#fcfcfd', border: '#e0e0e6' },
+};
+
+export const GRID_COLOR_IDS = Object.keys(GRID_COLORS) as GridColor[];
+
+export const gridColorOf = (c: GridColor | undefined) => GRID_COLORS[c && c in GRID_COLORS ? c : 'green'];

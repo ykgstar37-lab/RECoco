@@ -42,14 +42,16 @@ export interface ThemeItem {
   price: number;
 }
 
+/** 기본으로 주는 종이 (소비 영수증·인생네컷 뒷면) */
+export const FREE_THEMES: { id: PaperTheme; name: string }[] = [{ id: 'plain', name: '흰 무지' }];
+
 /** 영수증 테마: 하나 사면 소비 영수증과 인생네컷 뒷면 모두에 쓸 수 있다 */
 export const THEMES: ThemeItem[] = [
-  { id: 'plain', name: '흰 무지', desc: '깨끗한 흰 종이에 연한 회색 선', productId: 'recoco.theme.plain', price: 1000 },
-  { id: 'grid', name: '모눈종이', desc: '연두빛 모눈이 깔린 노트 종이', productId: 'recoco.theme.grid', price: 1000 },
+  { id: 'grid', name: '모눈종이', desc: '모눈이 깔린 노트 종이 · 격자 색 4가지', productId: 'recoco.theme.grid', price: 1000 },
 ];
 
 export const themeUnlocked = (id: PaperTheme | undefined, owned: string[]) =>
-  !id || owned.includes(THEMES.find((t) => t.id === id)?.productId ?? '');
+  !id || FREE_THEMES.some((t) => t.id === id) || owned.includes(THEMES.find((t) => t.id === id)?.productId ?? '');
 
 export interface FoodDesignItem {
   id: Exclude<FoodDesign, 'order'>;
@@ -59,11 +61,8 @@ export interface FoodDesignItem {
   price: number;
 }
 
-/** 카페·맛집 영수증 모양 테마 (기본은 맛집 주문서) */
-export const FREE_FOOD_DESIGNS: { id: FoodDesign; name: string }[] = [
-  { id: 'order', name: '주문서' },
-  { id: 'plain', name: '단색 주문서' },
-];
+/** 카페·맛집 영수증 모양 테마 (기본은 맛집 주문서. 색은 모양을 고른 다음 따로 고른다) */
+export const FREE_FOOD_DESIGNS: { id: FoodDesign; name: string }[] = [{ id: 'order', name: '주문서' }];
 
 export const FOOD_DESIGNS: FoodDesignItem[] = [
   { id: 'house', name: '집 모양', desc: '간판·창문 사진·칠판 메뉴가 있는 작은 가게 집 · 지붕 색 5가지', productId: 'recoco.theme.food-house', price: 1000 },
@@ -74,8 +73,8 @@ export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) 
 
 /** 콘서트·공연전시가 같이 쓰는 모양: 한 번 사면 두 카테고리 모두에서 고를 수 있다 */
 const BOTH = ['concert', 'show'] as RecordKind[];
-const PHOTO_TICKET = { name: '핑크 포토 티켓', desc: '분홍 줄무늬에 사진이 큼직하게 박힌 티켓', productId: 'recoco.theme.photo-ticket', price: 1000, kinds: BOTH };
-const WRIST_BAND = { name: '스탠딩 팔찌', desc: '공연장에서 채워주는 손목 팔찌', productId: 'recoco.theme.wristband', price: 1000, kinds: BOTH };
+const PHOTO_TICKET = { name: '포토 티켓', desc: '사진이 큼직하게 박힌 티켓 · 색 4가지', productId: 'recoco.theme.photo-ticket', price: 1000, kinds: BOTH };
+const WRIST_BAND = { name: '스탠딩 팔찌', desc: '공연장에서 채워주는 손목 팔찌 · 형광 색 4가지', productId: 'recoco.theme.wristband', price: 1000, kinds: BOTH };
 
 export interface ConcertDesignItem {
   id: Exclude<ConcertDesign, 'ticket'>;
@@ -118,7 +117,7 @@ export const FREE_SHOW_DESIGNS: { id: ShowDesign; name: string }[] = [
 ];
 
 export const SHOW_DESIGNS: ShowDesignItem[] = [
-  { id: 'holo', name: '홀로그램 기록표', desc: '파란 홀로그램 종이에 칸칸이 적는 관람 기록표', productId: 'recoco.theme.holo', price: 1000, kinds: ['show'] },
+  { id: 'holo', name: '홀로그램 기록표', desc: '홀로그램 종이에 칸칸이 적는 관람 기록표 · 색 4가지', productId: 'recoco.theme.holo', price: 1000, kinds: ['show'] },
   { id: 'band', ...WRIST_BAND },
   { id: 'kpop', ...PHOTO_TICKET },
 ];
@@ -135,7 +134,7 @@ export const showDesignUnlocked = (id: ShowDesign | undefined, owned: string[]) 
 /** 새 카테고리 (기본 5개는 무료) */
 export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: string; icon: string; productId: string; price: number }>> = {
   gift: { name: '선물', desc: '받은·보낸 선물을 모바일 교환권처럼', icon: '🎁', productId: 'recoco.category.gift', price: 1500 },
-  food: { name: '카페·맛집', desc: '메뉴마다 별점을 매기는 주문서 · 단색 2가지', icon: '☕', productId: 'recoco.category.food', price: 1500 },
+  food: { name: '카페·맛집', desc: '메뉴마다 별점을 매기는 주문서 · 인쇄 색 4가지', icon: '☕', productId: 'recoco.category.food', price: 1500 },
   show: { name: '공연·전시', desc: '뮤지컬·연극·전시 · 입장권 모양 2가지', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
   concert: { name: '콘서트', desc: '가로 공연 티켓 · 레트로 티켓 2가지', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
 };

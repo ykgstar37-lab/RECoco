@@ -8,6 +8,7 @@ import { fitLine, fitLines } from '../lib/text';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 import { TicketRecord, ticketKindOf } from './ticketKind';
 import { PAPER_FONTS as FONTS } from '../theme';
+import { PhotoColor } from '../types';
 
 /** 이 티켓을 쓸 수 있는 기록 (콘서트 · 공연전시) */
 export type PhotoTicketRecord = TicketRecord;
@@ -15,10 +16,19 @@ export type PhotoTicketRecord = TicketRecord;
 const PW = 560;
 const PAD = 16;
 const M = 34;
-const PINK = '#f7b8cc';
-const PINK_DEEP = '#e07fa1';
 const DARK = '#141118';
-const PAPER = '#fdf3f6';
+
+/** 티켓 블록 색 (밝은 띠 · 진한 글씨 · 종이) */
+export const PHOTO_COLORS: Record<PhotoColor, { name: string; light: string; deep: string; paper: string }> = {
+  pink: { name: '분홍', light: '#f7b8cc', deep: '#e07fa1', paper: '#fdf3f6' },
+  sky: { name: '하늘', light: '#b7d7f5', deep: '#6d9ed6', paper: '#f2f7fd' },
+  butter: { name: '버터', light: '#f7dfa4', deep: '#d3a545', paper: '#fdf9ef' },
+  mint: { name: '민트', light: '#a9e2cd', deep: '#5aab90', paper: '#f1faf6' },
+};
+
+export const PHOTO_COLOR_IDS = Object.keys(PHOTO_COLORS) as PhotoColor[];
+
+export const photoColorOf = (r: Pick<PhotoTicketRecord, 'color'>) => PHOTO_COLORS[(r.color as PhotoColor) in PHOTO_COLORS ? (r.color as PhotoColor) : 'pink'];
 
 const TITLE_LINE = 52;
 const TOOTH = 14;
@@ -61,6 +71,10 @@ function toothPath(h: number, connected: boolean) {
 
 export function PhotoTicket({ record: r, width, connected = false }: { record: PhotoTicketRecord; width: number; connected?: boolean }) {
   const L = layoutPhotoTicket(r);
+  const c = photoColorOf(r);
+  const PINK = c.light;
+  const PINK_DEEP = c.deep;
+  const PAPER = c.paper;
   const { photoH, headBot, artist, artistTop, bigTop, photoTop, photoBot, infoTop, memo, infoBot, height } = computeLayout(r);
   const shape = toothPath(height, connected);
   const id = `photo-${r.id}`;
