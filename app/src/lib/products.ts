@@ -8,7 +8,7 @@ import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { ConcertDesign, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
 import { sampleConcert, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
-import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
+import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FOURCUT_DESIGNS, FoodDesignItem, FourcutDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
 
 export interface PreviewSample {
   record: RecoRecord;
@@ -133,6 +133,21 @@ const HOUSE_SAMPLES: (Pick<FoodRecord, 'type' | 'place' | 'menus' | 'total' | 'r
 ];
 
 export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignProduct(FOOD_DESIGNS.find((d) => d.id === id)!);
+
+/** 코코몬 카드: 등급이 뽑기라서 여러 등급을 나란히 보여준다 */
+export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
+  const of = (id: string, caption: string) => ({ record: { ...sampleFourcut(), id, design: 'card' as const }, caption });
+  return {
+    title: d.name,
+    desc: d.desc,
+    productId: d.productId,
+    price: d.price,
+    tags: [KIND_LABEL.fourcut],
+    samples: [of('cm52', '무지개 (1%)'), of('cm16', '골든 (4%)'), of('cm13', '슈퍼레어 (9%)'), of('cm3', '더블레어 (18%)'), of('cm0', '흔함 (40%)')],
+  };
+}
+
+export const fourcutDesignProductById = (id: FourcutDesignItem['id']) => fourcutDesignProduct(FOURCUT_DESIGNS.find((d) => d.id === id)!);
 
 /** 콘서트·공연전시 영수증 모양 하나의 미리보기 (두 카테고리가 같이 쓰면 양쪽 예시를 다 보여준다) */
 /** 이 모양에서 고를 수 있는 색 (없으면 단색 모양) */

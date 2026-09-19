@@ -13,6 +13,7 @@ import { ReadingReceipt, layoutReading } from './ReadingReceipt';
 import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
 import { ShowHolo, layoutShowHolo } from './ShowHolo';
 import { ExerciseCard, layoutExerciseCard } from './ExerciseCard';
+import { FourcutCard, layoutFourcutCard } from './FourcutCard';
 import { ExerciseSlip, layoutExerciseSlip } from './ExerciseSlip';
 import { MusicAlbum, layoutMusicAlbum } from './MusicAlbum';
 import { MusicList, layoutMusicList } from './MusicList';
@@ -37,7 +38,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'travel':
       return layoutTravel(record);
     case 'fourcut':
-      return layoutFourcut(record);
+      return record.design === 'card' ? layoutFourcutCard(record) : layoutFourcut(record);
     case 'gift':
       return layoutGift(record);
     case 'food':
@@ -105,7 +106,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
     case 'travel':
       return <TravelPass record={record} width={width} connected={connected} />;
     case 'fourcut':
-      return <FourcutFront record={record} width={width} connected={connected} />;
+      return record.design === 'card' ? <FourcutCard record={record} width={width} connected={connected} /> : <FourcutFront record={record} width={width} connected={connected} />;
     case 'gift':
       return <GiftCoupon record={record} width={width} connected={connected} />;
     case 'food':

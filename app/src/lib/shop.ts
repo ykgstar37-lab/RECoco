@@ -6,7 +6,7 @@ import { useSyncExternalStore } from 'react';
 import { PurchaseCancelled, buyProduct, canBuy, ownedProductIds, startBilling } from './billing';
 
 import type { OutfitId } from '../components/Outfits';
-import type { ConcertDesign, ExerciseDesign, FoodDesign, MusicDesign, PaperTheme, RecordKind, ShowDesign } from '../types';
+import type { ConcertDesign, ExerciseDesign, FoodDesign, FourcutDesign, MusicDesign, PaperTheme, RecordKind, ShowDesign } from '../types';
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
@@ -134,6 +134,24 @@ export const showDesignUnlocked = (id: ShowDesign | undefined, owned: string[]) 
   const key = id === 'ticket' ? 'retro' : id; // 'ticket' 은 레트로의 예전 이름
   return !key || FREE_SHOW_DESIGNS.some((d) => d.id === key) || owned.includes(SHOW_DESIGNS.find((d) => d.id === key)?.productId ?? '');
 };
+
+/** 인생네컷 모양: 네컷 사진 그대로(무료) + 코코몬 카드(유료) */
+export const FREE_FOURCUT_DESIGNS: { id: FourcutDesign; name: string }[] = [{ id: 'strip', name: '네컷 사진' }];
+
+export interface FourcutDesignItem {
+  id: Exclude<FourcutDesign, 'strip'>;
+  name: string;
+  desc: string;
+  productId: string;
+  price: number;
+}
+
+export const FOURCUT_DESIGNS: FourcutDesignItem[] = [
+  { id: 'card', name: '코코몬 카드', desc: '네컷 사진을 수집 카드로 · 등급은 뽑을 때 무작위 (흔함~무지개 6등급)', productId: 'recoco.theme.cocomon', price: 1000 },
+];
+
+export const fourcutDesignUnlocked = (id: FourcutDesign | undefined, owned: string[]) =>
+  !id || FREE_FOURCUT_DESIGNS.some((d) => d.id === id) || owned.includes(FOURCUT_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 /** 운동·음악의 무료 모양 (유료 테마는 아직 없다) */
 export const FREE_EXERCISE_DESIGNS: { id: ExerciseDesign; name: string }[] = [

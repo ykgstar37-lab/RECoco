@@ -49,7 +49,8 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   if (!record) return null;
   const rollW = Math.min(screenW - 48, 440);
   const { width } = sizeOf(record, rollW);
-  const isFourcut = record.kind === 'fourcut';
+  // 코코몬 카드는 뒷면이 없다 (카드 한 장으로 끝)
+  const isFourcut = record.kind === 'fourcut' && record.design !== 'card';
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>

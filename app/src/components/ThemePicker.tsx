@@ -3,13 +3,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Rect } from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, concertDesignProductById, foodDesignProductById, showDesignProductById, themeProductById } from '../lib/products';
+import { PreviewProduct, concertDesignProductById, foodDesignProductById, fourcutDesignProductById, showDesignProductById, themeProductById } from '../lib/products';
 import {
   CONCERT_DESIGNS,
   FOOD_DESIGNS,
   FREE_CONCERT_DESIGNS,
   FREE_EXERCISE_DESIGNS,
   FREE_FOOD_DESIGNS,
+  FOURCUT_DESIGNS,
+  FREE_FOURCUT_DESIGNS,
   FREE_MUSIC_DESIGNS,
   FREE_SHOW_DESIGNS,
   FREE_THEMES,
@@ -17,6 +19,7 @@ import {
   THEMES,
   concertDesignUnlocked,
   foodDesignUnlocked,
+  fourcutDesignUnlocked,
   showDesignUnlocked,
   themeUnlocked,
   useShop,
@@ -30,7 +33,7 @@ import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { ORDER_COLORS, ORDER_COLOR_IDS } from '../templates/FoodOrder';
 import { COLORS, FONTS } from '../theme';
-import { ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, TicketColor } from '../types';
+import { ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, TicketColor } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 모양을 고른 다음 그 모양의 색을 고르는 동그라미 줄 */
@@ -525,6 +528,7 @@ const styles = StyleSheet.create({
   optionOn: { borderColor: COLORS.orange, backgroundColor: COLORS.orangeSoft },
   name: { color: COLORS.ink, fontSize: 13, fontFamily: FONTS.sansBold },
   price: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: -2 },
+  hint: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 17 },
   colors: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginTop: 2 },
   dot: { padding: 3, borderRadius: 999, borderWidth: 2, borderColor: 'transparent' },
   dotOn: { borderColor: COLORS.orange },
@@ -626,6 +630,78 @@ export function MusicDesignPicker({ value, onChange }: { value: MusicDesign | un
           );
         })}
       </View>
+    </View>
+  );
+}
+
+/** 인생네컷 모양 견본 (네컷 사진 / 코코몬 카드) */
+export function FourcutDesignSwatch({ design, size = 44 }: { design: FourcutDesign; size?: number }) {
+  if (design === 'card')
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={4} fill="#d6a43a" />
+        <Rect x={5} y={5} width={30} height={42} rx={3} fill="#fdf8e9" />
+        <Rect x={8} y={9} width={13} height={3} rx={1.5} fill="#23212a" />
+        <Rect x={8} y={16} width={24} height={17} rx={2} fill="#efe6d2" stroke="#d8d5cf" strokeWidth={1} />
+        <Circle cx={20} cy={25} r={4} fill="#c9bfa6" />
+        <Rect x={8} y={37} width={24} height={3} rx={1.5} fill="#d6a43a" />
+        <Rect x={8} y={42} width={14} height={2} rx={1} fill="#c9c6c0" />
+      </Svg>
+    );
+  return (
+    <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+      <Rect x={9} y={1} width={22} height={50} rx={2} fill="#fbfbf9" stroke={COLORS.line} strokeWidth={1} />
+      {[4, 15, 26].map((y) => (
+        <Rect key={y} x={12} y={y} width={16} height={9} rx={1} fill="#dcd8cf" />
+      ))}
+      <Rect x={12} y={37} width={16} height={9} rx={1} fill="#dcd8cf" />
+    </Svg>
+  );
+}
+
+/** 인생네컷 폼의 모양 고르기: 코코몬 카드는 사면 열린다 */
+export function FourcutDesignPicker({ value, onChange }: { value: FourcutDesign | undefined; onChange: (design: FourcutDesign) => void }) {
+  const { owned } = useShop();
+  const [preview, setPreview] = useState<{ id: FourcutDesign; product: PreviewProduct } | null>(null);
+  const options: { id: FourcutDesign; name: string; price: number }[] = [...FREE_FOURCUT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOURCUT_DESIGNS];
+  const design = value ?? 'strip';
+
+  const choose = (id: FourcutDesign) => {
+    if (fourcutDesignUnlocked(id, owned)) return onChange(id);
+    setPreview({ id, product: fourcutDesignProductById(id as Exclude<FourcutDesign, 'strip'>) });
+  };
+
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.label}>네컷 모양</Text>
+      <View style={styles.row}>
+        {options.map((o) => {
+          const on = design === o.id;
+          const locked = !fourcutDesignUnlocked(o.id, owned);
+          return (
+            <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
+              <View style={locked && { opacity: 0.55 }}>
+                <FourcutDesignSwatch design={o.id} />
+              </View>
+              <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
+                {locked ? '🔒 ' : ''}
+                {o.name}
+              </Text>
+              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
+            </Pressable>
+          );
+        })}
+      </View>
+      {design === 'card' && <Text style={styles.hint}>등급은 뽑을 때 무작위로 정해져요 (흔함 · 레어 · 더블레어 · 슈퍼레어 · 골든 · 무지개)</Text>}
+
+      <ProductPreview
+        product={preview?.product ?? null}
+        onClose={() => setPreview(null)}
+        onBought={() => {
+          if (preview) onChange(preview.id);
+          setPreview(null);
+        }}
+      />
     </View>
   );
 }

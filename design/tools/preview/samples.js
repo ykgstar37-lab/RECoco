@@ -46,6 +46,15 @@ module.exports = () => {
     revisit: 'yes', memo: '치즈케이크 꾸덕해서 또 먹고 싶다. 창가 자리 명당!', photo: null,
   };
   return [
+    { name: '코코몬_흔함', record: { ...fourBase, id: 'cm0', design: 'card' } },
+    { name: '코코몬_레어', record: { ...fourBase, id: 'cm4', design: 'card' } },
+    { name: '코코몬_더블레어', record: { ...fourBase, id: 'cm3', design: 'card' } },
+    { name: '코코몬_슈퍼레어', record: { ...fourBase, id: 'cm13', design: 'card' } },
+    { name: '코코몬_골든', record: { ...fourBase, id: 'cm16', design: 'card' } },
+    { name: '코코몬_무지개', record: { ...fourBase, id: 'cm52', design: 'card' } },
+    { name: '코코몬_사진', record: { ...fourBase, id: 'cm-1', design: 'card' } },
+    { name: '코코몬_QR', record: { ...fourQr, id: 'cm-2', design: 'card' } },
+    { name: '코코몬_빈칸', record: { ...fourBase, id: 'cm-3', design: 'card', photos: [], title: '', place: '', withWhom: '', diary: '' } },
     { name: '운동_러닝_기록표', record: { id: 'ex-run', createdAt: '2026-09-19T08:00:00', kind: 'exercise', date: '2026-09-19', time: '07:10', type: 'run',
       place: '한강공원 망원지구', minutes: 42, distance: 6.4, pace: "6'32\"", moves: [], effort: 4,
       memo: '다리가 후들거렸지만 해냈다. 강바람이 시원했음', photo: null, design: 'slip' } },

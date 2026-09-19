@@ -23,7 +23,7 @@ import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, search
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { EXERCISE_TYPES, USES_DISTANCE } from '../templates/ExerciseSlip';
 import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
-import { ConcertDesignPicker, ExerciseDesignPicker, FoodDesignPicker, MusicDesignPicker, ShowDesignPicker, ThemePicker } from './ThemePicker';
+import { ConcertDesignPicker, ExerciseDesignPicker, FoodDesignPicker, FourcutDesignPicker, MusicDesignPicker, ShowDesignPicker, ThemePicker } from './ThemePicker';
 import { SHOW_TYPES } from '../templates/ShowTicket';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
@@ -1069,13 +1069,16 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   </>
                 )}
                 <Label text="뒷면 — 오늘의 하루" />
-                <ThemePicker
-                  label="뒷면 종이"
-                  base="fourcut"
-                  value={fourcut.theme}
-                  color={fourcut.themeColor}
-                  onChange={(theme, themeColor) => setFourcut((f) => ({ ...f, theme, themeColor }))}
-                />
+                <FourcutDesignPicker value={fourcut.design} onChange={(design) => setFourcut((f) => ({ ...f, design }))} />
+                {fourcut.design !== 'card' && (
+                  <ThemePicker
+                    label="뒷면 종이"
+                    base="fourcut"
+                    value={fourcut.theme}
+                    color={fourcut.themeColor}
+                    onChange={(theme, themeColor) => setFourcut((f) => ({ ...f, theme, themeColor }))}
+                  />
+                )}
                 <Field label="오늘의 제목" value={fourcut.title} onChange={(v) => setFourcut({ ...fourcut, title: v })} placeholder="여름의 마지막 네컷" />
                 <Row>
                   <Field label="어디서" value={fourcut.place} onChange={(v) => setFourcut({ ...fourcut, place: v })} placeholder="연남동" />
