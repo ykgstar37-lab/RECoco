@@ -12,6 +12,8 @@ import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_
 
 export interface PreviewSample {
   record: RecoRecord;
+  /** 가로로 납작한 모양은 한 칸에 여러 색을 세로로 쌓아 보여준다 */
+  more?: RecoRecord[];
   /** 인생네컷 뒷면을 보여줄 때 */
   side?: 'back';
   caption: string;
@@ -150,7 +152,13 @@ export function designProduct(d: ConcertDesignItem | ShowDesignItem): PreviewPro
   const both = d.kinds.length > 1;
   const colors = designColors(d.id);
 
-  if (colors.length) {
+  if (d.id === 'retro') {
+    // 콘서트 레트로는 가로로 납작해서 한 칸에 세 색을 세로로 쌓고, 공연은 세로라 한 장씩
+    const concertOf = (c: TicketColor) => ({ ...sampleConcert(), id: `preview-retro-${c}`, design: 'retro' as ConcertDesign, color: c });
+    samples.push({ record: concertOf('burgundy'), more: [concertOf('charcoal'), concertOf('navy')], caption: '콘서트 · 버건디·먹색·남색' });
+    samples.push({ record: { ...sampleShow('play'), id: 'preview-retro-forest', design: 'retro', color: 'forest' }, caption: '숲 초록' });
+    samples.push({ record: { ...sampleShow('exhibition'), id: 'preview-retro-sepia', design: 'retro', color: 'sepia' }, caption: '세피아' });
+  } else if (colors.length) {
     // 색마다 한 장씩. 두 카테고리가 같이 쓰는 모양은 콘서트·공연을 번갈아 보여준다
     colors.forEach((c, i) => {
       const asShow = d.kinds.includes('show') && (!both || i % 2 === 1);

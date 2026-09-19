@@ -63,16 +63,18 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.samples}>
               {product.samples.map((s, i) => {
                 const l = layoutOf(s.record);
-                // 화면 높이의 절반 안에 들어오게 폭을 정한다
-                const w = Math.min(many ? screenW * 0.62 : screenW - 60, (maxH * l.width) / l.height);
+                const stack = [s.record, ...(s.more ?? [])];
+                // 화면 높이의 절반 안에 들어오게 폭을 정한다 (여러 장을 쌓으면 그만큼 나눠 쓴다)
+                const room = (maxH - (stack.length - 1) * 10) / stack.length;
+                const w = Math.min(many ? screenW * 0.62 : screenW - 60, (room * l.width) / l.height);
                 return (
                   <View key={i} style={styles.sample}>
                     <View style={styles.paper}>
-                      {s.side === 'back' && s.record.kind === 'fourcut' ? (
-                        <FourcutBack record={s.record} width={w} />
-                      ) : (
-                        <RecordPaper record={s.record} width={w} />
-                      )}
+                      {stack.map((record, j) => (
+                        <View key={j} style={j > 0 && { marginTop: 10 }}>
+                          {s.side === 'back' && record.kind === 'fourcut' ? <FourcutBack record={record} width={w} /> : <RecordPaper record={record} width={w} />}
+                        </View>
+                      ))}
                     </View>
                     <Text style={styles.caption}>{s.caption}</Text>
                   </View>

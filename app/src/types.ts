@@ -218,7 +218,7 @@ export type BandColor = 'lime' | 'pink' | 'sky' | 'orange';
 export type PhotoColor = 'pink' | 'sky' | 'butter' | 'mint';
 
 /** 홀로그램 기록표 색 */
-export type HoloColor = 'blue' | 'violet' | 'teal' | 'wine';
+export type HoloColor = 'blue' | 'violet' | 'teal' | 'wine' | 'black';
 
 /** 레트로 티켓 색 (크림 종이에 얹는 조각·포인트 색) */
 export type RetroColor = 'navy' | 'forest' | 'burgundy' | 'sepia' | 'charcoal';

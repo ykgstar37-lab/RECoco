@@ -1,4 +1,4 @@
-// 공연·전시 영수증 테마 "홀로그램 기록표": 진한 파란 종이에 칸을 나눈 기록표 (Title / Cast / Rating / Review)
+// 공연·전시 영수증 테마 "홀로그램": 진한 파란 종이에 칸을 나눈 기록표 (Title / Cast / Rating / Review)
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
@@ -13,11 +13,12 @@ const PW = 560;
 const PAD = 16;
 const M = 34;
 /** 기록표 종이 색 (바탕 · 그림자 · 위쪽 홀로그램 띠 · 의자 아이콘) */
-export const HOLO_COLORS: Record<HoloColor, { name: string; base: string; deep: string; gold: string; holo: string[] }> = {
-  blue: { name: '파랑', base: '#17359b', deep: '#0f2470', gold: '#ffd84d', holo: ['#8be9f7', '#ffe27a', '#f7a8d8', '#9bf5c0'] },
-  violet: { name: '보라', base: '#4b2a9b', deep: '#331a70', gold: '#ffd84d', holo: ['#c9a8f7', '#ffe27a', '#f7a8d8', '#a8f0f7'] },
-  teal: { name: '청록', base: '#0e6b6b', deep: '#074f4f', gold: '#ffe08a', holo: ['#8be9f7', '#ffe27a', '#9bf5c0', '#a8d8f7'] },
-  wine: { name: '와인', base: '#7a1f45', deep: '#571030', gold: '#ffd07a', holo: ['#f7a8d8', '#ffe27a', '#f7c8a8', '#e9a8f7'] },
+export const HOLO_COLORS: Record<HoloColor, { name: string; base: string; deep: string; gold: string; holo: string[]; shine: number }> = {
+  blue: { name: '파랑', base: '#17359b', deep: '#0f2470', gold: '#ffd84d', holo: ['#8be9f7', '#ffe27a', '#f7a8d8', '#9bf5c0'], shine: 0.09 },
+  violet: { name: '보라', base: '#4b2a9b', deep: '#331a70', gold: '#ffd84d', holo: ['#c9a8f7', '#ffe27a', '#f7a8d8', '#a8f0f7'], shine: 0.09 },
+  teal: { name: '청록', base: '#0e6b6b', deep: '#074f4f', gold: '#ffe08a', holo: ['#8be9f7', '#ffe27a', '#9bf5c0', '#a8d8f7'], shine: 0.09 },
+  wine: { name: '와인', base: '#7a1f45', deep: '#571030', gold: '#ffd07a', holo: ['#f7a8d8', '#ffe27a', '#f7c8a8', '#e9a8f7'], shine: 0.09 },
+  black: { name: '검정', base: '#17171c', deep: '#0b0b0e', gold: '#ffd84d', holo: ['#8be9f7', '#f7a8d8', '#ffe27a', '#9bf5c0'], shine: 0.2 },
 };
 
 export const HOLO_COLOR_IDS = Object.keys(HOLO_COLORS) as HoloColor[];
@@ -87,7 +88,7 @@ function SeatIcon({ x, y, s, on, gold }: { x: number; y: number; s: number; on: 
 export function ShowHolo({ record: r, width, connected = false }: { record: ShowRecord; width: number; connected?: boolean }) {
   const L = layoutShowHolo(r);
   const c = holoColorOf(r);
-  const { base: BLUE, deep: BLUE_DEEP, gold: GOLD, holo: HOLO } = c;
+  const { base: BLUE, deep: BLUE_DEEP, gold: GOLD, holo: HOLO, shine: SHINE } = c;
   const { t, title, titleTop, titleBoxH, photoTop, photoH, rowsTop, rows, rowsBot, ratingBot, memo, reviewH, height } = computeLayout(r);
   const shape = toothPath(height, connected);
   const id = `holo-${r.id}`;
@@ -115,7 +116,7 @@ export function ShowHolo({ record: r, width, connected = false }: { record: Show
         {/* 홀로그램: 비스듬한 색 띠 */}
         <G clipPath={`url(#${id}-card)`}>
           {HOLO.map((c, i) => (
-            <Path key={c} d={`M${-120 + i * 150},${height} L${120 + i * 150},0 L${190 + i * 150},0 L${-50 + i * 150},${height} Z`} fill={c} opacity={0.09} />
+            <Path key={c} d={`M${-120 + i * 150},${height} L${120 + i * 150},0 L${190 + i * 150},0 L${-50 + i * 150},${height} Z`} fill={c} opacity={SHINE} />
           ))}
           <Rect x={0} y={0} width={PW} height={10} fill={BLUE_DEEP} opacity={0.5} />
         </G>
