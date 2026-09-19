@@ -6,7 +6,7 @@ import { StickerArt } from '../components/Stickers';
 import { dotDateWithDay, seededRandom, won } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
-import { FoodRecord, FoodType } from '../types';
+import { FoodRecord, FoodType, HouseColor } from '../types';
 import { FOOD_TYPES } from './FoodOrder';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
@@ -25,13 +25,25 @@ const STAR = '#ffd166';
 const NOTE = '#fff1a8';
 const STONE = '#e3d3bc';
 
-// 가게 종류마다 지붕·차양 색과 창문 속 그림
-const ROOFS: Record<FoodType, { roof: string; deep: string; emoji: string }> = {
-  cafe: { roof: '#d9774f', deep: '#b95c38', emoji: '☕' },
-  meal: { roof: '#e0584a', deep: '#bd4034', emoji: '🍚' },
-  dessert: { roof: '#f29bb5', deep: '#d9738f', emoji: '🍰' },
-  bar: { roof: '#4f6fa8', deep: '#3a5687', emoji: '🍺' },
+// 지붕·차양·문 색. 가게 종류와 따로 고른다 (안 고른 기록은 id 로 정해진 색)
+export const HOUSE_COLORS: Record<HouseColor, { name: string; roof: string; deep: string }> = {
+  orange: { name: '주황', roof: '#d9774f', deep: '#b95c38' },
+  red: { name: '빨강', roof: '#e0584a', deep: '#bd4034' },
+  pink: { name: '분홍', roof: '#f29bb5', deep: '#d9738f' },
+  blue: { name: '파랑', roof: '#4f6fa8', deep: '#3a5687' },
+  green: { name: '초록', roof: '#5f9463', deep: '#44784b' },
 };
+
+export const HOUSE_COLOR_IDS = Object.keys(HOUSE_COLORS) as HouseColor[];
+
+export const randomHouseColor = () => HOUSE_COLOR_IDS[Math.floor(Math.random() * HOUSE_COLOR_IDS.length)];
+
+/** 색을 안 고른 기록(예전 기록)은 id 로 정해 열 때마다 바뀌지 않게 한다 */
+export const houseColorOf = (r: Pick<FoodRecord, 'id' | 'houseColor'>) =>
+  HOUSE_COLORS[r.houseColor ?? HOUSE_COLOR_IDS[Math.floor(seededRandom(`${r.id}-roof`)() * HOUSE_COLOR_IDS.length)]];
+
+// 사진이 없을 때 창문에 들어가는 그림 (이건 가게 종류를 따른다)
+const WINDOW_EMOJI: Record<FoodType, string> = { cafe: '☕', meal: '🍚', dessert: '🍰', bar: '🍺' };
 
 const DOOR_SIGN: Record<FoodRecord['revisit'], string> = { yes: '또 올래요!', maybe: '고민 중', no: '한 번이면 돼' };
 
@@ -96,7 +108,7 @@ function starPath(cx: number, cy: number, r: number) {
 export function FoodHouse({ record: r, width, connected = false }: { record: FoodRecord; width: number; connected?: boolean }) {
   const L = layoutFoodHouse(r);
   const { winH, winBot, boardTop, rows, totalH, boardBot, lowTop, note, noteH, ground, height } = computeLayout(r);
-  const color = ROOFS[r.type] ?? ROOFS.cafe;
+  const color = houseColorOf(r);
   const shape = housePath(height, connected);
   const id = `house-${r.id}`;
   const tilt = (seededRandom(`${r.id}-tilt`)() - 0.5) * 4;
@@ -165,7 +177,7 @@ export function FoodHouse({ record: r, width, connected = false }: { record: Foo
             <Rect x={WIN_X} y={WIN_TOP} width={WIN_W} height={winH} rx={6} fill="#dcecf2" />
             <Path d={`M${WIN_X},${WIN_TOP} H${WIN_X + 90} Q${WIN_X + 50},${WIN_TOP + winH * 0.45} ${WIN_X + 30},${WIN_TOP + winH} H${WIN_X} Z`} fill="#fff" opacity={0.85} />
             <Path d={`M${WIN_X + WIN_W},${WIN_TOP} H${WIN_X + WIN_W - 90} Q${WIN_X + WIN_W - 50},${WIN_TOP + winH * 0.45} ${WIN_X + WIN_W - 30},${WIN_TOP + winH} H${WIN_X + WIN_W} Z`} fill="#fff" opacity={0.85} />
-            <StickerArt emoji={color.emoji} x={300} y={WIN_TOP + winH / 2 + 6} size={130} rotate={-4} />
+            <StickerArt emoji={WINDOW_EMOJI[r.type] ?? WINDOW_EMOJI.cafe} x={300} y={WIN_TOP + winH / 2 + 6} size={130} rotate={-4} />
           </G>
         )}
         <Rect x={WIN_X - 30} y={winBot + 12} width={WIN_W + 60} height={20} rx={5} fill={TRIM} />

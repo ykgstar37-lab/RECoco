@@ -145,6 +145,9 @@ export type FoodType = 'cafe' | 'meal' | 'dessert' | 'bar';
 /** order: 초록 맛집 주문서, plain: 단색 주문서 (여기까지 무료) / house: 집 모양 */
 export type FoodDesign = 'order' | 'plain' | 'house';
 
+/** 집 모양의 지붕·차양 색 (가게 종류와 상관없이 고른다) */
+export type HouseColor = 'orange' | 'red' | 'pink' | 'blue' | 'green';
+
 export interface FoodMenu {
   name: string;
   stars: number; // 0~5
@@ -164,6 +167,7 @@ export interface FoodRecord extends BaseRecord {
   memo: string; // 한 줄 후기
   photo: Photo | null;
   design?: FoodDesign; // 없으면 주문서
+  houseColor?: HouseColor; // 집 모양 지붕 색 (고를 때 무작위로 정해준다)
 }
 
 export type ShowType = 'play' | 'exhibition';

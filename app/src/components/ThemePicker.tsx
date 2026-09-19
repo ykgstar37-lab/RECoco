@@ -18,8 +18,9 @@ import {
   themeUnlocked,
   useShop,
 } from '../lib/shop';
+import { HOUSE_COLORS, HOUSE_COLOR_IDS, randomHouseColor } from '../templates/FoodHouse';
 import { COLORS, FONTS } from '../theme';
-import { ConcertDesign, FoodDesign, PaperTheme, ShowDesign } from '../types';
+import { ConcertDesign, FoodDesign, HouseColor, PaperTheme, ShowDesign } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 종이 테마 견본 그림 (기본 / 흰 무지 / 모눈종이) */
@@ -93,8 +94,8 @@ export function ThemePicker({ label, base, value, onChange }: Props) {
   );
 }
 
-/** 카페·맛집 모양 견본 (주문서 / 집) */
-export function FoodDesignSwatch({ design, size = 44 }: { design: FoodDesign | undefined; size?: number }) {
+/** 카페·맛집 모양 견본 (주문서 / 집). 집은 고른 지붕 색으로 그린다 */
+export function FoodDesignSwatch({ design, size = 44, color = 'orange' }: { design: FoodDesign | undefined; size?: number; color?: HouseColor }) {
   if (design === 'plain')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -109,13 +110,14 @@ export function FoodDesignSwatch({ design, size = 44 }: { design: FoodDesign | u
       </Svg>
     );
   if (design === 'house') {
+    const c = HOUSE_COLORS[color] ?? HOUSE_COLORS.orange;
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
         <Rect x={6} y={18} width={28} height={33} rx={1.5} fill="#fbf3e4" stroke={COLORS.line} strokeWidth={1} />
-        <Path d="M2,20 L20,4 L38,20 Z" fill="#d9774f" stroke="#d9774f" strokeWidth={2} strokeLinejoin="round" />
+        <Path d="M2,20 L20,4 L38,20 Z" fill={c.roof} stroke={c.roof} strokeWidth={2} strokeLinejoin="round" />
         <Rect x={10} y={23} width={20} height={5} rx={1} fill="#fff" stroke="#6b4a3a" strokeWidth={1} />
         <Rect x={10} y={31} width={20} height={9} rx={1} fill="#dcecf2" stroke="#6b4a3a" strokeWidth={1.4} />
-        <Path d="M24,51 V45 Q24,42 27,42 Q30,42 30,45 V51 Z" fill="#b95c38" />
+        <Path d="M24,51 V45 Q24,42 27,42 Q30,42 30,45 V51 Z" fill={c.deep} />
         <Circle cx={20} cy={13} r={2.4} fill="#fbf3e4" />
       </Svg>
     );
@@ -135,13 +137,25 @@ export function FoodDesignSwatch({ design, size = 44 }: { design: FoodDesign | u
 }
 
 /** 카페·맛집 폼의 영수증 모양 고르기: 기본 주문서 + 산 모양 테마, 안 산 건 미리보기에서 사기 */
-export function FoodDesignPicker({ value, onChange }: { value: FoodDesign | undefined; onChange: (design: FoodDesign) => void }) {
+export function FoodDesignPicker({
+  value,
+  color,
+  onChange,
+}: {
+  value: FoodDesign | undefined;
+  color: HouseColor | undefined;
+  /** 집 모양을 처음 고르면 지붕 색도 무작위로 하나 정해서 같이 준다 */
+  onChange: (design: FoodDesign, color?: HouseColor) => void;
+}) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: FoodDesign; product: PreviewProduct } | null>(null);
   const options: { id: FoodDesign; name: string; price: number }[] = [...FREE_FOOD_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOOD_DESIGNS];
+  const design = value ?? 'order';
+
+  const pick = (id: FoodDesign) => onChange(id, id === 'house' && !color ? randomHouseColor() : undefined);
 
   const choose = (id: FoodDesign) => {
-    if (foodDesignUnlocked(id, owned)) return onChange(id);
+    if (foodDesignUnlocked(id, owned)) return pick(id);
     setPreview({ id, product: foodDesignProductById(id as Exclude<FoodDesign, 'order'>) });
   };
 
@@ -150,12 +164,12 @@ export function FoodDesignPicker({ value, onChange }: { value: FoodDesign | unde
       <Text style={styles.label}>영수증 모양</Text>
       <View style={styles.row}>
         {options.map((o) => {
-          const on = (value ?? 'order') === o.id;
+          const on = design === o.id;
           const locked = !foodDesignUnlocked(o.id, owned);
           return (
             <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
               <View style={locked && { opacity: 0.55 }}>
-                <FoodDesignSwatch design={o.id} />
+                <FoodDesignSwatch design={o.id} color={on ? color : undefined} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]}>
                 {locked ? '🔒 ' : ''}
@@ -166,11 +180,23 @@ export function FoodDesignPicker({ value, onChange }: { value: FoodDesign | unde
           );
         })}
       </View>
+
+      {/* 집 모양을 골랐을 때만: 지붕·차양 색 고르기 */}
+      {design === 'house' && (
+        <View style={styles.colors}>
+          {HOUSE_COLOR_IDS.map((c) => (
+            <Pressable key={c} onPress={() => onChange('house', c)} hitSlop={6} accessibilityLabel={`${HOUSE_COLORS[c].name} 지붕`} style={[styles.dot, color === c && styles.dotOn]}>
+              <View style={[styles.dotFill, { backgroundColor: HOUSE_COLORS[c].roof }]} />
+            </Pressable>
+          ))}
+        </View>
+      )}
+
       <ProductPreview
         product={preview?.product ?? null}
         onClose={() => setPreview(null)}
         onBought={() => {
-          if (preview) onChange(preview.id);
+          if (preview) pick(preview.id);
           setPreview(null);
         }}
       />
@@ -375,4 +401,8 @@ const styles = StyleSheet.create({
   optionOn: { borderColor: COLORS.orange, backgroundColor: COLORS.orangeSoft },
   name: { color: COLORS.ink, fontSize: 13, fontFamily: FONTS.sansBold },
   price: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: -2 },
+  colors: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginTop: 2 },
+  dot: { padding: 3, borderRadius: 999, borderWidth: 2, borderColor: 'transparent' },
+  dotOn: { borderColor: COLORS.orange },
+  dotFill: { width: 22, height: 22, borderRadius: 11, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
 });

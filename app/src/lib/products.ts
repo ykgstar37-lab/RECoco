@@ -1,6 +1,7 @@
 // 상점 미리보기에 보여줄 상품 정보: 이름·설명·가격·쓰는 곳 태그·예시 기록
 import { KIND_LABEL } from '../templates';
-import { ConcertDesign, RecoRecord, RecordKind, ShowDesign } from '../types';
+import { HOUSE_COLORS } from '../templates/FoodHouse';
+import { ConcertDesign, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign } from '../types';
 import { sampleConcert, sampleFood, sampleFourcut, sampleGift, sampleShow, sampleSpending } from './previewSamples';
 import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FoodDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
 
@@ -50,28 +51,77 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
     price: d.price,
     tags: [KIND_LABEL.food],
     requires: ['food'],
-    samples: [
-      { record: { ...sampleFood(), id: `preview-food-${d.id}`, design: d.id }, caption: '카페' },
-      {
-        record: {
-          ...sampleFood(),
-          id: `preview-food-${d.id}-bar`,
-          design: d.id,
-          type: 'bar',
-          place: '연남 작은 술집',
-          menus: [
-            { name: '하이볼', stars: 5 },
-            { name: '감자전', stars: 4 },
-          ],
-          total: 21000,
-          revisit: 'maybe',
-          memo: '',
-        },
-        caption: '술집',
-      },
-    ],
+    // 지붕 색이 여러 가지라는 걸 보여준다 (색은 가게 종류와 상관없이 고른다)
+    samples: HOUSE_SAMPLES.map(({ color, type, place, menus, total, revisit, memo }) => ({
+      record: { ...sampleFood(), id: `preview-food-${d.id}-${color}`, design: d.id, houseColor: color, type, place, menus, total, revisit, memo },
+      caption: `${HOUSE_COLORS[color].name} 지붕`,
+    })),
   };
 }
+
+/** 집 모양 미리보기: 색마다 다른 가게로 한 장씩 */
+const HOUSE_SAMPLES: (Pick<FoodRecord, 'type' | 'place' | 'menus' | 'total' | 'revisit' | 'memo'> & { color: HouseColor })[] = [
+  {
+    color: 'orange',
+    type: 'cafe',
+    place: '달밤커피',
+    menus: [
+      { name: '아이스 라떼', stars: 4 },
+      { name: '바스크 치즈케이크', stars: 5 },
+    ],
+    total: 12500,
+    revisit: 'yes',
+    memo: '치즈케이크 꾸덕해서 또 먹고 싶다. 창가 자리 명당!',
+  },
+  {
+    color: 'green',
+    type: 'meal',
+    place: '초록상회 국수',
+    menus: [
+      { name: '들기름 막국수', stars: 5 },
+      { name: '수육 한 접시', stars: 4 },
+    ],
+    total: 23000,
+    revisit: 'yes',
+    memo: '들기름 향이 진하다. 다음엔 비빔으로.',
+  },
+  {
+    color: 'blue',
+    type: 'bar',
+    place: '연남 작은 술집',
+    menus: [
+      { name: '하이볼', stars: 5 },
+      { name: '감자전', stars: 4 },
+    ],
+    total: 21000,
+    revisit: 'maybe',
+    memo: '',
+  },
+  {
+    color: 'pink',
+    type: 'dessert',
+    place: '설탕구름 디저트',
+    menus: [
+      { name: '딸기 생크림 케이크', stars: 5 },
+      { name: '얼그레이 밀크티', stars: 3 },
+    ],
+    total: 16800,
+    revisit: 'yes',
+    memo: '생크림이 안 느끼하다.',
+  },
+  {
+    color: 'red',
+    type: 'meal',
+    place: '골목 분식',
+    menus: [
+      { name: '즉석 떡볶이', stars: 5 },
+      { name: '튀김 모둠', stars: 4 },
+    ],
+    total: 14000,
+    revisit: 'yes',
+    memo: '',
+  },
+];
 
 export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignProduct(FOOD_DESIGNS.find((d) => d.id === id)!);
 

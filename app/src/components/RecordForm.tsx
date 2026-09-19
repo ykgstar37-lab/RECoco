@@ -1236,7 +1236,11 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   ))}
                 </View>
                 <Field label="한 줄 후기 (포스트잇에 적혀요)" value={food.memo} onChange={(v) => setFood({ ...food, memo: v })} placeholder="치즈케이크 꾸덕해서 또 먹고 싶다" multiline />
-                <FoodDesignPicker value={food.design} onChange={(design) => setFood((f) => ({ ...f, design }))} />
+                <FoodDesignPicker
+                  value={food.design}
+                  color={food.houseColor}
+                  onChange={(design, houseColor) => setFood((f) => ({ ...f, design, houseColor: houseColor ?? f.houseColor }))}
+                />
               </>
             )}
 

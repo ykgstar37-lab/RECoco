@@ -66,7 +66,7 @@ export const FREE_FOOD_DESIGNS: { id: FoodDesign; name: string }[] = [
 ];
 
 export const FOOD_DESIGNS: FoodDesignItem[] = [
-  { id: 'house', name: '집 모양', desc: '간판·창문 사진·칠판 메뉴가 있는 작은 가게 집', productId: 'recoco.theme.food-house', price: 1000 },
+  { id: 'house', name: '집 모양', desc: '간판·창문 사진·칠판 메뉴가 있는 작은 가게 집 · 지붕 색 5가지', productId: 'recoco.theme.food-house', price: 1000 },
 ];
 
 export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) =>
