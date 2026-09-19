@@ -17,12 +17,12 @@ const SUB = '#8d8f98';
 const LINE = '#e5e5e6';
 
 /** 종류마다 이름·포인트 색·큰 숫자로 뭘 보여줄지 */
-export const EXERCISE_TYPES: Record<ExerciseType, { label: string; accent: string; icon: string }> = {
-  run: { label: '러닝', accent: '#2f9e6a', icon: 'run' },
-  gym: { label: '헬스', accent: '#e06b3c', icon: 'gym' },
-  yoga: { label: '요가', accent: '#9b6ed6', icon: 'yoga' },
-  hike: { label: '등산', accent: '#3f7f4c', icon: 'hike' },
-  swim: { label: '수영', accent: '#2f7fc4', icon: 'swim' },
+export const EXERCISE_TYPES: Record<ExerciseType, { label: string; accent: string; card: string; deep: string }> = {
+  run: { label: '러닝', accent: '#2f9e6a', card: '#2f9e6a', deep: '#22794f' },
+  gym: { label: '헬스', accent: '#e06b3c', card: '#e06b3c', deep: '#b7502a' },
+  yoga: { label: '요가', accent: '#9b6ed6', card: '#9b6ed6', deep: '#7a51b0' },
+  hike: { label: '등산', accent: '#3f7f4c', card: '#3f7f4c', deep: '#2e6239' },
+  swim: { label: '수영', accent: '#2f7fc4', card: '#2f7fc4', deep: '#23639b' },
 };
 
 /** 거리를 쓰는 종류 (헬스·요가는 종목·시간만) */

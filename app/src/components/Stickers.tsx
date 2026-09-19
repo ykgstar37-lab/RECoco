@@ -138,23 +138,24 @@ function Shape({ emoji }: { emoji: string }) {
           <Path d="M17,41 H31" {...s} />
         </G>
       );
-    case '🏃':
-      // 운동화 (옆모습)
+    case '🏋':
+      // 아령
       return (
         <G>
-          <Path d="M7,33 V24 Q7,22 9,22 H16 L22,26 L33,28 Q40,29 41,33 V35 Q41,37 39,37 H9 Q7,37 7,35 Z" fill="#8fd6a8" {...s} />
-          <Path d="M7,33 H41" {...s} fill="none" />
-          <Path d="M16,22 L19,26 M21,23 L24,27 M26,25 L28,28" stroke={LINE} strokeWidth={1.6} strokeLinecap="round" />
-          <Path d="M12,17 L16,22 M17,15 L20,20" stroke="#5aa87a" strokeWidth={2.4} strokeLinecap="round" />
+          <Path d="M17,24 H31" stroke={LINE} strokeWidth={5.5} strokeLinecap="round" />
+          <Path d="M13,12 H17 Q20,12 20,15 V33 Q20,36 17,36 H13 Q10,36 10,33 V15 Q10,12 13,12 Z" fill="#8fd6a8" {...s} />
+          <Path d="M31,12 H35 Q38,12 38,15 V33 Q38,36 35,36 H31 Q28,36 28,33 V15 Q28,12 31,12 Z" fill="#8fd6a8" {...s} />
+          <Path d="M6,17 H7 Q10,17 10,20 V28 Q10,31 7,31 H6 Q3,31 3,28 V20 Q3,17 6,17 Z" fill="#5aa87a" {...s} />
+          <Path d="M41,17 H42 Q45,17 45,20 V28 Q45,31 42,31 H41 Q38,31 38,28 V20 Q38,17 41,17 Z" fill="#5aa87a" {...s} />
         </G>
       );
     case '🎧':
       // 헤드폰
       return (
         <G>
-          <Path d="M11,29 V23 A13,13 0 0 1 37,23 V29" {...s} fill="none" />
-          <Path d="M8,29 H15 V40 H8 Q6,40 6,38 V31 Q6,29 8,29 Z" fill="#b9c8ff" {...s} />
-          <Path d="M40,29 H33 V40 H40 Q42,40 42,38 V31 Q42,29 40,29 Z" fill="#b9c8ff" {...s} />
+          <Path d="M9,31 V23 A15,15 0 0 1 39,23 V31" {...s} fill="none" />
+          <Path d="M6,29 H15 V42 H6 Q3,42 3,39 V32 Q3,29 6,29 Z" fill="#b9c8ff" {...s} />
+          <Path d="M42,29 H33 V42 H42 Q45,42 45,39 V32 Q45,29 42,29 Z" fill="#b9c8ff" {...s} />
         </G>
       );
     default:

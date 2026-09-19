@@ -1,4 +1,4 @@
-// 운동 (기록 카드): 진한 색 카드에 큰 숫자를 박은 스포츠 기록 카드
+// 운동 (기록 카드): 종류 색으로 꽉 채운 카드에 큰 숫자를 박은 스포츠 기록 카드
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
@@ -12,9 +12,8 @@ import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 const PW = 560;
 const PAD = 16;
 const M = 40;
-const DARK = '#1b1d22';
-const DIM = '#9a9ca6';
-const LINE = '#33363f';
+const PALE = 'rgba(255,255,255,0.72)'; // 카드 위 옅은 글씨
+const FAINT = 'rgba(255,255,255,0.3)'; // 칸 나누는 선
 
 const STAT = 96; // 큰 숫자 칸 높이
 const MOVE_ROW = 46;
@@ -34,7 +33,7 @@ function computeLayout(r: ExerciseRecord) {
   const statTop = 238;
   const photoTop = statTop + STAT + 30;
   const moves = r.type === 'gym' ? r.moves.filter((m) => m.name.trim()).slice(0, 8) : [];
-  const movesTop = photoTop + (photoH ? photoH + 30 : 0);
+  const movesTop = photoH ? photoTop + photoH + 30 : statTop + STAT + 26;
   const movesBot = movesTop + (moves.length ? moves.length * MOVE_ROW + 16 : 0);
   const memo = r.memo.trim() ? fitLines(r.memo.trim(), PW - M * 2, 26, 20, 3, 'hand') : null;
   const memoTop = movesBot + 34;
@@ -68,19 +67,19 @@ export function ExerciseCard({ record: r, width, connected = false }: { record: 
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={10} />
           </ClipPath>
         </Defs>
-        <Path d={shape} fill={DARK} />
+        <Path d={shape} fill={t.card} />
 
         {/* 위쪽 색 띠 + 종류 */}
         <G clipPath={`url(#${id}-card)`}>
-          <Rect x={0} y={0} width={PW} height={6} fill={t.accent} />
-          <Path d={`M${PW - 190},0 L${PW},0 L${PW},150 Z`} fill={t.accent} opacity={0.14} />
+          <Rect x={0} y={0} width={PW} height={6} fill={t.deep} />
+          <Path d={`M${PW - 190},0 L${PW},0 L${PW},150 Z`} fill="#fff" opacity={0.08} />
         </G>
-        <ExerciseIcon type={r.type} x={M} y={54} size={30} color={t.accent} />
+        <ExerciseIcon type={r.type} x={M} y={54} size={30} color="#fff" />
         <T f="sansHeavy" x={M + 44} y={78} fontSize={28} children={t.label} />
-        <T f="monoBold" x={PW - M} y={78} fontSize={13} letterSpacing={3} fill={DIM} textAnchor="end" children={dotDateWithDay(r.date).replace(/\(.\)/, '')} />
-        <T f="sansBold" x={M} y={130} fontSize={place.size} fill={DIM} children={place.text} />
-        <Line x1={M} y1={166} x2={PW - M} y2={166} stroke={LINE} strokeWidth={2} />
-        <T f="monoBold" x={M} y={202} fontSize={13} letterSpacing={4} fill={t.accent} children="TODAY'S RECORD" />
+        <T f="monoBold" x={PW - M} y={78} fontSize={13} letterSpacing={3} fill={PALE} textAnchor="end" children={dotDateWithDay(r.date).replace(/\(.\)/, '')} />
+        <T f="sansBold" x={M} y={130} fontSize={place.size} fill={PALE} children={place.text} />
+        <Line x1={M} y1={166} x2={PW - M} y2={166} stroke={FAINT} strokeWidth={2} />
+        <T f="monoBold" x={M} y={202} fontSize={13} letterSpacing={4} fill={PALE} children="TODAY'S RECORD" />
 
         {/* 큰 숫자 세 칸 */}
         {stats.map(([k, v], i) => {
@@ -88,9 +87,9 @@ export function ExerciseCard({ record: r, width, connected = false }: { record: 
           const value = fitLine(v, (PW - M * 2) / 3 - 14, 34, 18, 'sansHeavy');
           return (
             <G key={k}>
-              <T f="mono" x={x} y={statTop + 18} fontSize={12} letterSpacing={2} fill={DIM} children={k} />
+              <T f="mono" x={x} y={statTop + 18} fontSize={12} letterSpacing={2} fill={PALE} children={k} />
               <T f="sansHeavy" x={x} y={statTop + 60} fontSize={value.size} children={value.text} />
-              {i > 0 && <Line x1={x - 16} y1={statTop - 2} x2={x - 16} y2={statTop + 72} stroke={LINE} strokeWidth={1.5} />}
+              {i > 0 && <Line x1={x - 16} y1={statTop - 2} x2={x - 16} y2={statTop + 72} stroke={FAINT} strokeWidth={1.5} />}
             </G>
           );
         })}
@@ -99,7 +98,7 @@ export function ExerciseCard({ record: r, width, connected = false }: { record: 
         {!!photoH && (
           <G>
             <Image href={{ uri: r.photo!.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-photo)`} />
-            <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={10} fill="none" stroke={LINE} strokeWidth={2} />
+            <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={10} fill="none" stroke={FAINT} strokeWidth={2} />
           </G>
         )}
 
@@ -110,19 +109,19 @@ export function ExerciseCard({ record: r, width, connected = false }: { record: 
           const detail = [m.weight > 0 && `${m.weight}kg`, m.reps > 0 && `${m.reps}회`, m.sets > 0 && `${m.sets}세트`].filter(Boolean).join(' · ');
           return (
             <G key={i}>
-              <Rect x={M} y={y + 14} width={6} height={6} rx={3} fill={t.accent} />
+              <Rect x={M} y={y + 14} width={6} height={6} rx={3} fill="#fff" />
               <T f="sansBold" x={M + 20} y={y + 24} fontSize={name.size} children={name.text} />
-              <T f="mono" x={PW - M} y={y + 24} fontSize={15} fill={DIM} textAnchor="end" children={detail} />
+              <T f="mono" x={PW - M} y={y + 24} fontSize={15} fill={PALE} textAnchor="end" children={detail} />
             </G>
           );
         })}
-        {!!moves.length && <Line x1={M} y1={movesBot} x2={PW - M} y2={movesBot} stroke={LINE} strokeWidth={1.5} />}
+        {!!moves.length && <Line x1={M} y1={movesBot} x2={PW - M} y2={movesBot} stroke={FAINT} strokeWidth={1.5} />}
 
         {/* 한 줄 */}
         {memo?.lines.map((line, i) => (
-          <T key={i} f="hand" x={M} y={memoTop + 18 + i * 36} fontSize={memo.size} fill="#e7e8ec" children={line} />
+          <T key={i} f="hand" x={M} y={memoTop + 18 + i * 36} fontSize={memo.size} fill="#fff" children={line} />
         ))}
-        <T f="mono" x={PW / 2} y={height - 34} fontSize={12} letterSpacing={4} fill={DIM} textAnchor="middle" children={`${BRAND.ko} · KEEP GOING`} />
+        <T f="mono" x={PW / 2} y={height - 34} fontSize={12} letterSpacing={4} fill={PALE} textAnchor="middle" children={`${BRAND.ko} · KEEP GOING`} />
 
         <PaperOverlay id={id} d={shape} width={PW} height={height} wrinkle="none" surface="grain" />
       </G>

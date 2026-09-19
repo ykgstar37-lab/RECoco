@@ -537,14 +537,13 @@ export function ExerciseDesignSwatch({ design, type = 'run', size = 44 }: { desi
   if (design === 'card')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
-        <Rect x={2} y={2} width={36} height={48} rx={5} fill="#1b1d22" />
-        <Rect x={2} y={2} width={36} height={3} rx={1.5} fill={accent} />
+        <Rect x={2} y={2} width={36} height={48} rx={5} fill={accent} />
         <Rect x={7} y={10} width={14} height={4} rx={2} fill="#fff" />
-        <Line x1={7} y1={19} x2={33} y2={19} stroke="#33363f" strokeWidth={1.2} />
+        <Line x1={7} y1={19} x2={33} y2={19} stroke="#fff" strokeWidth={1.2} opacity={0.4} />
         {[8, 18, 28].map((x) => (
-          <Rect key={x} x={x} y={25} width={6} height={7} rx={1} fill="#fff" opacity={0.85} />
+          <Rect key={x} x={x} y={25} width={6} height={7} rx={1} fill="#fff" opacity={0.9} />
         ))}
-        <Rect x={7} y={40} width={18} height={3} rx={1.5} fill={accent} opacity={0.8} />
+        <Rect x={7} y={40} width={18} height={3} rx={1.5} fill="#fff" opacity={0.7} />
       </Svg>
     );
   return (

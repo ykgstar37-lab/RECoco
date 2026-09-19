@@ -152,7 +152,7 @@ export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: s
   food: { name: '카페·맛집', desc: '메뉴마다 별점을 매기는 주문서 · 인쇄 색 4가지', icon: '☕', productId: 'recoco.category.food', price: 1500 },
   show: { name: '공연·전시', desc: '뮤지컬·연극·전시 · 흰 무지 티켓 · 포스터 입장권', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
   concert: { name: '콘서트', desc: '밤하늘 티켓 · 흰 무지 티켓', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
-  exercise: { name: '운동', desc: '러닝·헬스·요가·등산·수영 · 기록표와 기록 카드', icon: '🏃', productId: 'recoco.category.exercise', price: 1500 },
+  exercise: { name: '운동', desc: '러닝·헬스·요가·등산·수영 · 기록표와 기록 카드', icon: '🏋', productId: 'recoco.category.exercise', price: 1500 },
   music: { name: '음악', desc: '앨범 감상과 플레이리스트 · 앨범 카드와 영수증', icon: '🎧', productId: 'recoco.category.music', price: 1500 },
 };
 
