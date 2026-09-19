@@ -1,6 +1,6 @@
 // 운동 (기록표): 흰 영수증에 큰 기록 숫자 + 종류별 칸 (러닝은 거리·페이스, 헬스는 종목별 세트)
 import type { ComponentProps } from 'react';
-import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
@@ -34,51 +34,71 @@ const MOVE_ROW = 50;
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
 
-/** 종류 그림 (한 획으로 단순하게) */
+/**
+ * 종류 그림. 24×24 칸 안에서 위아래·좌우 가운데에 오도록 그린다
+ * (x, y 는 칸의 왼쪽 위, size 는 한 변)
+ */
 export function ExerciseIcon({ type, x, y, size, color }: { type: ExerciseType; x: number; y: number; size: number; color: string }) {
   const s = size / 24;
   const at = (dx: number, dy: number) => `${(x + dx * s).toFixed(1)},${(y + dy * s).toFixed(1)}`;
-  const line = (d: string) => <Path d={d} stroke={color} strokeWidth={2.2 * s} fill="none" strokeLinecap="round" strokeLinejoin="round" />;
+  const line = (d: string, w = 2.2) => <Path d={d} stroke={color} strokeWidth={w * s} fill="none" strokeLinecap="round" strokeLinejoin="round" />;
+  const dot = (dx: number, dy: number, r: number) => <Circle cx={x + dx * s} cy={y + dy * s} r={r * s} fill={color} />;
+
   if (type === 'gym')
+    // 아령: 봉 + 안쪽 원판 + 바깥 원판
     return (
       <G>
-        {line(`M${at(2, 12)} L${at(22, 12)}`)}
-        {line(`M${at(5, 8)} L${at(5, 16)} M${at(19, 8)} L${at(19, 16)}`)}
-        {line(`M${at(8, 6)} L${at(8, 18)} M${at(16, 6)} L${at(16, 18)}`)}
+        {line(`M${at(8, 12)} L${at(16, 12)}`, 2.4)}
+        {line(`M${at(6.5, 6)} L${at(6.5, 18)}`, 3.2)}
+        {line(`M${at(17.5, 6)} L${at(17.5, 18)}`, 3.2)}
+        {line(`M${at(3.5, 9)} L${at(3.5, 15)}`, 2.6)}
+        {line(`M${at(20.5, 9)} L${at(20.5, 15)}`, 2.6)}
       </G>
     );
+
   if (type === 'yoga')
+    // 가부좌: 머리 + 아래로 벌린 팔 + 포갠 다리
     return (
       <G>
-        {line(`M${at(12, 3)} m-2.4,0 a2.4,2.4 0 1 0 4.8,0 a2.4,2.4 0 1 0 -4.8,0`)}
-        {line(`M${at(12, 8)} L${at(12, 14)}`)}
-        {line(`M${at(4, 10)} L${at(20, 10)}`)}
-        {line(`M${at(12, 14)} L${at(6, 20)} M${at(12, 14)} L${at(18, 20)}`)}
+        {dot(12, 5.7, 2.6)}
+        {line(`M${at(12, 9.1)} L${at(12, 14.4)}`)}
+        {line(`M${at(12, 11.7)} L${at(5.5, 18.4)}`)}
+        {line(`M${at(12, 11.7)} L${at(18.5, 18.4)}`)}
+        {line(`M${at(4.5, 20.9)} L${at(12, 15.4)} L${at(19.5, 20.9)} Z`)}
       </G>
     );
+
   if (type === 'hike')
+    // 산 두 봉우리
     return (
       <G>
-        {line(`M${at(2, 20)} L${at(10, 7)} L${at(15, 14)} L${at(18, 10)} L${at(22, 20)} Z`)}
-        {line(`M${at(8, 11)} L${at(12, 11)}`)}
+        {line(`M${at(2.5, 18.8)} L${at(9, 5.3)} L${at(13.5, 12.3)} L${at(16, 8.8)} L${at(21.5, 18.8)} Z`)}
+        {line(`M${at(7, 9.8)} L${at(11, 9.8)}`, 1.8)}
       </G>
     );
+
   if (type === 'swim')
+    // 헤엄치는 사람 + 물결
     return (
       <G>
-        {line(`M${at(2, 16)} q3,-3 6,0 t6,0 t6,0`)}
-        {line(`M${at(2, 21)} q3,-3 6,0 t6,0 t6,0`)}
-        {line(`M${at(17, 6)} m-2,0 a2,2 0 1 0 4,0 a2,2 0 1 0 -4,0`)}
-        {line(`M${at(4, 11)} L${at(13, 9)}`)}
+        {dot(14.5, 8.8, 2.5)}
+        {line(`M${at(12.5, 6.8)} L${at(18, 2.8)}`)}
+        {line(`M${at(3.5, 12.8)} L${at(12.5, 9.8)}`)}
+        {line(`M${at(12.5, 9.8)} L${at(19.5, 11.3)}`, 1.9)}
+        {line(`M${at(3, 16.3)} q${(3 * s).toFixed(1)},${(-2.6 * s).toFixed(1)} ${(6 * s).toFixed(1)},0 t${(6 * s).toFixed(1)},0 t${(6 * s).toFixed(1)},0`, 1.9)}
+        {line(`M${at(3, 20.3)} q${(3 * s).toFixed(1)},${(-2.6 * s).toFixed(1)} ${(6 * s).toFixed(1)},0 t${(6 * s).toFixed(1)},0 t${(6 * s).toFixed(1)},0`, 1.9)}
       </G>
     );
-  // 러닝
+
+  // 러닝: 앞으로 기울여 달리는 사람
   return (
     <G>
-      {line(`M${at(15, 4)} m-2.2,0 a2.2,2.2 0 1 0 4.4,0 a2.2,2.2 0 1 0 -4.4,0`)}
-      {line(`M${at(16, 9)} L${at(11, 13)} L${at(13, 18)} L${at(10, 22)}`)}
-      {line(`M${at(11, 13)} L${at(6, 11)}`)}
-      {line(`M${at(16, 9)} L${at(20, 13)}`)}
+      {dot(14.8, 5, 2.6)}
+      {line(`M${at(13.8, 8.5)} L${at(9.8, 13.5)}`)}
+      {line(`M${at(12.3, 10.5)} L${at(17.8, 12.5)}`)}
+      {line(`M${at(12.3, 10.5)} L${at(6.8, 9)}`)}
+      {line(`M${at(9.8, 13.5)} L${at(12.8, 17)} L${at(11.3, 21)}`)}
+      {line(`M${at(9.8, 13.5)} L${at(5.3, 16)} L${at(6.3, 20.5)}`)}
     </G>
   );
 }
