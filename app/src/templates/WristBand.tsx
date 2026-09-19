@@ -1,4 +1,4 @@
-// 영수증 테마 "스탠딩 팔찌": 공연장에서 채워주는 천 팔찌 (잠금 고리 + 아티스트 이름 반복 + 바코드)
+// 영수증 테마 "팔찌 티켓": 공연장에서 채워주는 천 팔찌 (잠금 고리 + 아티스트 이름 반복 + 바코드)
 // 콘서트와 공연·전시가 같이 쓴다 (낱말과 금액 줄만 카테고리에 맞춰 바뀐다)
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Line, Path, Rect, Text } from 'react-native-svg';
