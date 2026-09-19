@@ -97,7 +97,7 @@ export function ExerciseIcon({ type, x, y, size, color }: { type: ExerciseType; 
       {head(16.6, 3.9, 2.6)}
       {line(`M${at(15, 8.4)} L${at(10.8, 14)}`, 2.8)}
       {line(`M${at(14.6, 9.8)} L${at(17.8, 12.4)} L${at(20.4, 10)}`)}
-      {line(`M${at(14.2, 10.2)} L${at(9.6, 10.6)} L${at(8, 14)}`)}
+      {line(`M${at(14.2, 10)} L${at(8.6, 7.4)} L${at(6.2, 11.4)}`)}
       {line(`M${at(10.8, 14)} L${at(13.8, 16.6)} L${at(13.6, 21)}`)}
       {line(`M${at(10.8, 14)} L${at(7.2, 17.8)} L${at(3, 16.4)}`)}
     </G>
