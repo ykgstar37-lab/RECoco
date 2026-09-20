@@ -4,15 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, THEME_TAGS, categoryProduct, designProduct, foodDesignProduct, themeProduct } from '../lib/products';
-import { DESIGN_SHELF, FOOD_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { PreviewProduct, THEME_TAGS, categoryProduct, designProduct, foodDesignProduct, fourcutDesignProduct, themeProduct } from '../lib/products';
+import { DESIGN_SHELF, FOOD_DESIGNS, FOURCUT_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { ConcertDesign, RecordKind, ShowDesign } from '../types';
 import { CocoArt } from './Coco';
 import { CategoryTags, ProductPreview } from './ProductPreview';
 import { StickerArt } from './Stickers';
-import { ConcertDesignSwatch, FoodDesignSwatch, ShowDesignSwatch, ThemeSwatch } from './ThemePicker';
+import { ConcertDesignSwatch, FoodDesignSwatch, FourcutDesignSwatch, ShowDesignSwatch, ThemeSwatch } from './ThemePicker';
 
 interface Props {
   visible: boolean;
@@ -158,6 +158,30 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                     onPress={() => run(() => buy(d.productId))}
                     style={({ pressed }) => [styles.buyBtn, (have || !!need) && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
                     <Text style={[styles.buyText, (have || !!need) && styles.buyTextOff]}>{have ? '보유' : need ? '잠김' : `${won(d.price)}원`}</Text>
+                  </Pressable>
+                </Pressable>
+              );
+            })}
+            {FOURCUT_DESIGNS.map((d) => {
+              const have = owned.includes(d.productId);
+              return (
+                <Pressable key={d.id} onPress={() => setPreview(fourcutDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
+                  <FourcutDesignSwatch design={d.id} size={34} />
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.themeName} numberOfLines={1}>
+                        {d.name}
+                      </Text>
+                      <CategoryTags tags={[KIND_LABEL.fourcut]} tight />
+                    </View>
+                    <Text style={styles.themeDesc}>{d.desc}</Text>
+                    <Text style={styles.peek}>미리보기 ›</Text>
+                  </View>
+                  <Pressable
+                    disabled={have || busy}
+                    onPress={() => run(() => buy(d.productId))}
+                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
+                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(d.price)}원`}</Text>
                   </Pressable>
                 </Pressable>
               );
