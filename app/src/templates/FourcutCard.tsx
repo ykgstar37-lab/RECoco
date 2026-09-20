@@ -18,25 +18,25 @@ const SUB = '#6d6a75';
 
 /** 속성: 카드 배경을 채우는 색과 무늬 */
 const ELEMENTS = [
-  { key: 'fire', name: '불꽃', top: '#ffd08a', bot: '#e04a20', mark: '#b8320f', ink: '#7a2a0c' },
-  { key: 'water', name: '물결', top: '#bfe9ff', bot: '#3f9fe0', mark: '#2c7fc0', ink: '#14507f' },
-  { key: 'grass', name: '풀잎', top: '#e4f7c4', bot: '#6cc158', mark: '#4fa33f', ink: '#255c1d' },
-  { key: 'night', name: '한밤', top: '#9f92e8', bot: '#3b2f76', mark: '#2a2159', ink: '#241b52' },
+  { key: 'fire', name: '불꽃', top: '#ff9b3d', bot: '#c31a06', mark: '#ffd24a', ink: '#6d1c05' },
+  { key: 'sky', name: '하늘', top: '#d9f1ff', bot: '#58b6ef', mark: '#ffffff', ink: '#14507f' },
+  { key: 'grass', name: '풀잎', top: '#f0fbd8', bot: '#8fd45f', mark: '#b6e58a', ink: '#2f6b1f' },
+  { key: 'star', name: '별밤', top: '#ffe9a8', bot: '#f5b721', mark: '#fff6c8', ink: '#7a5406' },
 ];
 
 /** 등급 (합 100). 귀할수록 별이 많고 배경이 화려하다 */
 export const MONSTER_RANKS: Record<MonsterRank, { name: string; tag: string; weight: number; stars: number }> = {
-  c: { name: '흔함', tag: 'N', weight: 40, stars: 1 },
-  r: { name: '레어', tag: 'R', weight: 28, stars: 2 },
-  rr: { name: '더블레어', tag: 'RR', weight: 18, stars: 3 },
-  sr: { name: '슈퍼레어', tag: 'SR', weight: 9, stars: 4 },
-  ur: { name: '골든', tag: 'UR', weight: 4, stars: 5 },
-  hr: { name: '무지개', tag: 'HR', weight: 1, stars: 5 },
+  c: { name: '흔함', tag: 'C', weight: 40, stars: 1 },
+  r: { name: '보통', tag: 'B', weight: 28, stars: 2 },
+  rr: { name: '좋음', tag: 'A', weight: 18, stars: 3 },
+  sr: { name: '아주 좋음', tag: 'S', weight: 9, stars: 4 },
+  ur: { name: '황금', tag: 'SS', weight: 4, stars: 5 },
+  hr: { name: '무지개', tag: 'R', weight: 1, stars: 5 },
 };
 
 export const MONSTER_RANK_IDS = Object.keys(MONSTER_RANKS) as MonsterRank[];
 
-const GOLD = { key: 'gold', name: '황금', top: '#fff2b8', bot: '#d9a32c', mark: '#b7841a', ink: '#6f5210' };
+const GOLD = { key: 'gold', name: '황금', top: '#fff6cf', bot: '#e7b52f', mark: '#fffbe6', ink: '#6f5210' };
 const RAINBOW = ['#ffd3e2', '#ffe9c0', '#f6f7bb', '#c8f0cf', '#c3e6ff', '#dcd0ff'];
 
 const MOVES = ['웃음 폭발', '포즈 고민', '셔터 연타', '필름 감기', '우정 파워', '표정 관리 실패', '단체 점프', '눈 감기 신공', '브이 남발', '하이텐션'];
@@ -105,35 +105,114 @@ function starPath(cx: number, cy: number, r: number) {
   return `M${pts.join(' L')} Z`;
 }
 
-/** 속성마다 다른 배경 무늬 (불꽃은 넘실대는 불, 물결은 물살, 나머지는 별) */
-function Pattern({ kind, color, seed }: { kind: string; color: string; seed: string }) {
+/** 큰 별 하나 (테두리 있는 알록달록한 별) */
+function BigStar({ cx, cy, r, fill, edge, tilt }: { cx: number; cy: number; r: number; fill: string; edge: string; tilt: number }) {
+  return (
+    <G transform={`rotate(${tilt} ${cx} ${cy})`}>
+      <Path d={starPath(cx, cy, r)} fill={fill} stroke={edge} strokeWidth={r * 0.16} strokeLinejoin="round" />
+    </G>
+  );
+}
+
+/** 뭉게구름 하나 (동그라미를 겹쳐 그린다) */
+function Cloud({ x, y, w, fill, opacity }: { x: number; y: number; w: number; fill: string; opacity: number }) {
+  const h = w * 0.42;
+  return (
+    <G opacity={opacity}>
+      <Circle cx={x + w * 0.28} cy={y} r={h * 0.72} fill={fill} />
+      <Circle cx={x + w * 0.52} cy={y - h * 0.3} r={h * 0.95} fill={fill} />
+      <Circle cx={x + w * 0.76} cy={y} r={h * 0.66} fill={fill} />
+      <Rect x={x + w * 0.2} y={y - h * 0.1} width={w * 0.62} height={h * 0.8} rx={h * 0.4} fill={fill} />
+    </G>
+  );
+}
+
+const STAR_COLORS = ['#ffd54a', '#5bc8f5', '#ff9ec4', '#9be36a', '#b79bf0'];
+
+/** 속성마다 다른 배경 무늬 (불꽃 · 구름 · 별) */
+function Pattern({ kind, skin, seed }: { kind: string; skin: { mark: string; bot: string }; seed: string }) {
   const rnd = seededRandom(seed);
+
   if (kind === 'fire')
+    // 아래에서 솟는 불길 세 겹 + 떠다니는 불티
     return (
-      <G opacity={0.5}>
-        {Array.from({ length: 14 }, (_, i) => {
-          const x = 20 + rnd() * (PW - 40);
-          const y = 60 + rnd() * (PH - 100);
-          const h = 60 + rnd() * 90;
-          return <Path key={i} d={`M${x},${y} q${h * 0.38},${-h * 0.42} ${h * 0.18},${-h} q${h * 0.52},${h * 0.32} ${-h * 0.18},${h} Z`} fill={color} opacity={0.5} />;
+      <G>
+        {[
+          { h: 300, fill: '#e8450f', o: 0.85 },
+          { h: 220, fill: '#ff7a1f', o: 0.85 },
+          { h: 140, fill: skin.mark, o: 0.8 },
+        ].map((layer, li) => (
+          <G key={li} opacity={layer.o}>
+            {Array.from({ length: 7 }, (_, i) => {
+              const x = -30 + i * (PW / 6);
+              const h = layer.h * (0.7 + rnd() * 0.6);
+              return <Path key={i} d={`M${x},${PH} q${h * 0.22},${-h * 0.5} ${h * 0.1},${-h} q${h * 0.42},${h * 0.34} ${h * 0.52},${h} Z`} fill={layer.fill} />;
+            })}
+          </G>
+        ))}
+        {Array.from({ length: 12 }, (_, i) => {
+          const x = 24 + rnd() * (PW - 48);
+          const y = 60 + rnd() * (PH - 240);
+          const h = 34 + rnd() * 38;
+          return <Path key={`e${i}`} d={`M${x},${y} q${h * 0.24},${-h * 0.46} ${h * 0.1},${-h} q${h * 0.44},${h * 0.32} ${h * 0.5},${h} Z`} fill="#ffcf5a" opacity={0.5} />;
         })}
       </G>
     );
-  if (kind === 'water')
+
+  if (kind === 'sky')
+    // 뭉게구름 + 작은 별
     return (
-      <G opacity={0.4}>
-        {Array.from({ length: 9 }, (_, i) => (
-          <Path key={i} d={`M0,${70 + i * 82} q70,-26 140,0 t140,0 t140,0 t140,0`} stroke={color} strokeWidth={7} fill="none" strokeLinecap="round" opacity={0.45} />
+      <G>
+        {Array.from({ length: 7 }, (_, i) => (
+          <Cloud key={i} x={-40 + rnd() * (PW - 40)} y={70 + rnd() * (PH - 140)} w={140 + rnd() * 150} fill="#ffffff" opacity={0.62} />
+        ))}
+        {Array.from({ length: 16 }, (_, i) => (
+          <Path key={`s${i}`} d={starPath(20 + rnd() * (PW - 40), 40 + rnd() * (PH - 80), 7 + rnd() * 9)} fill="#ffffff" opacity={0.75} />
         ))}
       </G>
     );
+
+  if (kind === 'grass')
+    // 연한 별을 촘촘히 깐 무늬
+    return (
+      <G opacity={0.85}>
+        {Array.from({ length: 9 }, (_, row) =>
+          Array.from({ length: 7 }, (_, col) => (
+            <Path key={`${row}-${col}`} d={starPath(30 + col * 84 + (row % 2 ? 42 : 0), 52 + row * 84, 17)} fill={skin.mark} opacity={0.75} />
+          )),
+        )}
+      </G>
+    );
+
+  if (kind === 'gold' || kind === 'rainbow')
+    // 알록달록한 큰 별을 가장자리에 흩뿌린다
+    return (
+      <G>
+        {Array.from({ length: 16 }, (_, i) => {
+          // 글씨를 가리지 않게 능력치 바 위쪽 가장자리에만 뿌린다
+          const x = i % 2 === 0 ? 14 + rnd() * 110 : PW - 124 + rnd() * 110;
+          const y = 24 + rnd() * (BAR_Y - 70);
+          const r = 18 + rnd() * 26;
+          const fill = kind === 'gold' ? '#ffe57a' : STAR_COLORS[Math.floor(rnd() * STAR_COLORS.length)];
+          return <BigStar key={i} cx={x} cy={y} r={r} fill={fill} edge="#ffffff" tilt={rnd() * 60 - 30} />;
+        })}
+        {[0, 1, 2].map((i) => {
+          const x = i === 1 ? PW - 46 : 34 + i * 38;
+          const fill = kind === 'gold' ? '#ffe57a' : STAR_COLORS[Math.floor(rnd() * STAR_COLORS.length)];
+          return <BigStar key={`b${i}`} cx={x} cy={PH - 44} r={20 + rnd() * 14} fill={fill} edge="#ffffff" tilt={rnd() * 50 - 25} />;
+        })}
+        {Array.from({ length: 6 }, (_, i) => (
+          <Cloud key={`c${i}`} x={-30 + rnd() * (PW - 30)} y={70 + rnd() * (BAR_Y - 120)} w={130 + rnd() * 120} fill="#ffffff" opacity={0.45} />
+        ))}
+      </G>
+    );
+
+  // 별밤: 노란 배경에 흰 별
   return (
-    <G opacity={0.45}>
-      {Array.from({ length: 22 }, (_, i) => {
-        const x = 18 + rnd() * (PW - 36);
-        const y = 30 + rnd() * (PH - 60);
-        return <Path key={i} d={starPath(x, y, 10 + rnd() * 16)} fill={color} opacity={0.5} />;
-      })}
+    <G>
+      {Array.from({ length: 20 }, (_, i) => (
+        <Path key={i} d={starPath(20 + rnd() * (PW - 40), 36 + rnd() * (PH - 72), 12 + rnd() * 20)} fill={skin.mark} opacity={0.8} />
+      ))}
     </G>
   );
 }
@@ -175,7 +254,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
         {/* 배경: 속성 색 + 무늬 */}
         <Path d={shape} fill={`url(#${id}-bg)`} />
         <G clipPath={`url(#${id}-card)`}>
-          <Pattern kind={rainbow ? 'star' : skin.key} color={rainbow ? '#ffffff' : skin.mark} seed={`${r.id}-bg`} />
+          <Pattern kind={rainbow ? 'rainbow' : skin.key} skin={skin} seed={`${r.id}-bg`} />
         </G>
 
         {/* 왼쪽 위 배지 */}
