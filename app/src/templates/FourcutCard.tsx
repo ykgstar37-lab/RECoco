@@ -95,6 +95,8 @@ interface Spot {
   crop: { x: number; y: number; w: number; h: number };
   win: { x0: number; x1: number; topL: number; notchFrom: number; notchTo: number; topR: number; bottom: number };
   bar: { y: number; left: number; right: number };
+  /** 틀에 설명 칸이 이미 그려져 있으면 우리 판을 겹쳐 그리지 않는다 */
+  descPanel: boolean;
   foot: { x0: number; x1: number; y0: number; y1: number };
 }
 
@@ -103,36 +105,42 @@ const SPOT: Record<MonsterRank, Spot> = {
     crop: { x: 41, y: 34, w: 1004, h: 1381 },
     win: { x0: 118, x1: 972, topL: 210, notchFrom: 600, notchTo: 700, topR: 275, bottom: 905 },
     bar: { y: 1018, left: 375, right: 718 },
+    descPanel: true,
     foot: { x0: 688, x1: 1017, y0: 1352, y1: 1395 },
   },
   b: {
     crop: { x: 57, y: 57, w: 972, h: 1355 },
     win: { x0: 140, x1: 945, topL: 290, notchFrom: 610, notchTo: 690, topR: 335, bottom: 915 },
     bar: { y: 1022, left: 375, right: 715 },
+    descPanel: false,
     foot: { x0: 594, x1: 965, y0: 1337, y1: 1387 },
   },
   a: {
     crop: { x: 52, y: 0, w: 1027, h: 1448 },
     win: { x0: 120, x1: 985, topL: 172, notchFrom: 610, notchTo: 700, topR: 258, bottom: 888 },
     bar: { y: 1003, left: 390, right: 740 },
+    descPanel: false,
     foot: { x0: 426, x1: 713, y0: 1380, y1: 1420 },
   },
   s: {
     crop: { x: 24, y: 0, w: 1039, h: 1442 },
     win: { x0: 120, x1: 970, topL: 275, notchFrom: 600, notchTo: 700, topR: 288, bottom: 865 },
     bar: { y: 988, left: 370, right: 715 },
+    descPanel: false,
     foot: { x0: 690, x1: 1002, y0: 1331, y1: 1371 },
   },
   ss: {
     crop: { x: 0, y: 0, w: 1086, h: 1448 },
     win: { x0: 115, x1: 975, topL: 225, notchFrom: 610, notchTo: 700, topR: 305, bottom: 920 },
     bar: { y: 1025, left: 352, right: 730 },
+    descPanel: true,
     foot: { x0: 408, x1: 680, y0: 1365, y1: 1407 },
   },
   r: {
     crop: { x: 0, y: 0, w: 1086, h: 1448 },
     win: { x0: 110, x1: 1000, topL: 215, notchFrom: 600, notchTo: 700, topR: 300, bottom: 905 },
     bar: { y: 1022, left: 358, right: 730 },
+    descPanel: true,
     foot: { x0: 407, x1: 680, y0: 1359, y1: 1400 },
   },
 };
@@ -240,8 +248,12 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
         <T f="sansHeavy" x={X(bar.right)} y={Y(bar.y)} fontSize={22} textAnchor="middle" children={`${stats[1].name} / ${stats[1].value}`} />
 
         {/* 설명 칸: 틀에 있는 칸을 덮고 여기에 글을 쓴다 (모든 카드 같은 크기) */}
-        <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="#fff" opacity={0.72} />
-        <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="none" stroke="#fff" strokeWidth={2} opacity={0.85} />
+        {!spot.descPanel && (
+          <G>
+            <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="#fff" opacity={0.72} />
+            <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="none" stroke="#fff" strokeWidth={2} opacity={0.85} />
+          </G>
+        )}
         {desc.lines.map((line, i) => (
           <T key={i} x={PANEL.x + PANEL.pad} y={PANEL.y + 40 + i * PANEL.line} fontSize={desc.size} children={line} />
         ))}
