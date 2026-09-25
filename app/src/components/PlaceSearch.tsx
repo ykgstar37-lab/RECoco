@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PlaceHit, canSearchPlaces, searchPlaces } from '../lib/search';
-import { FOOD_TYPES } from '../templates/FoodOrder';
 import { COLORS, FONTS } from '../theme';
 
 interface Props {
@@ -10,13 +9,15 @@ interface Props {
   query: string;
   /** 위치 칸에 적은 동네 (있으면 그 동네에서 찾는다) */
   area: string;
+  /** 카페맛집이면 음식점·카페만, 소비면 가게 전부 */
+  onlyFood?: boolean;
   active: boolean;
   onPick: (hit: PlaceHit) => void;
   onDismiss: () => void;
 }
 
 /** 가게 이름 칸 아래에 뜨는 카카오 지도 검색 결과. 입력을 멈추면 잠깐 뒤에 찾는다 */
-export function PlaceSearch({ query, area, active, onPick, onDismiss }: Props) {
+export function PlaceSearch({ query, area, onlyFood, active, onPick, onDismiss }: Props) {
   const [hits, setHits] = useState<PlaceHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -33,7 +34,7 @@ export function PlaceSearch({ query, area, active, onPick, onDismiss }: Props) {
       setLoading(true);
       setFailed(false);
       try {
-        setHits(await searchPlaces(q, where, ctrl.signal));
+        setHits(await searchPlaces(q, where, { onlyFood, signal: ctrl.signal }));
       } catch {
         if (!ctrl.signal.aborted) setFailed(true);
       } finally {
@@ -44,7 +45,7 @@ export function PlaceSearch({ query, area, active, onPick, onDismiss }: Props) {
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [active, q, where]);
+  }, [active, q, where, onlyFood]);
 
   if (!canSearchPlaces || !active || !q) return null;
 
@@ -70,7 +71,7 @@ export function PlaceSearch({ query, area, active, onPick, onDismiss }: Props) {
               {h.address}
             </Text>
           </View>
-          <Text style={styles.type}>{FOOD_TYPES[h.type]}</Text>
+          {!!h.category && <Text style={styles.type}>{h.category}</Text>}
         </Pressable>
       ))}
       {hits.length > 0 && <Text style={styles.credit}>장소 정보 제공: 카카오맵</Text>}

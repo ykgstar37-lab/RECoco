@@ -783,7 +783,10 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   <Field
                     label={mode === 'day' ? '영수증 이름' : '어디서? (상호) *'}
                     value={spending.store}
-                    onChange={(v) => setSpending({ ...spending, store: v })}
+                    onChange={(v) => {
+                      setSpending({ ...spending, store: v });
+                      setSearching(true);
+                    }}
                     placeholder={mode === 'day' ? '비우면 9월 18일 소비' : '달밤커피'}
                   />
                   <Field label="종류" value={spending.category} onChange={(v) => setSpending({ ...spending, category: v })} placeholder="카페" />
@@ -792,9 +795,21 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   records={records}
                   kind="spending"
                   query={spending.store}
-                  onPick={(hit) =>
-                    setSpending((sp) => ({ ...sp, store: hit.name, category: sp.category.trim() || hit.category, address: sp.address.trim() || hit.area }))
-                  }
+                  onPick={(hit) => {
+                    setSearching(false);
+                    setSpending((sp) => ({ ...sp, store: hit.name, category: sp.category.trim() || hit.category, address: sp.address.trim() || hit.area }));
+                  }}
+                />
+                {/* 하루치 영수증은 상호가 아니라 이름을 적는 칸이라 검색하지 않는다 */}
+                <PlaceSearch
+                  query={spending.store}
+                  area={spending.address}
+                  active={searching && mode !== 'day'}
+                  onDismiss={() => setSearching(false)}
+                  onPick={(hit) => {
+                    setSearching(false);
+                    setSpending((sp) => ({ ...sp, store: hit.name, category: sp.category.trim() || hit.category, address: sp.address.trim() || hit.area }));
+                  }}
                 />
                 <Row>
                   <DateField label="날짜" value={spending.date} onChange={(v) => setSpending({ ...spending, date: v })} />
@@ -1245,6 +1260,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <PlaceSearch
                   query={food.place}
                   area={food.area}
+                  onlyFood
                   active={searching}
                   onDismiss={() => setSearching(false)}
                   onPick={(hit) => {

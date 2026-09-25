@@ -107,7 +107,9 @@ export interface PlaceHit {
   area: string;
   /** 도로명 주소 */
   address: string;
-  /** 카카오 분류로 짐작한 종류 */
+  /** 종류 한 마디 (예: 카페, 편의점, 서점) — 소비의 '종류' 칸에 넣는다 */
+  category: string;
+  /** 카페맛집 네 종류 중 하나 */
   type: FoodType;
 }
 
@@ -129,21 +131,46 @@ function dong(address: string): string {
   return found ?? parts.slice(1, 3).join(' ');
 }
 
-/** 카카오 지도(장소)에서 카페·맛집 찾기. area 를 주면 그 동네 안에서 찾는다 */
-export async function searchPlaces(query: string, area: string, signal?: AbortSignal): Promise<PlaceHit[]> {
+/**
+ * 분류의 마지막 말을 종류로 쓴다. 다만 끝에 붙은 브랜드 이름은 종류가 아니라서 뺀다.
+ * 브랜드는 가게 이름 앞에 오므로(올리브영 역삼점) 이름이 그 말로 시작하는지로 가른다
+ * — "가정,생활 > 드럭스토어 > 올리브영" → 드럭스토어, "… > 주유소" + 서현주유소 → 주유소
+ */
+function categoryWord(category: string, name: string): string {
+  const parts = category
+    .split('>')
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  while (parts.length > 1 && name.startsWith(parts[parts.length - 1])) parts.pop();
+  // 쉼표로 비슷한 말을 붙여둔 분류(꽃집,꽃배달)는 앞말만 쓴다
+  return (parts[parts.length - 1] ?? '').split(',')[0];
+}
+
+// 돈 쓸 일이 없는 곳(지하철역·학교·관공서·부동산·길)은 소비 검색에서도 뺀다
+const NOT_A_SHOP = /^(부동산|사회,공공기관|정치,행정)|지하철|기차역|도로시설|버스정류장|주거시설/;
+
+/**
+ * 카카오 지도에서 가게 찾기. area 를 주면 그 동네 안에서 찾는다.
+ * onlyFood 면 음식점·카페만 (카페맛집 기록), 아니면 돈 쓸 만한 곳 모두 (소비 기록)
+ */
+export async function searchPlaces(query: string, area: string, opts: { onlyFood?: boolean; signal?: AbortSignal } = {}): Promise<PlaceHit[]> {
   const q = encodeURIComponent(`${area} ${query}`.trim());
   const url = `https://dapi.kakao.com/v2/local/search/keyword.json?size=15&query=${q}`;
-  const res = await fetch(url, { headers: { Authorization: `KakaoAK ${KAKAO_KEY}` }, signal });
+  const res = await fetch(url, { headers: { Authorization: `KakaoAK ${KAKAO_KEY}` }, signal: opts.signal });
   if (!res.ok) throw new Error(`kakao-local ${res.status}`);
   const docs = (await res.json()).documents as any[];
   return docs
-    // FD6 음식점 · CE7 카페만 (병원·학원 같은 건 빼고)
-    .filter((d) => d.category_group_code === 'FD6' || d.category_group_code === 'CE7')
+    .filter((d) =>
+      // 음식점(FD6)·카페(CE7)는 그룹 코드가 있지만, 옷가게·서점 같은 곳은 코드가 없어서 분류 글자로 거른다
+      opts.onlyFood ? d.category_group_code === 'FD6' || d.category_group_code === 'CE7' : !NOT_A_SHOP.test(String(d.category_name)),
+    )
     .map((d) => ({
       id: d.id,
       name: d.place_name,
       area: dong(d.address_name || d.road_address_name || ''),
       address: d.road_address_name || d.address_name || '',
+      category: categoryWord(d.category_name || '', d.place_name || ''),
       type: foodType(d.category_name || ''),
     }));
 }
