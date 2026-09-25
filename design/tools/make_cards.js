@@ -18,6 +18,8 @@ const BAR = { h: 54, from: 152, fromW: 52, x: 205, w: 700 }; // 은색 바 속 �
 const WIDTH = 900; // 앱에 넣을 폭
 // 사진 창 안에 겹쳐 있는 RECoco 로고 (사진을 덮어쓴 뒤 다시 얹으려고 따로 오려낸다)
 const LOGO = { x: 360, y: 798, w: 368, h: 134 };
+// 설명 칸 안에 인쇄된 점선 (있는 카드만). 칸 안쪽 깨끗한 줄을 늘려 덮는다
+const DOTS = { C: { x: 160, w: 778, y: 1146, h: 92, src: 1128 } };
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -31,7 +33,13 @@ const LOGO = { x: 360, y: 798, w: 368, h: 134 };
     // 바: 글자 없는 깨끗한 은색 조각을 가로로 늘려 덮는다
     const barY = Math.round(BAR_MID[r] - BAR.h / 2);
     const barPatch = await sharp(file).extract({ left: BAR.from, top: barY, width: BAR.fromW, height: BAR.h }).resize(BAR.w, BAR.h, { fit: 'fill' }).toBuffer();
-    const cleaned = await base.composite([{ input: barPatch, left: BAR.x, top: barY }]).toBuffer();
+    const layers = [{ input: barPatch, left: BAR.x, top: barY }];
+    const dots = DOTS[r];
+    if (dots) {
+      const patch = await sharp(file).extract({ left: dots.x, top: dots.src, width: dots.w, height: 1 }).resize(dots.w, dots.h, { fit: 'fill' }).toBuffer();
+      layers.push({ input: patch, left: dots.x, top: dots.y });
+    }
+    const cleaned = await base.composite(layers).toBuffer();
 
     // 여백을 자르면 카드마다 크기가 달라져 글자 자리가 틀어진다 → 원본 판을 그대로 두고 줄이기만 한다
     await sharp(cleaned).resize(WIDTH).jpeg({ quality: 88, mozjpeg: true }).toFile(path.join(OUT, `${r}.jpg`));
