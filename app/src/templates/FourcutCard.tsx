@@ -14,6 +14,7 @@ import { PaperShadow, TemplateLayout } from './shared';
 const asset = (m: unknown) => (m && typeof m === 'object' && 'default' in (m as Record<string, unknown>) ? (m as { default: number }).default : (m as number));
 
 const PW = 600;
+const PH = 800; // 등급마다 틀 비율이 조금씩 달라도 카드 크기는 하나로 맞춘다
 const PAD = 14;
 const INK = '#1c1a22';
 
@@ -154,13 +155,11 @@ const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f
 /** 카드에 쓸 그림: 고른 사진이 있으면 첫 장, 없으면 QR로 받은 네컷 전체 */
 const artOf = (r: FourcutRecord) => r.photos.find(Boolean) ?? r.frameImage;
 
-export function layoutFourcutCard(r: FourcutRecord): TemplateLayout {
-  const { crop } = SPOT[monsterOf(r).rank];
-  const h = Math.round((PW * crop.h) / crop.w);
-  return { width: PW + PAD * 2, height: h + PAD * 2 + 14, foldAt: 0, displayRatio: 0.82, inset: { top: PAD, bottom: PAD + 14 } };
+export function layoutFourcutCard(_r: FourcutRecord): TemplateLayout {
+  return { width: PW + PAD * 2, height: PH + PAD * 2 + 14, foldAt: 0, displayRatio: 0.82, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
-const cardPath = (PH: number, connected: boolean) =>
+const cardPath = (connected: boolean) =>
   connected ? `M0,0 H${PW} V${PH} H0 Z` : `M16,0 H${PW - 16} Q${PW},0 ${PW},16 V${PH - 16} Q${PW},${PH} ${PW - 16},${PH} H16 Q0,${PH} 0,${PH - 16} V16 Q0,0 16,0 Z`;
 
 /** 사진이 들어갈 창 (오른쪽 위가 한 번 꺾인 모양). 원본 좌표를 받아 카드 좌표로 옮긴다 */
@@ -186,17 +185,18 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const { rank, info, stats, fortune } = monsterOf(r);
   const spot = SPOT[rank];
   const { crop, win, bar, foot } = spot;
-  const PH = Math.round((PW * crop.h) / crop.w);
-  // 원본 그림 좌표 → 카드 좌표
-  const k = PW / crop.w;
-  const X = (v: number) => Math.round((v - crop.x) * k * 10) / 10;
-  const Y = (v: number) => Math.round((v - crop.y) * k * 10) / 10;
-  const shape = cardPath(PH, connected);
+  // 원본 그림 좌표 → 카드 좌표 (가로·세로 배율이 조금 다르다)
+  const kx = PW / crop.w;
+  const ky = PH / crop.h;
+  const k = (kx + ky) / 2; // 글자·로고처럼 비율을 지켜야 하는 것
+  const X = (v: number) => Math.round((v - crop.x) * kx * 10) / 10;
+  const Y = (v: number) => Math.round((v - crop.y) * ky * 10) / 10;
+  const shape = cardPath(connected);
   const id = `cocomon-${r.id}`;
   const art = artOf(r);
   const title = fitLine(r.title.trim() || '이름 없는 하루', TITLE.w * k, 22, 14, 'sansHeavy');
   const desc = fitLines(`${fortune} ${r.diary.trim()}`.trim(), DESC.w * k, 17, 13, 2, 'sans');
-  const descLine = DESC.line * k;
+  const descLine = DESC.line * ky;
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
@@ -213,7 +213,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
 
         {/* 카드 틀 그림 (흰 여백을 뺀 자리가 카드 전체가 되게 늘린다) */}
         <G clipPath={`url(#${id}-card)`}>
-          <Image href={info.frame} x={X(0)} y={Y(0)} width={SHEET.w * k} height={SHEET.h * k} preserveAspectRatio="none" />
+          <Image href={info.frame} x={X(0)} y={Y(0)} width={SHEET.w * kx} height={SHEET.h * ky} preserveAspectRatio="none" />
         </G>
 
         {/* 사진 (틀 위에 얹어 창을 채운다) */}
@@ -230,7 +230,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
         )}
 
         {/* 사진에 가린 로고를 다시 얹는다 */}
-        {art && <Image href={info.logo} x={X(LOGO.x)} y={Y(LOGO.y)} width={LOGO.w * k} height={LOGO.h * k} preserveAspectRatio="xMidYMid meet" />}
+        {art && <Image href={info.logo} x={X(LOGO.x)} y={Y(LOGO.y)} width={LOGO.w * kx} height={LOGO.h * ky} preserveAspectRatio="xMidYMid meet" />}
 
         {/* 제목 (카드마다 무늬가 있어서 옅은 판을 깔고 쓴다) */}
         <Rect x={X(TITLE.cx) - title.text.length * title.size * 0.32 - 14} y={Y(TITLE.y) - title.size - 4} width={title.text.length * title.size * 0.64 + 28} height={title.size + 16} rx={(title.size + 16) / 2} fill="#fff" opacity={0.7} />
@@ -244,7 +244,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
         <Rect
           x={X(DESC.x) - 12}
           y={Y(spot.descY) - 26}
-          width={DESC.w * k + 24}
+          width={DESC.w * kx + 24}
           height={desc.lines.length * descLine + 16}
           rx={12}
           fill="#fff"
