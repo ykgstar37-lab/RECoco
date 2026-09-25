@@ -111,7 +111,7 @@ export type FourcutLayout = 'strip' | 'grid' | 'wide';
 export type FourcutDesign = 'strip' | 'card';
 
 /** 코코몬 카드 등급 — 뽑을 때 무작위로 정해진다 (고르는 게 아니다) */
-export type MonsterRank = 'c' | 'r' | 'rr' | 'sr' | 'ur' | 'hr';
+export type MonsterRank = 'c' | 'b' | 'a' | 's' | 'ss' | 'r';
 
 export interface FourcutRecord extends BaseRecord {
   kind: 'fourcut';

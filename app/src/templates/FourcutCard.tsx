@@ -1,45 +1,49 @@
 // 인생네컷 유료 테마 "코코몬 카드": 네컷 사진 한 장을 수집 카드로 뽑는다
-// 등급은 고르는 게 아니라 뽑을 때 무작위로 정해진다 (기록 id 로 정해져서 열 때마다 바뀌지 않는다)
-// 생김새: 속성 배경이 카드를 꽉 채우고, 은색 프레임 사진 · 은색 능력치 바 · 아래 설명 한 줄
+// 카드 틀은 design/tools/make_cards.js 가 만든 그림(assets/cards/*.webp)을 그대로 쓰고,
+// 사진과 글자만 그 위에 얹는다. 등급은 고를 수 없고 기록 id 로 정해진다 (열 때마다 바뀌지 않는다)
 import type { ComponentProps } from 'react';
-import Svg, { Circle, ClipPath, Defs, G, Image, LinearGradient, Path, Rect, Stop, Text } from 'react-native-svg';
+import Svg, { ClipPath, Defs, G, Image, Path, Rect, Text } from 'react-native-svg';
 
-import { dotDateWithDay, seededRandom } from '../lib/format';
+import { seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { FourcutRecord, MonsterRank } from '../types';
-import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { PaperShadow, TemplateLayout } from './shared';
 
-const PW = 560;
+/** require 한 그림. 미리보기 도구에서는 { default: 'data:...' } 로 와서 한 겹 벗긴다 */
+const asset = (m: unknown) => (m && typeof m === 'object' && 'default' in (m as Record<string, unknown>) ? (m as { default: number }).default : (m as number));
+
+const PW = 600;
 const PH = 800;
-const PAD = 16;
+const PAD = 14;
 const INK = '#1c1a22';
-const SUB = '#6d6a75';
 
-/** 속성: 카드 배경을 채우는 색과 무늬 */
-const ELEMENTS = [
-  { key: 'fire', name: '불꽃', top: '#ff9b3d', bot: '#c31a06', mark: '#ffd24a', ink: '#6d1c05' },
-  { key: 'sky', name: '하늘', top: '#d9f1ff', bot: '#58b6ef', mark: '#ffffff', ink: '#14507f' },
-  { key: 'grass', name: '풀잎', top: '#f0fbd8', bot: '#8fd45f', mark: '#b6e58a', ink: '#2f6b1f' },
-  { key: 'star', name: '별밤', top: '#ffe9a8', bot: '#f5b721', mark: '#fff6c8', ink: '#7a5406' },
-];
-
-/** 등급 (합 100). 귀할수록 별이 많고 배경이 화려하다 */
-export const MONSTER_RANKS: Record<MonsterRank, { name: string; tag: string; weight: number; stars: number }> = {
-  c: { name: '흔함', tag: 'C', weight: 40, stars: 1 },
-  r: { name: '보통', tag: 'B', weight: 28, stars: 2 },
-  rr: { name: '좋음', tag: 'A', weight: 18, stars: 3 },
-  sr: { name: '아주 좋음', tag: 'S', weight: 9, stars: 4 },
-  ur: { name: '황금', tag: 'SS', weight: 4, stars: 5 },
-  hr: { name: '무지개', tag: 'R', weight: 1, stars: 5 },
+/**
+ * 등급 (weight 합 100). 카드 틀 그림이 등급마다 하나씩 있다.
+ * foot 은 그림에 굳어 있는 "RECoco ★ 날짜" 를 덮을 자리 (카드마다 다르다)
+ */
+export const MONSTER_RANKS: Record<MonsterRank, { name: string; tag: string; weight: number; frame: number; logo: number; foot: { x: number; w: number; y: number } }> = {
+  c: { name: '흔함', tag: 'C', weight: 40, frame: asset(require('../../assets/cards/C.jpg')), logo: asset(require('../../assets/cards/logo-C.png')), foot: { x: 354, w: 224, y: 740 } },
+  b: { name: '보통', tag: 'B', weight: 28, frame: asset(require('../../assets/cards/B.jpg')), logo: asset(require('../../assets/cards/logo-B.png')), foot: { x: 311, w: 240, y: 734 } },
+  a: { name: '좋음', tag: 'A', weight: 18, frame: asset(require('../../assets/cards/A.jpg')), logo: asset(require('../../assets/cards/logo-A.png')), foot: { x: 216, w: 200, y: 754 } },
+  s: { name: '아주 좋음', tag: 'S', weight: 9, frame: asset(require('../../assets/cards/S.jpg')), logo: asset(require('../../assets/cards/logo-S.png')), foot: { x: 367, w: 206, y: 731 } },
+  ss: { name: '최고', tag: 'SS', weight: 4, frame: asset(require('../../assets/cards/SS.jpg')), logo: asset(require('../../assets/cards/logo-SS.png')), foot: { x: 216, w: 182, y: 751 } },
+  r: { name: '무지개', tag: 'R', weight: 1, frame: asset(require('../../assets/cards/R.jpg')), logo: asset(require('../../assets/cards/logo-R.png')), foot: { x: 213, w: 184, y: 748 } },
 };
 
 export const MONSTER_RANK_IDS = Object.keys(MONSTER_RANKS) as MonsterRank[];
 
-const GOLD = { key: 'gold', name: '황금', top: '#fff6cf', bot: '#e7b52f', mark: '#fffbe6', ink: '#6f5210' };
-const RAINBOW = ['#ffd3e2', '#ffe9c0', '#f6f7bb', '#c8f0cf', '#c3e6ff', '#dcd0ff'];
-
-const MOVES = ['웃음 폭발', '포즈 고민', '셔터 연타', '필름 감기', '우정 파워', '표정 관리 실패', '단체 점프', '눈 감기 신공', '브이 남발', '하이텐션'];
+/** 능력치 이름은 두 개씩 짝지어 뽑는다 */
+const STAT_PAIRS = [
+  ['행운', '기운'],
+  ['행운', '기분'],
+  ['행복', '추억'],
+  ['매력', '웃음'],
+  ['기운', '설렘'],
+  ['행복', '우정'],
+  ['웃음', '추억'],
+  ['매력', '기분'],
+];
 
 const FORTUNES = [
   '오늘 찍은 사진은 유난히 잘 나온다.',
@@ -51,7 +55,7 @@ const FORTUNES = [
   '누군가 이 사진을 보고 웃는다.',
 ];
 
-/** 기록 하나가 어떤 등급·속성으로 뽑혔는지 (id 로 정해진다) */
+/** 기록 하나가 어떤 등급으로 뽑혔는지 · 능력치와 운세 (id 로 정해진다) */
 export function monsterOf(r: Pick<FourcutRecord, 'id'>) {
   const rnd = seededRandom(`${r.id}-cocomon`);
   let roll = rnd() * 100;
@@ -63,25 +67,39 @@ export function monsterOf(r: Pick<FourcutRecord, 'id'>) {
       break;
     }
   }
-  const element = ELEMENTS[Math.floor(rnd() * ELEMENTS.length)];
   const info = MONSTER_RANKS[rank];
-  const skin = rank === 'ur' || rank === 'hr' ? GOLD : element;
-  // 귀한 카드일수록 행운이 높다
-  const luck = (4 + info.stars * 3 + Math.floor(rnd() * 6)) * 10;
-  const power = (2 + Math.floor(rnd() * 9)) * 10;
-  const move = MOVES[Math.floor(rnd() * MOVES.length)];
+  const [leftName, rightName] = STAT_PAIRS[Math.floor(rnd() * STAT_PAIRS.length)];
+  // 귀한 카드일수록 숫자가 높다
+  const base = 50 + MONSTER_RANK_IDS.indexOf(rank) * 7;
+  const left = Math.min(100, base + Math.floor(rnd() * 8) * 5);
+  const right = Math.min(100, base + Math.floor(rnd() * 8) * 5);
   const fortune = FORTUNES[Math.floor(rnd() * FORTUNES.length)];
-  return { rank, info, element, skin, luck, power, move, fortune, no: String(1 + Math.floor(rnd() * 150)).padStart(3, '0') };
+  return {
+    rank,
+    info,
+    stats: [
+      { name: leftName, value: left },
+      { name: rightName, value: right },
+    ],
+    fortune,
+  };
 }
 
-// 자리
-const ART_X = 34;
-const ART_Y = 112;
-const ART_W = PW - ART_X * 2;
-const ART_H = 396;
-const BAR_Y = 536;
-const BAR_H = 46;
-const DESC_Y = 614;
+/** 카드 틀 그림마다 다른 자리 (원본 1086×1448 에서 재서 600×800 으로 옮긴 값) */
+const SPOT: Record<MonsterRank, { win: { x: number; y: number; w: number; h: number; notchFrom: number; notchTo: number; notchY: number }; bar: { y: number; left: number; right: number }; descY: number; foot: { x: number; w: number; y: number; h: number } }> = {
+  c: { win: { x: 65.2, y: 116.0, w: 471.8, h: 384.0, notchFrom: 331.5, notchTo: 386.7, notchY: 151.9 }, bar: { y: 562.4, left: 207.2, right: 396.7 }, descY: 638.1, foot: { x: 379.0, w: 181.2, y: 762.4, h: 21.0 } },
+  b: { win: { x: 77.3, y: 160.2, w: 444.8, h: 345.3, notchFrom: 337.0, notchTo: 381.2, notchY: 185.1 }, bar: { y: 564.6, left: 207.2, right: 395.0 }, descY: 635.4, foot: { x: 329.3, w: 203.3, y: 740.3, h: 23.2 } },
+  a: { win: { x: 66.3, y: 95.0, w: 477.9, h: 395.6, notchFrom: 337.0, notchTo: 386.7, notchY: 142.5 }, bar: { y: 554.1, left: 215.5, right: 408.8 }, descY: 618.8, foot: { x: 235.4, w: 153.6, y: 763.5, h: 22.1 } },
+  s: { win: { x: 66.3, y: 151.9, w: 469.6, h: 326.0, notchFrom: 331.5, notchTo: 386.7, notchY: 159.1 }, bar: { y: 545.9, left: 204.4, right: 395.0 }, descY: 618.8, foot: { x: 384.5, w: 168.0, y: 734.8, h: 22.1 } },
+  ss: { win: { x: 63.5, y: 124.3, w: 475.1, h: 384.0, notchFrom: 337.0, notchTo: 386.7, notchY: 168.5 }, bar: { y: 566.3, left: 194.5, right: 403.3 }, descY: 651.9, foot: { x: 229.8, w: 149.2, y: 755.8, h: 21.0 } },
+  r: { win: { x: 60.8, y: 118.8, w: 491.7, h: 381.2, notchFrom: 331.5, notchTo: 386.7, notchY: 165.7 }, bar: { y: 564.6, left: 197.8, right: 403.3 }, descY: 640.9, foot: { x: 229.8, w: 147.0, y: 754.7, h: 21.0 } },
+};
+
+const INSET = 5; // 사진을 창 안쪽으로 물리는 정도
+const TITLE = { x: 351, y: 62, w: 214 };
+const DESC = { x: 74, w: 452, line: 30 };
+/** 사진 위에 다시 얹을 로고 자리 (틀 그림 x360 y798 w368 h134) */
+const LOGO = { x: 199, y: 441, w: 203, h: 74 };
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
@@ -94,138 +112,34 @@ export function layoutFourcutCard(_r: FourcutRecord): TemplateLayout {
 }
 
 const cardPath = (connected: boolean) =>
-  connected ? `M0,0 H${PW} V${PH} H0 Z` : `M18,0 H${PW - 18} Q${PW},0 ${PW},18 V${PH - 18} Q${PW},${PH} ${PW - 18},${PH} H18 Q0,${PH} 0,${PH - 18} V18 Q0,0 18,0 Z`;
+  connected ? `M0,0 H${PW} V${PH} H0 Z` : `M16,0 H${PW - 16} Q${PW},0 ${PW},16 V${PH - 16} Q${PW},${PH} ${PW - 16},${PH} H16 Q0,${PH} 0,${PH - 16} V16 Q0,0 16,0 Z`;
 
-function starPath(cx: number, cy: number, r: number) {
-  const pts = Array.from({ length: 10 }, (_, i) => {
-    const a = (Math.PI / 5) * i - Math.PI / 2;
-    const rr = i % 2 ? r * 0.44 : r;
-    return `${(cx + Math.cos(a) * rr).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)}`;
-  });
-  return `M${pts.join(' L')} Z`;
-}
-
-/** 큰 별 하나 (테두리 있는 알록달록한 별) */
-function BigStar({ cx, cy, r, fill, edge, tilt }: { cx: number; cy: number; r: number; fill: string; edge: string; tilt: number }) {
+/** 사진이 들어갈 창 (오른쪽 위가 한 번 꺾인 모양) */
+const windowPath = (win: (typeof SPOT)['c']['win']) => {
+  // 은색 테두리를 덮지 않게 살짝 안쪽으로
+  const x = win.x + INSET;
+  const y = win.y + INSET;
+  const w = win.w - INSET * 2;
+  const h = win.h - INSET * 2;
+  const { notchFrom, notchTo, notchY } = win;
+  const r = 13;
   return (
-    <G transform={`rotate(${tilt} ${cx} ${cy})`}>
-      <Path d={starPath(cx, cy, r)} fill={fill} stroke={edge} strokeWidth={r * 0.16} strokeLinejoin="round" />
-    </G>
+    `M${x + r},${y} H${notchFrom} L${notchTo},${notchY} H${x + w - r} Q${x + w},${notchY} ${x + w},${notchY + r}` +
+    ` V${y + h - r} Q${x + w},${y + h} ${x + w - r},${y + h} H${x + r} Q${x},${y + h} ${x},${y + h - r}` +
+    ` V${y + r} Q${x},${y} ${x + r},${y} Z`
   );
-}
-
-/** 뭉게구름 하나 (동그라미를 겹쳐 그린다) */
-function Cloud({ x, y, w, fill, opacity }: { x: number; y: number; w: number; fill: string; opacity: number }) {
-  const h = w * 0.42;
-  return (
-    <G opacity={opacity}>
-      <Circle cx={x + w * 0.28} cy={y} r={h * 0.72} fill={fill} />
-      <Circle cx={x + w * 0.52} cy={y - h * 0.3} r={h * 0.95} fill={fill} />
-      <Circle cx={x + w * 0.76} cy={y} r={h * 0.66} fill={fill} />
-      <Rect x={x + w * 0.2} y={y - h * 0.1} width={w * 0.62} height={h * 0.8} rx={h * 0.4} fill={fill} />
-    </G>
-  );
-}
-
-const STAR_COLORS = ['#ffd54a', '#5bc8f5', '#ff9ec4', '#9be36a', '#b79bf0'];
-
-/** 속성마다 다른 배경 무늬 (불꽃 · 구름 · 별) */
-function Pattern({ kind, skin, seed }: { kind: string; skin: { mark: string; bot: string }; seed: string }) {
-  const rnd = seededRandom(seed);
-
-  if (kind === 'fire')
-    // 아래에서 솟는 불길 세 겹 + 떠다니는 불티
-    return (
-      <G>
-        {[
-          { h: 300, fill: '#e8450f', o: 0.85 },
-          { h: 220, fill: '#ff7a1f', o: 0.85 },
-          { h: 140, fill: skin.mark, o: 0.8 },
-        ].map((layer, li) => (
-          <G key={li} opacity={layer.o}>
-            {Array.from({ length: 7 }, (_, i) => {
-              const x = -30 + i * (PW / 6);
-              const h = layer.h * (0.7 + rnd() * 0.6);
-              return <Path key={i} d={`M${x},${PH} q${h * 0.22},${-h * 0.5} ${h * 0.1},${-h} q${h * 0.42},${h * 0.34} ${h * 0.52},${h} Z`} fill={layer.fill} />;
-            })}
-          </G>
-        ))}
-        {Array.from({ length: 12 }, (_, i) => {
-          const x = 24 + rnd() * (PW - 48);
-          const y = 60 + rnd() * (PH - 240);
-          const h = 34 + rnd() * 38;
-          return <Path key={`e${i}`} d={`M${x},${y} q${h * 0.24},${-h * 0.46} ${h * 0.1},${-h} q${h * 0.44},${h * 0.32} ${h * 0.5},${h} Z`} fill="#ffcf5a" opacity={0.5} />;
-        })}
-      </G>
-    );
-
-  if (kind === 'sky')
-    // 뭉게구름 + 작은 별
-    return (
-      <G>
-        {Array.from({ length: 7 }, (_, i) => (
-          <Cloud key={i} x={-40 + rnd() * (PW - 40)} y={70 + rnd() * (PH - 140)} w={140 + rnd() * 150} fill="#ffffff" opacity={0.62} />
-        ))}
-        {Array.from({ length: 16 }, (_, i) => (
-          <Path key={`s${i}`} d={starPath(20 + rnd() * (PW - 40), 40 + rnd() * (PH - 80), 7 + rnd() * 9)} fill="#ffffff" opacity={0.75} />
-        ))}
-      </G>
-    );
-
-  if (kind === 'grass')
-    // 연한 별을 촘촘히 깐 무늬
-    return (
-      <G opacity={0.85}>
-        {Array.from({ length: 9 }, (_, row) =>
-          Array.from({ length: 7 }, (_, col) => (
-            <Path key={`${row}-${col}`} d={starPath(30 + col * 84 + (row % 2 ? 42 : 0), 52 + row * 84, 17)} fill={skin.mark} opacity={0.75} />
-          )),
-        )}
-      </G>
-    );
-
-  if (kind === 'gold' || kind === 'rainbow')
-    // 알록달록한 큰 별을 가장자리에 흩뿌린다
-    return (
-      <G>
-        {Array.from({ length: 16 }, (_, i) => {
-          // 글씨를 가리지 않게 능력치 바 위쪽 가장자리에만 뿌린다
-          const x = i % 2 === 0 ? 14 + rnd() * 110 : PW - 124 + rnd() * 110;
-          const y = 24 + rnd() * (BAR_Y - 70);
-          const r = 18 + rnd() * 26;
-          const fill = kind === 'gold' ? '#ffe57a' : STAR_COLORS[Math.floor(rnd() * STAR_COLORS.length)];
-          return <BigStar key={i} cx={x} cy={y} r={r} fill={fill} edge="#ffffff" tilt={rnd() * 60 - 30} />;
-        })}
-        {[0, 1, 2].map((i) => {
-          const x = i === 1 ? PW - 46 : 34 + i * 38;
-          const fill = kind === 'gold' ? '#ffe57a' : STAR_COLORS[Math.floor(rnd() * STAR_COLORS.length)];
-          return <BigStar key={`b${i}`} cx={x} cy={PH - 44} r={20 + rnd() * 14} fill={fill} edge="#ffffff" tilt={rnd() * 50 - 25} />;
-        })}
-        {Array.from({ length: 6 }, (_, i) => (
-          <Cloud key={`c${i}`} x={-30 + rnd() * (PW - 30)} y={70 + rnd() * (BAR_Y - 120)} w={130 + rnd() * 120} fill="#ffffff" opacity={0.45} />
-        ))}
-      </G>
-    );
-
-  // 별밤: 노란 배경에 흰 별
-  return (
-    <G>
-      {Array.from({ length: 20 }, (_, i) => (
-        <Path key={i} d={starPath(20 + rnd() * (PW - 40), 36 + rnd() * (PH - 72), 12 + rnd() * 20)} fill={skin.mark} opacity={0.8} />
-      ))}
-    </G>
-  );
-}
+};
 
 export function FourcutCard({ record: r, width, connected = false }: { record: FourcutRecord; width: number; connected?: boolean }) {
   const L = layoutFourcutCard(r);
-  const { rank, info, skin, luck, power, move, fortune, no } = monsterOf(r);
+  const { rank, info, stats, fortune } = monsterOf(r);
   const shape = cardPath(connected);
   const id = `cocomon-${r.id}`;
   const art = artOf(r);
-  const rainbow = rank === 'hr';
-  const title = fitLine(r.title.trim() || '이름 없는 하루', 250, 27, 17, 'sansHeavy');
-  const desc = fitLines(`${fortune} ${r.diary.trim()}`.trim(), PW - 100, 19, 15, 3, 'sans');
+  const title = fitLine(r.title.trim() || '이름 없는 하루', TITLE.w, 22, 14, 'sansHeavy');
+  const desc = fitLines(`${fortune} ${r.diary.trim()}`.trim(), DESC.w, 17, 13, 2, 'sans');
+  const spot = SPOT[rank];
+  const foot = spot.foot;
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
@@ -235,77 +149,39 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
           <ClipPath id={`${id}-card`}>
             <Path d={shape} />
           </ClipPath>
-          <ClipPath id={`${id}-art`}>
-            <Rect x={ART_X + 12} y={ART_Y + 12} width={ART_W - 24} height={ART_H - 24} rx={10} />
+          <ClipPath id={`${id}-win`}>
+            <Path d={windowPath(spot.win)} />
           </ClipPath>
-          <LinearGradient id={`${id}-bg`} x1="0" y1="0" x2="0.35" y2="1">
-            {(rainbow ? RAINBOW : [skin.top, skin.bot]).map((c, i, all) => (
-              <Stop key={`${c}-${i}`} offset={`${i / (all.length - 1)}`} stopColor={c} />
-            ))}
-          </LinearGradient>
-          <LinearGradient id={`${id}-silver`} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#fdfdfd" />
-            <Stop offset="0.45" stopColor="#dedede" />
-            <Stop offset="0.55" stopColor="#b6b6b8" />
-            <Stop offset="1" stopColor="#efefef" />
-          </LinearGradient>
         </Defs>
 
-        {/* 배경: 속성 색 + 무늬 */}
-        <Path d={shape} fill={`url(#${id}-bg)`} />
+        {/* 카드 틀 그림 */}
         <G clipPath={`url(#${id}-card)`}>
-          <Pattern kind={rainbow ? 'rainbow' : skin.key} skin={skin} seed={`${r.id}-bg`} />
+          <Image href={info.frame} x={0} y={0} width={PW} height={PH} preserveAspectRatio="xMidYMid slice" />
         </G>
 
-        {/* 왼쪽 위 배지 */}
-        <Rect x={22} y={20} width={132} height={38} rx={19} fill="#fff" opacity={0.92} />
-        <Circle cx={44} cy={39} r={11} fill="none" stroke={INK} strokeWidth={2} />
-        <Circle cx={44} cy={35} r={3.4} fill={INK} />
-        <Path d="M38,46 q6,-7 12,0 Z" fill={INK} />
-        <T f="sansBold" x={60} y={35} fontSize={11} fill={INK} children={BRAND.ko} />
-        <T f="mono" x={60} y={49} fontSize={10} letterSpacing={1} fill={SUB} children="PHOTO CARD" />
+        {/* 사진 (틀 위에 얹어 창을 채운다) */}
+        {art && <Image href={{ uri: art.uri }} x={spot.win.x + INSET} y={spot.win.y + INSET} width={spot.win.w - INSET * 2} height={spot.win.h - INSET * 2} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-win)`} />}
 
-        {/* 가운데 이름 */}
-        <T f="sansHeavy" x={PW / 2} y={46} fontSize={title.size} textAnchor="middle" children={title.text} />
+        {/* 사진에 가린 로고를 다시 얹는다 */}
+        {art && <Image href={info.logo} x={LOGO.x} y={LOGO.y} width={LOGO.w} height={LOGO.h} preserveAspectRatio="xMidYMid meet" />}
 
-        {/* 오른쪽 위 등급 + 별 */}
-        <T f="sansHeavy" x={PW - 30} y={52} fontSize={38} fill={skin.ink} textAnchor="end" children={info.tag} />
-        {Array.from({ length: info.stars }, (_, i) => (
-          <Path key={i} d={starPath(PW - 36 - i * 28, 80, 11)} fill="#ffd54a" stroke={skin.ink} strokeWidth={1.4} strokeLinejoin="round" />
-        ))}
+        {/* 제목 */}
+        <T f="sansHeavy" x={TITLE.x} y={TITLE.y} fontSize={title.size} textAnchor="middle" children={title.text} />
 
-        {/* 은색 프레임 사진 */}
-        <Rect x={ART_X} y={ART_Y} width={ART_W} height={ART_H} rx={18} fill={`url(#${id}-silver)`} />
-        <Rect x={ART_X + 8} y={ART_Y + 8} width={ART_W - 16} height={ART_H - 16} rx={12} fill="#fff" />
-        {art ? (
-          <Image href={{ uri: art.uri }} x={ART_X + 12} y={ART_Y + 12} width={ART_W - 24} height={ART_H - 24} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-art)`} />
-        ) : (
-          <G>
-            <Rect x={ART_X + 12} y={ART_Y + 12} width={ART_W - 24} height={ART_H - 24} rx={10} fill="#f1efe9" />
-            <T f="mono" x={PW / 2} y={ART_Y + ART_H / 2} fontSize={14} letterSpacing={4} fill="#b6b3ad" textAnchor="middle" children="PHOTO" />
-          </G>
-        )}
+        {/* 능력치 두 칸 */}
+        <T f="sansHeavy" x={spot.bar.left} y={spot.bar.y} fontSize={22} textAnchor="middle" children={`${stats[0].name} / ${stats[0].value}`} />
+        <T f="sansHeavy" x={spot.bar.right} y={spot.bar.y} fontSize={22} textAnchor="middle" children={`${stats[1].name} / ${stats[1].value}`} />
 
-        {/* 사진 아래에 겹치는 로고 */}
-        <Rect x={PW / 2 - 92} y={ART_Y + ART_H - 46} width={184} height={34} rx={17} fill="#fff" opacity={0.92} />
-        <T f="sansHeavy" x={PW / 2} y={ART_Y + ART_H - 22} fontSize={20} fill={skin.ink} textAnchor="middle" letterSpacing={2} children="COCOMON" />
-
-        {/* 은색 능력치 바 */}
-        <Rect x={46} y={BAR_Y} width={PW - 92} height={BAR_H} rx={BAR_H / 2} fill={`url(#${id}-silver)`} />
-        <Rect x={50} y={BAR_Y + 4} width={PW - 100} height={BAR_H - 8} rx={(BAR_H - 8) / 2} fill="none" stroke="#fff" strokeWidth={1.5} opacity={0.7} />
-        <T f="sansHeavy" x={PW / 2 - 66} y={BAR_Y + 31} fontSize={21} textAnchor="middle" children={`행운 / ${luck}`} />
-        <T f="sansHeavy" x={PW / 2 + 74} y={BAR_Y + 31} fontSize={21} textAnchor="middle" children={`기운 / ${power}`} />
-
-        {/* 오늘의 기술 + 설명 */}
-        <T f="sansBold" x={44} y={DESC_Y - 14} fontSize={17} fill={skin.ink} children={`${move}!`} />
+        {/* 설명 칸: 틀에 따라 배경이 없어서 옅은 판을 깔고 그 위에 쓴다 */}
+        <Rect x={DESC.x - 12} y={spot.descY - 26} width={DESC.w + 24} height={desc.lines.length * DESC.line + 16} rx={12} fill="#fff" opacity={0.62} />
         {desc.lines.map((line, i) => (
-          <T key={i} x={44} y={DESC_Y + 16 + i * 26} fontSize={desc.size} children={line} />
+          <T key={i} x={DESC.x} y={spot.descY + i * DESC.line} fontSize={desc.size} children={line} />
         ))}
 
-        {/* 아래 브랜드 줄 */}
-        <T f="mono" x={PW / 2} y={PH - 30} fontSize={12} letterSpacing={1} fill={skin.ink} textAnchor="middle" children={`${BRAND.ko} ★ ${dotDateWithDay(r.date)} · NO.${no}`} />
+        {/* 아래: 그림에 굳어 있는 날짜를 덮고 이 기록의 날짜를 쓴다 */}
+        <Rect x={foot.x} y={foot.y} width={foot.w} height={foot.h} rx={foot.h / 2} fill="#fff" />
+        <T f="sansBold" x={foot.x + foot.w / 2} y={foot.y + foot.h / 2 + 5} fontSize={14} textAnchor="middle" children={`${BRAND.en} ★ ${r.date.replace(/-/g, '.')}`} />
 
-        <PaperOverlay id={id} d={shape} width={PW} height={PH} wrinkle="none" surface="grain" />
       </G>
     </Svg>
   );

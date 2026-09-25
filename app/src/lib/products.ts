@@ -143,7 +143,7 @@ export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
     productId: d.productId,
     price: d.price,
     tags: [KIND_LABEL.fourcut],
-    samples: [of('cm52', '무지개 (1%)'), of('cm16', '골든 (4%)'), of('cm13', '슈퍼레어 (9%)'), of('cm3', '더블레어 (18%)'), of('cm0', '흔함 (40%)')],
+    samples: [of('cm52', 'R · 무지개 (1%)'), of('cm16', 'SS (4%)'), of('cm13', 'S (9%)'), of('cm3', 'A (18%)'), of('cm4', 'B (28%)'), of('cm0', 'C (40%)')],
   };
 }
 

@@ -147,7 +147,7 @@ export interface FourcutDesignItem {
 }
 
 export const FOURCUT_DESIGNS: FourcutDesignItem[] = [
-  { id: 'card', name: '코코몬 카드', desc: '네컷 사진을 수집 카드로 · 등급은 뽑을 때 무작위 (흔함~무지개 6등급)', productId: 'recoco.theme.cocomon', price: 1000 },
+  { id: 'card', name: '코코몬 카드', desc: '네컷 사진을 수집 카드로 · 등급은 뽑을 때 무작위 (C·B·A·S·SS·R 6등급)', productId: 'recoco.theme.cocomon', price: 1000 },
 ];
 
 export const fourcutDesignUnlocked = (id: FourcutDesign | undefined, owned: string[]) =>

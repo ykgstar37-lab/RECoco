@@ -692,7 +692,7 @@ export function FourcutDesignPicker({ value, onChange }: { value: FourcutDesign 
           );
         })}
       </View>
-      {design === 'card' && <Text style={styles.hint}>등급은 뽑을 때 무작위로 정해져요 (흔함 · 레어 · 더블레어 · 슈퍼레어 · 골든 · 무지개)</Text>}
+      {design === 'card' && <Text style={styles.hint}>등급은 뽑을 때 무작위로 정해져요 (C · B · A · S · SS · R)</Text>}
 
       <ProductPreview
         product={preview?.product ?? null}

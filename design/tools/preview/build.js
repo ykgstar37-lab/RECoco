@@ -24,7 +24,7 @@ const SVG_OUT = path.resolve(__dirname, '../../templates-svg');
     jsx: 'automatic',
     alias: { 'react-native-svg': path.join(__dirname, 'svg-shim.js'), '@app': `${APP}/src` },
     nodePaths: [`${APP}/node_modules`],
-    loader: { '.png': 'dataurl', '.jpg': 'dataurl' },
+    loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.webp': 'dataurl' },
     logLevel: 'warning',
   });
   const { render } = require('./.out.js');
