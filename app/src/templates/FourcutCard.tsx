@@ -14,7 +14,6 @@ import { PaperShadow, TemplateLayout } from './shared';
 const asset = (m: unknown) => (m && typeof m === 'object' && 'default' in (m as Record<string, unknown>) ? (m as { default: number }).default : (m as number));
 
 const PW = 600;
-const PH = 800;
 const PAD = 14;
 const INK = '#1c1a22';
 
@@ -85,21 +84,69 @@ export function monsterOf(r: Pick<FourcutRecord, 'id'>) {
   };
 }
 
-/** 카드 틀 그림마다 다른 자리 (원본 1086×1448 에서 재서 600×800 으로 옮긴 값) */
-const SPOT: Record<MonsterRank, { win: { x: number; y: number; w: number; h: number; notchFrom: number; notchTo: number; notchY: number }; bar: { y: number; left: number; right: number }; descY: number; foot: { x: number; w: number; y: number; h: number } }> = {
-  c: { win: { x: 65.2, y: 116.0, w: 471.8, h: 384.0, notchFrom: 331.5, notchTo: 386.7, notchY: 151.9 }, bar: { y: 562.4, left: 207.2, right: 396.7 }, descY: 638.1, foot: { x: 379.0, w: 181.2, y: 762.4, h: 21.0 } },
-  b: { win: { x: 77.3, y: 160.2, w: 444.8, h: 345.3, notchFrom: 337.0, notchTo: 381.2, notchY: 185.1 }, bar: { y: 564.6, left: 207.2, right: 395.0 }, descY: 635.4, foot: { x: 329.3, w: 203.3, y: 740.3, h: 23.2 } },
-  a: { win: { x: 66.3, y: 95.0, w: 477.9, h: 395.6, notchFrom: 337.0, notchTo: 386.7, notchY: 142.5 }, bar: { y: 554.1, left: 215.5, right: 408.8 }, descY: 618.8, foot: { x: 235.4, w: 153.6, y: 763.5, h: 22.1 } },
-  s: { win: { x: 66.3, y: 151.9, w: 469.6, h: 326.0, notchFrom: 331.5, notchTo: 386.7, notchY: 159.1 }, bar: { y: 545.9, left: 204.4, right: 395.0 }, descY: 618.8, foot: { x: 384.5, w: 168.0, y: 734.8, h: 22.1 } },
-  ss: { win: { x: 63.5, y: 124.3, w: 475.1, h: 384.0, notchFrom: 337.0, notchTo: 386.7, notchY: 168.5 }, bar: { y: 566.3, left: 194.5, right: 403.3 }, descY: 651.9, foot: { x: 229.8, w: 149.2, y: 755.8, h: 21.0 } },
-  r: { win: { x: 60.8, y: 118.8, w: 491.7, h: 381.2, notchFrom: 331.5, notchTo: 386.7, notchY: 165.7 }, bar: { y: 564.6, left: 197.8, right: 403.3 }, descY: 640.9, foot: { x: 229.8, w: 147.0, y: 754.7, h: 21.0 } },
+/**
+ * 카드 틀 그림마다 다른 자리. 값은 모두 **원본 그림(1086×1448) 픽셀**이다.
+ * crop 은 그림 둘레의 흰 여백을 뺀 실제 카드 자리 — 이 네모가 카드 전체가 되도록 늘려 그린다.
+ */
+const SHEET = { w: 1086, h: 1448 };
+
+interface Spot {
+  crop: { x: number; y: number; w: number; h: number };
+  win: { x0: number; x1: number; topL: number; notchFrom: number; notchTo: number; topR: number; bottom: number };
+  bar: { y: number; left: number; right: number };
+  descY: number;
+  foot: { x0: number; x1: number; y0: number; y1: number };
+}
+
+const SPOT: Record<MonsterRank, Spot> = {
+  c: {
+    crop: { x: 41, y: 34, w: 1004, h: 1381 },
+    win: { x0: 118, x1: 972, topL: 210, notchFrom: 600, notchTo: 700, topR: 275, bottom: 905 },
+    bar: { y: 1018, left: 375, right: 718 },
+    descY: 1155,
+    foot: { x0: 686, x1: 1014, y0: 1380, y1: 1418 },
+  },
+  b: {
+    crop: { x: 57, y: 57, w: 972, h: 1355 },
+    win: { x0: 140, x1: 945, topL: 290, notchFrom: 610, notchTo: 690, topR: 335, bottom: 915 },
+    bar: { y: 1022, left: 375, right: 715 },
+    descY: 1150,
+    foot: { x0: 596, x1: 964, y0: 1340, y1: 1382 },
+  },
+  a: {
+    crop: { x: 52, y: 0, w: 1027, h: 1448 },
+    win: { x0: 120, x1: 985, topL: 172, notchFrom: 610, notchTo: 700, topR: 258, bottom: 888 },
+    bar: { y: 1003, left: 390, right: 740 },
+    descY: 1120,
+    foot: { x0: 426, x1: 704, y0: 1382, y1: 1422 },
+  },
+  s: {
+    crop: { x: 24, y: 0, w: 1039, h: 1442 },
+    win: { x0: 120, x1: 970, topL: 275, notchFrom: 600, notchTo: 700, topR: 288, bottom: 865 },
+    bar: { y: 988, left: 370, right: 715 },
+    descY: 1120,
+    foot: { x0: 696, x1: 1000, y0: 1330, y1: 1370 },
+  },
+  ss: {
+    crop: { x: 0, y: 0, w: 1086, h: 1448 },
+    win: { x0: 115, x1: 975, topL: 225, notchFrom: 610, notchTo: 700, topR: 305, bottom: 920 },
+    bar: { y: 1025, left: 352, right: 730 },
+    descY: 1180,
+    foot: { x0: 416, x1: 686, y0: 1368, y1: 1406 },
+  },
+  r: {
+    crop: { x: 0, y: 0, w: 1086, h: 1448 },
+    win: { x0: 110, x1: 1000, topL: 215, notchFrom: 600, notchTo: 700, topR: 300, bottom: 905 },
+    bar: { y: 1022, left: 358, right: 730 },
+    descY: 1160,
+    foot: { x0: 416, x1: 682, y0: 1366, y1: 1404 },
+  },
 };
 
-const INSET = 5; // 사진을 창 안쪽으로 물리는 정도
-const TITLE = { x: 351, y: 62, w: 214 };
-const DESC = { x: 74, w: 452, line: 30 };
-/** 사진 위에 다시 얹을 로고 자리 (틀 그림 x360 y798 w368 h134) */
-const LOGO = { x: 199, y: 441, w: 203, h: 74 };
+const INSET = 9; // 사진을 창 안쪽으로 물리는 정도 (원본 px)
+const TITLE = { cx: 635, y: 112, w: 388 };
+const LOGO = { x: 360, y: 798, w: 368, h: 134 };
+const DESC = { x: 134, w: 818, line: 54 };
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
@@ -107,39 +154,49 @@ const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f
 /** 카드에 쓸 그림: 고른 사진이 있으면 첫 장, 없으면 QR로 받은 네컷 전체 */
 const artOf = (r: FourcutRecord) => r.photos.find(Boolean) ?? r.frameImage;
 
-export function layoutFourcutCard(_r: FourcutRecord): TemplateLayout {
-  return { width: PW + PAD * 2, height: PH + PAD * 2 + 14, foldAt: 0, displayRatio: 0.82, inset: { top: PAD, bottom: PAD + 14 } };
+export function layoutFourcutCard(r: FourcutRecord): TemplateLayout {
+  const { crop } = SPOT[monsterOf(r).rank];
+  const h = Math.round((PW * crop.h) / crop.w);
+  return { width: PW + PAD * 2, height: h + PAD * 2 + 14, foldAt: 0, displayRatio: 0.82, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
-const cardPath = (connected: boolean) =>
+const cardPath = (PH: number, connected: boolean) =>
   connected ? `M0,0 H${PW} V${PH} H0 Z` : `M16,0 H${PW - 16} Q${PW},0 ${PW},16 V${PH - 16} Q${PW},${PH} ${PW - 16},${PH} H16 Q0,${PH} 0,${PH - 16} V16 Q0,0 16,0 Z`;
 
-/** 사진이 들어갈 창 (오른쪽 위가 한 번 꺾인 모양) */
-const windowPath = (win: (typeof SPOT)['c']['win']) => {
+/** 사진이 들어갈 창 (오른쪽 위가 한 번 꺾인 모양). 원본 좌표를 받아 카드 좌표로 옮긴다 */
+const windowPath = (win: Spot['win'], X: (v: number) => number, Y: (v: number) => number) => {
   // 은색 테두리를 덮지 않게 살짝 안쪽으로
-  const x = win.x + INSET;
-  const y = win.y + INSET;
-  const w = win.w - INSET * 2;
-  const h = win.h - INSET * 2;
-  const { notchFrom, notchTo, notchY } = win;
-  const r = 13;
+  const x = X(win.x0 + INSET);
+  const x2 = X(win.x1 - INSET);
+  const yL = Y(win.topL + INSET);
+  const yR = Y(win.topR + INSET);
+  const yB = Y(win.bottom - INSET);
+  const nf = X(win.notchFrom);
+  const nt = X(win.notchTo);
+  const r = 12;
   return (
-    `M${x + r},${y} H${notchFrom} L${notchTo},${notchY} H${x + w - r} Q${x + w},${notchY} ${x + w},${notchY + r}` +
-    ` V${y + h - r} Q${x + w},${y + h} ${x + w - r},${y + h} H${x + r} Q${x},${y + h} ${x},${y + h - r}` +
-    ` V${y + r} Q${x},${y} ${x + r},${y} Z`
+    `M${x + r},${yL} H${nf} L${nt},${yR} H${x2 - r} Q${x2},${yR} ${x2},${yR + r}` +
+    ` V${yB - r} Q${x2},${yB} ${x2 - r},${yB} H${x + r} Q${x},${yB} ${x},${yB - r}` +
+    ` V${yL + r} Q${x},${yL} ${x + r},${yL} Z`
   );
 };
 
 export function FourcutCard({ record: r, width, connected = false }: { record: FourcutRecord; width: number; connected?: boolean }) {
   const L = layoutFourcutCard(r);
   const { rank, info, stats, fortune } = monsterOf(r);
-  const shape = cardPath(connected);
+  const spot = SPOT[rank];
+  const { crop, win, bar, foot } = spot;
+  const PH = Math.round((PW * crop.h) / crop.w);
+  // 원본 그림 좌표 → 카드 좌표
+  const k = PW / crop.w;
+  const X = (v: number) => Math.round((v - crop.x) * k * 10) / 10;
+  const Y = (v: number) => Math.round((v - crop.y) * k * 10) / 10;
+  const shape = cardPath(PH, connected);
   const id = `cocomon-${r.id}`;
   const art = artOf(r);
-  const title = fitLine(r.title.trim() || '이름 없는 하루', TITLE.w, 22, 14, 'sansHeavy');
-  const desc = fitLines(`${fortune} ${r.diary.trim()}`.trim(), DESC.w, 17, 13, 2, 'sans');
-  const spot = SPOT[rank];
-  const foot = spot.foot;
+  const title = fitLine(r.title.trim() || '이름 없는 하루', TITLE.w * k, 22, 14, 'sansHeavy');
+  const desc = fitLines(`${fortune} ${r.diary.trim()}`.trim(), DESC.w * k, 17, 13, 2, 'sans');
+  const descLine = DESC.line * k;
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
@@ -150,38 +207,63 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
             <Path d={shape} />
           </ClipPath>
           <ClipPath id={`${id}-win`}>
-            <Path d={windowPath(spot.win)} />
+            <Path d={windowPath(win, X, Y)} />
           </ClipPath>
         </Defs>
 
-        {/* 카드 틀 그림 */}
+        {/* 카드 틀 그림 (흰 여백을 뺀 자리가 카드 전체가 되게 늘린다) */}
         <G clipPath={`url(#${id}-card)`}>
-          <Image href={info.frame} x={0} y={0} width={PW} height={PH} preserveAspectRatio="xMidYMid slice" />
+          <Image href={info.frame} x={X(0)} y={Y(0)} width={SHEET.w * k} height={SHEET.h * k} preserveAspectRatio="none" />
         </G>
 
         {/* 사진 (틀 위에 얹어 창을 채운다) */}
-        {art && <Image href={{ uri: art.uri }} x={spot.win.x + INSET} y={spot.win.y + INSET} width={spot.win.w - INSET * 2} height={spot.win.h - INSET * 2} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-win)`} />}
+        {art && (
+          <Image
+            href={{ uri: art.uri }}
+            x={X(win.x0 + INSET)}
+            y={Y(win.topL + INSET)}
+            width={X(win.x1 - INSET) - X(win.x0 + INSET)}
+            height={Y(win.bottom - INSET) - Y(win.topL + INSET)}
+            preserveAspectRatio="xMidYMid slice"
+            clipPath={`url(#${id}-win)`}
+          />
+        )}
 
         {/* 사진에 가린 로고를 다시 얹는다 */}
-        {art && <Image href={info.logo} x={LOGO.x} y={LOGO.y} width={LOGO.w} height={LOGO.h} preserveAspectRatio="xMidYMid meet" />}
+        {art && <Image href={info.logo} x={X(LOGO.x)} y={Y(LOGO.y)} width={LOGO.w * k} height={LOGO.h * k} preserveAspectRatio="xMidYMid meet" />}
 
-        {/* 제목 */}
-        <T f="sansHeavy" x={TITLE.x} y={TITLE.y} fontSize={title.size} textAnchor="middle" children={title.text} />
+        {/* 제목 (카드마다 무늬가 있어서 옅은 판을 깔고 쓴다) */}
+        <Rect x={X(TITLE.cx) - title.text.length * title.size * 0.32 - 14} y={Y(TITLE.y) - title.size - 4} width={title.text.length * title.size * 0.64 + 28} height={title.size + 16} rx={(title.size + 16) / 2} fill="#fff" opacity={0.7} />
+        <T f="sansHeavy" x={X(TITLE.cx)} y={Y(TITLE.y)} fontSize={title.size} textAnchor="middle" children={title.text} />
 
         {/* 능력치 두 칸 */}
-        <T f="sansHeavy" x={spot.bar.left} y={spot.bar.y} fontSize={22} textAnchor="middle" children={`${stats[0].name} / ${stats[0].value}`} />
-        <T f="sansHeavy" x={spot.bar.right} y={spot.bar.y} fontSize={22} textAnchor="middle" children={`${stats[1].name} / ${stats[1].value}`} />
+        <T f="sansHeavy" x={X(bar.left)} y={Y(bar.y)} fontSize={22} textAnchor="middle" children={`${stats[0].name} / ${stats[0].value}`} />
+        <T f="sansHeavy" x={X(bar.right)} y={Y(bar.y)} fontSize={22} textAnchor="middle" children={`${stats[1].name} / ${stats[1].value}`} />
 
         {/* 설명 칸: 틀에 따라 배경이 없어서 옅은 판을 깔고 그 위에 쓴다 */}
-        <Rect x={DESC.x - 12} y={spot.descY - 26} width={DESC.w + 24} height={desc.lines.length * DESC.line + 16} rx={12} fill="#fff" opacity={0.62} />
+        <Rect
+          x={X(DESC.x) - 12}
+          y={Y(spot.descY) - 26}
+          width={DESC.w * k + 24}
+          height={desc.lines.length * descLine + 16}
+          rx={12}
+          fill="#fff"
+          opacity={0.62}
+        />
         {desc.lines.map((line, i) => (
-          <T key={i} x={DESC.x} y={spot.descY + i * DESC.line} fontSize={desc.size} children={line} />
+          <T key={i} x={X(DESC.x)} y={Y(spot.descY) + i * descLine} fontSize={desc.size} children={line} />
         ))}
 
         {/* 아래: 그림에 굳어 있는 날짜를 덮고 이 기록의 날짜를 쓴다 */}
-        <Rect x={foot.x} y={foot.y} width={foot.w} height={foot.h} rx={foot.h / 2} fill="#fff" />
-        <T f="sansBold" x={foot.x + foot.w / 2} y={foot.y + foot.h / 2 + 5} fontSize={14} textAnchor="middle" children={`${BRAND.en} ★ ${r.date.replace(/-/g, '.')}`} />
-
+        <Rect x={X(foot.x0)} y={Y(foot.y0)} width={X(foot.x1) - X(foot.x0)} height={Y(foot.y1) - Y(foot.y0)} rx={(Y(foot.y1) - Y(foot.y0)) / 2} fill="#fff" />
+        <T
+          f="sansBold"
+          x={(X(foot.x0) + X(foot.x1)) / 2}
+          y={(Y(foot.y0) + Y(foot.y1)) / 2 + 5}
+          fontSize={14}
+          textAnchor="middle"
+          children={`${BRAND.en} ★ ${r.date.replace(/-/g, '.')}`}
+        />
       </G>
     </Svg>
   );

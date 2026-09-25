@@ -9,8 +9,11 @@ const SRC = process.argv[2] || 'C:/Users/ykgst/Downloads/RECocoCARD';
 const OUT = path.resolve(__dirname, '../../app/assets/cards');
 const RANKS = ['C', 'B', 'A', 'S', 'SS', 'R'];
 
+// 은색 바의 한가운데 높이 (카드마다 조금씩 다르다)
+const BAR_MID = { C: 1010, B: 1014, A: 995, S: 980, SS: 1017, R: 1014 };
+
 // 원본 1086×1448 기준 자리
-const BAR = { y: 962, h: 76, from: 124, fromW: 64, x: 196, w: 706 }; // 은색 바 속 글자
+const BAR = { h: 52, from: 150, fromW: 55, x: 215, w: 660 }; // 은색 바 속 글자를 덮을 자리
 // 아래 "RECoco ★ 날짜" 는 카드마다 자리가 달라서 지우지 않는다 — 양식이 그 위에 작은 판을 덮고 날짜를 새로 쓴다
 const WIDTH = 900; // 앱에 넣을 폭
 // 사진 창 안에 겹쳐 있는 RECoco 로고 (사진을 덮어쓴 뒤 다시 얹으려고 따로 오려낸다)
@@ -26,8 +29,9 @@ const LOGO = { x: 360, y: 798, w: 368, h: 134 };
     }
     const base = sharp(file);
     // 바: 글자 없는 깨끗한 은색 조각을 가로로 늘려 덮는다
-    const barPatch = await sharp(file).extract({ left: BAR.from, top: BAR.y, width: BAR.fromW, height: BAR.h }).resize(BAR.w, BAR.h, { fit: 'fill' }).toBuffer();
-    const cleaned = await base.composite([{ input: barPatch, left: BAR.x, top: BAR.y }]).toBuffer();
+    const barY = Math.round(BAR_MID[r] - BAR.h / 2);
+    const barPatch = await sharp(file).extract({ left: BAR.from, top: barY, width: BAR.fromW, height: BAR.h }).resize(BAR.w, BAR.h, { fit: 'fill' }).toBuffer();
+    const cleaned = await base.composite([{ input: barPatch, left: BAR.x, top: barY }]).toBuffer();
 
     // 여백을 자르면 카드마다 크기가 달라져 글자 자리가 틀어진다 → 원본 판을 그대로 두고 줄이기만 한다
     await sharp(cleaned).resize(WIDTH).jpeg({ quality: 88, mozjpeg: true }).toFile(path.join(OUT, `${r}.jpg`));
