@@ -65,6 +65,7 @@ import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
 import { DISMISS_ON_DRAG, KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
 import { MovieSmsPaste } from './MovieSmsPaste';
+import { PlaceSearch } from './PlaceSearch';
 import { QrImport } from './QrImport';
 import { QuickFill } from './QuickFill';
 import { STICKERS, StickerArt, stickerOf } from './Stickers';
@@ -1221,10 +1222,36 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   ))}
                 </View>
                 <Row>
-                  <Field label="가게 이름 *" value={food.place} onChange={(v) => setFood({ ...food, place: v })} placeholder="달밤커피" />
+                  <Field
+                    label="가게 이름 *"
+                    value={food.place}
+                    onChange={(v) => {
+                      setFood({ ...food, place: v });
+                      setSearching(true);
+                    }}
+                    placeholder="달밤커피"
+                  />
                   <DateField label="날짜" value={food.date} onChange={(v) => setFood({ ...food, date: v })} />
                 </Row>
-                <StoreSuggest records={records} kind="food" query={food.place} onPick={(hit) => setFood((f) => ({ ...f, place: hit.name, area: f.area.trim() || hit.area }))} />
+                <StoreSuggest
+                  records={records}
+                  kind="food"
+                  query={food.place}
+                  onPick={(hit) => {
+                    setSearching(false);
+                    setFood((f) => ({ ...f, place: hit.name, area: f.area.trim() || hit.area }));
+                  }}
+                />
+                <PlaceSearch
+                  query={food.place}
+                  area={food.area}
+                  active={searching}
+                  onDismiss={() => setSearching(false)}
+                  onPick={(hit) => {
+                    setSearching(false);
+                    setFood((f) => ({ ...f, place: hit.name, area: f.area.trim() || hit.area, type: hit.type }));
+                  }}
+                />
                 <Row>
                   <Field label="위치 (선택)" value={food.area} onChange={(v) => setFood({ ...food, area: v })} placeholder="연남동" />
                   <Field label="누구랑? (선택)" value={food.withWhom} onChange={(v) => setFood({ ...food, withWhom: v })} placeholder="지민" />

@@ -1,9 +1,13 @@
 // 제목으로 책(카카오)·영화(TMDB)를 찾아 폼을 채운다. 키는 app/.env.local 에 둔다.
+import type { FoodType } from '../types';
+
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_REST_KEY ?? '';
 const TMDB_KEY = process.env.EXPO_PUBLIC_TMDB_TOKEN ?? '';
 
 export const canSearchBooks = !!KAKAO_KEY;
 export const canSearchMovies = !!TMDB_KEY;
+/** 카카오 키 하나로 책도 장소도 찾는다 */
+export const canSearchPlaces = canSearchBooks;
 
 export interface BookHit {
   id: string;
@@ -94,6 +98,54 @@ export async function searchTheaters(chain: string, query: string, signal?: Abor
   return docs
     .filter((d) => String(d.category_name).includes('영화관') && squash(d.place_name).startsWith(squash(chain)))
     .map((d) => ({ id: d.id, name: d.place_name, address: d.road_address_name || d.address_name }));
+}
+
+export interface PlaceHit {
+  id: string;
+  name: string;
+  /** 동네 (예: 연남동) */
+  area: string;
+  /** 도로명 주소 */
+  address: string;
+  /** 카카오 분류로 짐작한 종류 */
+  type: FoodType;
+}
+
+/**
+ * "음식점 > 카페 > 커피전문점" 같은 분류를 카페·식당·디저트·술집 중 하나로.
+ * 카페를 디저트보다 먼저 보므로 "테마카페 > 디저트카페"는 카페가 된다
+ */
+function foodType(category: string): FoodType {
+  if (/술집|포차|포장마차/.test(category)) return 'bar';
+  if (/카페|커피|찻집/.test(category)) return 'cafe';
+  if (/간식|제과|베이커리|디저트|아이스크림|빙수/.test(category)) return 'dessert';
+  return 'meal';
+}
+
+/** "서울 마포구 연남동 487-378" → "연남동" (동 이름이 없으면 시·구까지) */
+function dong(address: string): string {
+  const parts = address.split(' ').filter(Boolean);
+  const found = parts.find((p) => /[동읍면리가]$/.test(p) && !/^\d/.test(p));
+  return found ?? parts.slice(1, 3).join(' ');
+}
+
+/** 카카오 지도(장소)에서 카페·맛집 찾기. area 를 주면 그 동네 안에서 찾는다 */
+export async function searchPlaces(query: string, area: string, signal?: AbortSignal): Promise<PlaceHit[]> {
+  const q = encodeURIComponent(`${area} ${query}`.trim());
+  const url = `https://dapi.kakao.com/v2/local/search/keyword.json?size=15&query=${q}`;
+  const res = await fetch(url, { headers: { Authorization: `KakaoAK ${KAKAO_KEY}` }, signal });
+  if (!res.ok) throw new Error(`kakao-local ${res.status}`);
+  const docs = (await res.json()).documents as any[];
+  return docs
+    // FD6 음식점 · CE7 카페만 (병원·학원 같은 건 빼고)
+    .filter((d) => d.category_group_code === 'FD6' || d.category_group_code === 'CE7')
+    .map((d) => ({
+      id: d.id,
+      name: d.place_name,
+      area: dong(d.address_name || d.road_address_name || ''),
+      address: d.road_address_name || d.address_name || '',
+      type: foodType(d.category_name || ''),
+    }));
 }
 
 // API 키(32자)면 쿼리로, 읽기 토큰(eyJ…)이면 헤더로 보낸다
