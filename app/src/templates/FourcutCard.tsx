@@ -138,7 +138,8 @@ const SPOT: Record<MonsterRank, Spot> = {
 };
 
 const INSET = 9; // 사진을 창 안쪽으로 물리는 정도 (원본 px)
-const TITLE = { cx: 635, y: 112, w: 388 };
+/** 제목: 사진 창 바로 위 (카드 좌표로 고정해 어느 등급에서나 같은 자리) */
+const TITLE = { cx: PW / 2, y: 92, w: 420 };
 const LOGO = { x: 360, y: 798, w: 368, h: 134 };
 /** 설명 칸: 틀에 있는 칸을 덮고 어느 카드에서나 같은 크기로 (카드 좌표) */
 const PANEL = { x: 30, y: 596, w: 548, h: 140, pad: 22, line: 32 };
@@ -190,7 +191,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const shape = cardPath(connected);
   const id = `cocomon-${r.id}`;
   const art = artOf(r);
-  const title = fitLine(r.title.trim() || '이름 없는 하루', TITLE.w * k, 22, 14, 'sansHeavy');
+  const title = fitLine(r.title.trim() || '이름 없는 하루', TITLE.w, 22, 14, 'sansHeavy');
   const desc = fitLines(`${fortune} ${r.diary.trim()}`.trim(), PANEL.w - PANEL.pad * 2, 17, 13, 3, 'sans');
   // 날짜 판은 어느 카드에서나 같은 크기로, 카드 밖으로 나가지 않게 살짝 당긴다
   const footY = (Y(foot.y0) + Y(foot.y1)) / 2;
@@ -231,16 +232,16 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
         {art && <Image href={info.logo} x={X(LOGO.x)} y={Y(LOGO.y)} width={LOGO.w * kx} height={LOGO.h * ky} preserveAspectRatio="xMidYMid meet" />}
 
         {/* 제목 (카드마다 무늬가 있어서 옅은 판을 깔고 쓴다) */}
-        <Rect x={X(TITLE.cx) - title.text.length * title.size * 0.32 - 14} y={Y(TITLE.y) - title.size - 4} width={title.text.length * title.size * 0.64 + 28} height={title.size + 16} rx={(title.size + 16) / 2} fill="#fff" opacity={0.7} />
-        <T f="sansHeavy" x={X(TITLE.cx)} y={Y(TITLE.y)} fontSize={title.size} textAnchor="middle" children={title.text} />
+        <Rect x={TITLE.cx - title.text.length * title.size * 0.32 - 16} y={TITLE.y - title.size - 3} width={title.text.length * title.size * 0.64 + 32} height={title.size + 15} rx={(title.size + 15) / 2} fill="#fff" opacity={0.78} />
+        <T f="sansHeavy" x={TITLE.cx} y={TITLE.y} fontSize={title.size} textAnchor="middle" children={title.text} />
 
         {/* 능력치 두 칸 */}
         <T f="sansHeavy" x={X(bar.left)} y={Y(bar.y)} fontSize={22} textAnchor="middle" children={`${stats[0].name} / ${stats[0].value}`} />
         <T f="sansHeavy" x={X(bar.right)} y={Y(bar.y)} fontSize={22} textAnchor="middle" children={`${stats[1].name} / ${stats[1].value}`} />
 
         {/* 설명 칸: 틀에 있는 칸을 덮고 여기에 글을 쓴다 (모든 카드 같은 크기) */}
-        <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="#fffdf8" />
-        <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="none" stroke="#e6e2d8" strokeWidth={1.5} />
+        <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="#fff" opacity={0.72} />
+        <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="none" stroke="#fff" strokeWidth={2} opacity={0.85} />
         {desc.lines.map((line, i) => (
           <T key={i} x={PANEL.x + PANEL.pad} y={PANEL.y + 40 + i * PANEL.line} fontSize={desc.size} children={line} />
         ))}
