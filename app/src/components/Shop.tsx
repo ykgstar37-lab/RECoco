@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, THEME_TAGS, categoryProduct, designProduct, foodDesignProduct, fourcutDesignProduct, themeProduct } from '../lib/products';
+import { PreviewProduct, categoryProduct, designProduct, foodDesignProduct, fourcutDesignProduct, themeProduct } from '../lib/products';
 import { DESIGN_SHELF, FOOD_DESIGNS, FOURCUT_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
@@ -22,15 +22,45 @@ interface Props {
   onOpenCloset: () => void;
 }
 
+/** 상점에 한 줄로 서는 영수증 테마. 종이·카페맛집·인생네컷·티켓 모양을 한 목록으로 모은다 */
+interface ShelfItem {
+  name: string;
+  desc: string;
+  productId: string;
+  price: number;
+  /** 이 테마를 붙일 수 있는 카테고리 — 위의 분류 알약이 여기서 나온다 */
+  kinds: RecordKind[];
+  swatch: React.ReactNode;
+  preview: () => PreviewProduct;
+}
+
+const SHELF: ShelfItem[] = [
+  ...THEMES.map((t) => ({ ...t, swatch: <ThemeSwatch theme={t.id} base="spending" size={34} />, preview: () => themeProduct(t) })),
+  ...FOOD_DESIGNS.map((d) => ({ ...d, swatch: <FoodDesignSwatch design={d.id} size={34} />, preview: () => foodDesignProduct(d) })),
+  ...FOURCUT_DESIGNS.map((d) => ({ ...d, swatch: <FourcutDesignSwatch design={d.id} size={34} />, preview: () => fourcutDesignProduct(d) })),
+  ...DESIGN_SHELF.map((d) => ({
+    ...d,
+    swatch: d.kinds.includes('concert') ? <ConcertDesignSwatch design={d.id as ConcertDesign} size={34} /> : <ShowDesignSwatch design={d.id as ShowDesign} size={34} />,
+    preview: () => designProduct(d),
+  })),
+];
+
+/** 분류 알약에 세울 카테고리 (테마가 하나라도 붙은 것만, 카테고리 차례대로) */
+const SHELF_KINDS = (Object.keys(KIND_LABEL) as RecordKind[]).filter((k) => SHELF.some((s) => s.kinds.includes(k)));
+
 /** 상점: 코코 모자(눌러서 옷장에서 입어보고 사기), 영수증 테마, 곧 나올 새 카테고리 */
 export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [preview, setPreview] = useState<PreviewProduct | null>(null);
+  const [filter, setFilter] = useState<RecordKind | null>(null);
   const paidHats = OUTFITS.filter((o) => o.unlock.type === 'paid');
+  const shown = filter ? SHELF.filter((s) => s.kinds.includes(filter)) : SHELF;
 
   useEffect(() => {
-    if (visible) setNotice('');
+    if (!visible) return;
+    setNotice('');
+    setFilter(null); // 다시 열면 전체부터
   }, [visible]);
 
   const run = async (job: () => Promise<void>) => {
@@ -111,105 +141,39 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
           </Section>
 
           <Section title="영수증 테마" sub="같은 기록을 다른 종이로">
-            {THEMES.map((t) => {
-              const have = owned.includes(t.productId);
-              return (
-                <Pressable key={t.id} onPress={() => setPreview(themeProduct(t))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
-                  <ThemeSwatch theme={t.id} base="spending" size={34} />
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.themeName} numberOfLines={1}>
-                        {t.name}
-                      </Text>
-                      <CategoryTags tags={THEME_TAGS} tight />
-                    </View>
-                    <Text style={styles.themeDesc}>{t.desc}</Text>
-                    <Text style={styles.peek}>미리보기 ›</Text>
-                  </View>
-                  <Pressable
-                    disabled={have || busy}
-                    onPress={() => run(() => buy(t.productId))}
-                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(t.price)}원`}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+              {[null, ...SHELF_KINDS].map((k) => {
+                const on = filter === k;
+                return (
+                  <Pressable key={k ?? 'all'} onPress={() => setFilter(k)} style={[styles.filter, on && styles.filterOn]}>
+                    <Text style={[styles.filterText, on && styles.filterTextOn]}>{k ? KIND_LABEL[k] : '전체'}</Text>
                   </Pressable>
-                </Pressable>
-              );
-            })}
-            {FOOD_DESIGNS.map((d) => {
-              const have = owned.includes(d.productId);
-              // 카테고리를 사야 쓸 수 있는 모양은 그 전에 못 사게 한다
-              const need = categoryUnlocked('food', owned) ? null : [KIND_LABEL.food];
+                );
+              })}
+            </ScrollView>
+            {shown.map((item) => {
+              const have = owned.includes(item.productId);
+              // 카테고리를 사야 쓸 수 있는 모양은 그 전에 못 사게 한다 (공용 모양은 둘 중 하나만 있어도 쓴다)
+              const need = item.kinds.some((k) => categoryUnlocked(k, owned)) ? null : item.kinds.map((k) => KIND_LABEL[k]);
               return (
-                <Pressable key={d.id} onPress={() => setPreview(foodDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
-                  <FoodDesignSwatch design={d.id} size={34} />
+                <Pressable key={item.productId} onPress={() => setPreview(item.preview())} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
+                  {item.swatch}
                   <View style={{ flex: 1 }}>
                     <View style={styles.nameRow}>
                       <Text style={styles.themeName} numberOfLines={1}>
-                        {d.name}
+                        {item.name}
                       </Text>
-                      <CategoryTags tags={[KIND_LABEL.food]} tight />
+                      <CategoryTags tags={item.kinds.map((k) => KIND_LABEL[k])} tight />
                     </View>
-                    <Text style={styles.themeDesc}>{d.desc}</Text>
+                    <Text style={styles.themeDesc}>{item.desc}</Text>
                     {need && <Text style={styles.needText}>{need.join(' 또는 ')}을(를) 먼저 사야 써요</Text>}
                     <Text style={styles.peek}>미리보기 ›</Text>
                   </View>
                   <Pressable
                     disabled={have || busy || !!need}
-                    onPress={() => run(() => buy(d.productId))}
+                    onPress={() => run(() => buy(item.productId))}
                     style={({ pressed }) => [styles.buyBtn, (have || !!need) && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, (have || !!need) && styles.buyTextOff]}>{have ? '보유' : need ? '잠김' : `${won(d.price)}원`}</Text>
-                  </Pressable>
-                </Pressable>
-              );
-            })}
-            {FOURCUT_DESIGNS.map((d) => {
-              const have = owned.includes(d.productId);
-              return (
-                <Pressable key={d.id} onPress={() => setPreview(fourcutDesignProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
-                  <FourcutDesignSwatch design={d.id} size={34} />
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.themeName} numberOfLines={1}>
-                        {d.name}
-                      </Text>
-                      <CategoryTags tags={[KIND_LABEL.fourcut]} tight />
-                    </View>
-                    <Text style={styles.themeDesc}>{d.desc}</Text>
-                    <Text style={styles.peek}>미리보기 ›</Text>
-                  </View>
-                  <Pressable
-                    disabled={have || busy}
-                    onPress={() => run(() => buy(d.productId))}
-                    style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(d.price)}원`}</Text>
-                  </Pressable>
-                </Pressable>
-              );
-            })}
-            {DESIGN_SHELF.map((d) => {
-              const have = owned.includes(d.productId);
-              const forConcert = d.kinds.includes('concert');
-              // 공용 모양은 두 카테고리 중 하나만 있어도 쓸 수 있다
-              const need = d.kinds.some((k) => categoryUnlocked(k, owned)) ? null : d.kinds.map((k) => KIND_LABEL[k]);
-              return (
-                <Pressable key={d.productId} onPress={() => setPreview(designProduct(d))} style={({ pressed }) => [styles.themeRow, pressed && { opacity: 0.7 }]}>
-                  {forConcert ? <ConcertDesignSwatch design={d.id as ConcertDesign} size={34} /> : <ShowDesignSwatch design={d.id as ShowDesign} size={34} />}
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.themeName} numberOfLines={1}>
-                        {d.name}
-                      </Text>
-                      <CategoryTags tags={d.kinds.map((k) => KIND_LABEL[k])} tight />
-                    </View>
-                    <Text style={styles.themeDesc}>{d.desc}</Text>
-                    {need && <Text style={styles.needText}>{need.join(' 또는 ')}을(를) 먼저 사야 써요</Text>}
-                    <Text style={styles.peek}>미리보기 ›</Text>
-                  </View>
-                  <Pressable
-                    disabled={have || busy || !!need}
-                    onPress={() => run(() => buy(d.productId))}
-                    style={({ pressed }) => [styles.buyBtn, (have || !!need) && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, (have || !!need) && styles.buyTextOff]}>{have ? '보유' : need ? '잠김' : `${won(d.price)}원`}</Text>
+                    <Text style={[styles.buyText, (have || !!need) && styles.buyTextOff]}>{have ? '보유' : need ? '잠김' : `${won(item.price)}원`}</Text>
                   </Pressable>
                 </Pressable>
               );
@@ -273,6 +237,11 @@ const styles = StyleSheet.create({
   rowLink: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   categoryIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#ffe36b', alignItems: 'center', justifyContent: 'center' },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  filters: { flexDirection: 'row', gap: 6, paddingRight: 8 },
+  filter: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: '#fff', borderWidth: 1, borderColor: COLORS.line },
+  filterOn: { backgroundColor: COLORS.orange, borderColor: COLORS.orange },
+  filterText: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sansBold },
+  filterTextOn: { color: '#fff' },
   peek: { color: COLORS.orange, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3 },
   needText: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3 },
   themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

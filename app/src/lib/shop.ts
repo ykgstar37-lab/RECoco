@@ -40,6 +40,8 @@ export interface ThemeItem {
   desc: string;
   productId: string;
   price: number;
+  /** 이 종이를 쓸 수 있는 카테고리 (상점 태그·분류에 쓴다) */
+  kinds: RecordKind[];
 }
 
 /** 기본으로 주는 종이 (소비 영수증·인생네컷 뒷면) */
@@ -47,7 +49,7 @@ export const FREE_THEMES: { id: PaperTheme; name: string }[] = [{ id: 'plain', n
 
 /** 영수증 테마: 하나 사면 소비 영수증과 인생네컷 뒷면 모두에 쓸 수 있다 */
 export const THEMES: ThemeItem[] = [
-  { id: 'grid', name: '모눈종이', desc: '모눈이 깔린 노트 종이 · 격자 색 4가지', productId: 'recoco.theme.grid', price: 1000 },
+  { id: 'grid', name: '모눈종이', desc: '모눈이 깔린 노트 종이 · 격자 색 4가지', productId: 'recoco.theme.grid', price: 1000, kinds: ['spending', 'fourcut'] },
 ];
 
 export const themeUnlocked = (id: PaperTheme | undefined, owned: string[]) =>
@@ -59,13 +61,14 @@ export interface FoodDesignItem {
   desc: string;
   productId: string;
   price: number;
+  kinds: RecordKind[];
 }
 
 /** 카페·맛집 영수증 모양 테마 (기본은 맛집 주문서. 색은 모양을 고른 다음 따로 고른다) */
 export const FREE_FOOD_DESIGNS: { id: FoodDesign; name: string }[] = [{ id: 'order', name: '주문서' }];
 
 export const FOOD_DESIGNS: FoodDesignItem[] = [
-  { id: 'house', name: '집 모양', desc: '간판·창문 사진·칠판 메뉴가 있는 작은 가게 집 · 지붕 색 5가지', productId: 'recoco.theme.food-house', price: 1000 },
+  { id: 'house', name: '집 모양', desc: '간판·창문 사진·칠판 메뉴가 있는 작은 가게 집 · 지붕 색 5가지', productId: 'recoco.theme.food-house', price: 1000, kinds: ['food'] },
 ];
 
 export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) =>
@@ -144,10 +147,11 @@ export interface FourcutDesignItem {
   desc: string;
   productId: string;
   price: number;
+  kinds: RecordKind[];
 }
 
 export const FOURCUT_DESIGNS: FourcutDesignItem[] = [
-  { id: 'card', name: '코코몬 카드', desc: '네컷 사진을 수집 카드로 · 등급은 뽑을 때 무작위 (C·B·A·S·SS·R 6등급)', productId: 'recoco.theme.cocomon', price: 1000 },
+  { id: 'card', name: '코코몬 카드', desc: '네컷 사진을 수집 카드로 · 등급은 뽑을 때 무작위 (C·B·A·S·SS·R 6등급)', productId: 'recoco.theme.cocomon', price: 1000, kinds: ['fourcut'] },
 ];
 
 export const fourcutDesignUnlocked = (id: FourcutDesign | undefined, owned: string[]) =>

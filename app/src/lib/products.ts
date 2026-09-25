@@ -31,9 +31,6 @@ export interface PreviewProduct {
   samples: PreviewSample[];
 }
 
-/** 테마가 적용되는 카테고리 */
-export const THEME_TAGS = [KIND_LABEL.spending, KIND_LABEL.fourcut];
-
 export function themeProduct(t: ThemeItem): PreviewProduct {
   // 모눈종이는 색마다 한 장씩, 소비 영수증과 인생네컷 뒷면을 번갈아 보여준다
   const samples: PreviewSample[] =
@@ -47,7 +44,7 @@ export function themeProduct(t: ThemeItem): PreviewProduct {
           { record: sampleSpending(t.id), caption: '소비 영수증' },
           { record: sampleFourcut(t.id), side: 'back', caption: '인생네컷 뒷면' },
         ];
-  return { title: t.name, desc: t.desc, productId: t.productId, price: t.price, tags: THEME_TAGS, samples };
+  return { title: t.name, desc: t.desc, productId: t.productId, price: t.price, tags: t.kinds.map((k) => KIND_LABEL[k]), samples };
 }
 
 export const themeProductById = (id: ThemeItem['id']) => themeProduct(THEMES.find((t) => t.id === id)!);
@@ -58,8 +55,8 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
     desc: d.desc,
     productId: d.productId,
     price: d.price,
-    tags: [KIND_LABEL.food],
-    requires: ['food'],
+    tags: d.kinds.map((k) => KIND_LABEL[k]),
+    requires: d.kinds,
     // 지붕 색이 여러 가지라는 걸 보여준다 (색은 가게 종류와 상관없이 고른다)
     samples: HOUSE_SAMPLES.map(({ color, type, place, menus, total, revisit, memo }) => ({
       record: { ...sampleFood(), id: `preview-food-${d.id}-${color}`, design: d.id, color, type, place, menus, total, revisit, memo },
@@ -142,7 +139,7 @@ export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
     desc: d.desc,
     productId: d.productId,
     price: d.price,
-    tags: [KIND_LABEL.fourcut],
+    tags: d.kinds.map((k) => KIND_LABEL[k]),
     samples: [of('cm52', 'R · 무지개 (1%)'), of('cm16', 'SS (4%)'), of('cm13', 'S (9%)'), of('cm3', 'A (18%)'), of('cm4', 'B (28%)'), of('cm0', 'C (40%)')],
   };
 }
