@@ -137,7 +137,7 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
                 </Pressable>
               );
             })}
-            <Text style={styles.soon}>운동, 음악도 준비하고 있어요.</Text>
+            <Text style={styles.soon}>카테고리를 사면 기본 영수증 모양 2가지가 같이 따라와요.</Text>
           </Section>
 
           <Section title="영수증 테마" sub="같은 기록을 다른 종이로">
