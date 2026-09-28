@@ -18,6 +18,7 @@ import { Shop } from './components/Shop';
 import { WeekStamps, dateKey } from './components/WeekStamps';
 import { loadHaptics, tick } from './lib/haptics';
 import { OUTFITS, addOwned, initShop, useShop, wearOutfit } from './lib/shop';
+import { markFirstRun } from './lib/since';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
 import { RecoRecord, RecordKind } from './types';
@@ -59,6 +60,8 @@ export function HomeScreen() {
     loadRecords().then(setRecords);
     loadHaptics().catch(() => {});
     initShop().catch(() => {});
+    // 언제부터 쓴 사람인지 남겨둔다 — 나중에 유료화해도 그 전 사용자는 계속 무료 (lib/since.ts)
+    markFirstRun().catch(() => {});
   }, []);
 
   const update = useCallback((next: RecoRecord[]) => {
