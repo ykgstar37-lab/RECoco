@@ -1,11 +1,11 @@
 import { memo } from 'react';
 
-import { RecoRecord } from '../types';
+import { FourcutRecord, RecoRecord } from '../types';
 import { ConcertRetro, layoutConcertRetro } from './ConcertRetro';
 import { ConcertTicket, layoutConcert } from './ConcertTicket';
 import { FoodHouse, layoutFoodHouse } from './FoodHouse';
 import { FoodOrder, layoutFood } from './FoodOrder';
-import { FourcutBack, FourcutFront, layoutFourcut } from './Fourcut';
+import { FourcutBack as FourcutNoteBack, FourcutFront as FourcutStrip, layoutFourcut } from './Fourcut';
 import { GiftCoupon, layoutGift } from './GiftCoupon';
 import { MovieTicket, layoutMovie } from './MovieTicket';
 import { PhotoTicket, layoutPhotoTicket } from './PhotoTicket';
@@ -14,6 +14,7 @@ import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
 import { ShowHolo, layoutShowHolo } from './ShowHolo';
 import { ExerciseCard, layoutExerciseCard } from './ExerciseCard';
 import { FourcutCard, layoutFourcutCard } from './FourcutCard';
+import { FourcutCocochiBack, FourcutCocochiFront, layoutFourcutCocochi } from './FourcutCocochi';
 import { ExerciseSlip, layoutExerciseSlip } from './ExerciseSlip';
 import { MusicAlbum, layoutMusicAlbum } from './MusicAlbum';
 import { MusicList, layoutMusicList } from './MusicList';
@@ -25,7 +26,29 @@ import { TravelPass, layoutTravel } from './TravelPass';
 import { WristBand, layoutWristBand } from './WristBand';
 
 export type { TemplateLayout };
-export { FourcutBack, FourcutFront };
+
+interface FourcutFace {
+  record: FourcutRecord;
+  width: number;
+  connected?: boolean;
+}
+
+/**
+ * 인생네컷 앞·뒷면은 고른 모양에 따라 갈라진다.
+ * 롤의 FlipCard 와 자세히보기가 이걸 쓰므로 여기 한 곳에서만 가른다
+ * (전에는 FlipCard 가 네컷 띠를 바로 그려서, 롤에서는 코코몬 카드가 띠로 보였다)
+ */
+export function FourcutFront(p: FourcutFace) {
+  if (p.record.design === 'card') return <FourcutCard {...p} />;
+  if (p.record.design === 'cocochi') return <FourcutCocochiFront {...p} />;
+  return <FourcutStrip {...p} />;
+}
+
+export function FourcutBack(p: FourcutFace) {
+  // 코코치는 열쇠고리를 뒤집은 모습 (크림색 줄노트로 바뀌면 흐름이 끊긴다)
+  if (p.record.design === 'cocochi') return <FourcutCocochiBack {...p} />;
+  return <FourcutNoteBack {...p} />;
+}
 
 export function layoutOf(record: RecoRecord): TemplateLayout {
   switch (record.kind) {
@@ -38,7 +61,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'travel':
       return layoutTravel(record);
     case 'fourcut':
-      return record.design === 'card' ? layoutFourcutCard(record) : layoutFourcut(record);
+      return record.design === 'card' ? layoutFourcutCard(record) : record.design === 'cocochi' ? layoutFourcutCocochi(record) : layoutFourcut(record);
     case 'gift':
       return layoutGift(record);
     case 'food':
@@ -106,7 +129,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
     case 'travel':
       return <TravelPass record={record} width={width} connected={connected} />;
     case 'fourcut':
-      return record.design === 'card' ? <FourcutCard record={record} width={width} connected={connected} /> : <FourcutFront record={record} width={width} connected={connected} />;
+      return <FourcutFront record={record} width={width} connected={connected} />;
     case 'gift':
       return <GiftCoupon record={record} width={width} connected={connected} />;
     case 'food':

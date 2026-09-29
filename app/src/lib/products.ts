@@ -1,12 +1,13 @@
 // 상점 미리보기에 보여줄 상품 정보: 이름·설명·가격·쓰는 곳 태그·예시 기록
 import { KIND_LABEL } from '../templates';
 import { RETRO_COLORS, RETRO_COLOR_IDS } from '../templates/ConcertRetro';
+import { COCOCHI_COLORS, COCOCHI_COLOR_IDS } from '../templates/FourcutCocochi';
 import { HOUSE_COLORS } from '../templates/FoodHouse';
 import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
 import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
 import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
-import { ConcertDesign, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
+import { CocochiColor, ConcertDesign, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
 import { sampleConcert, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
 import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FOURCUT_DESIGNS, FoodDesignItem, FourcutDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
 
@@ -133,15 +134,20 @@ export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignPro
 
 /** 코코몬 카드: 등급이 뽑기라서 여러 등급을 나란히 보여준다 */
 export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
+  const head = { title: d.name, desc: d.desc, productId: d.productId, price: d.price, tags: d.kinds.map((k) => KIND_LABEL[k]) };
+
+  if (d.id === 'cocochi') {
+    // 껍데기 색마다 한 장씩, 마지막은 뒤집은 모습
+    const of = (color: CocochiColor, side?: 'back') => ({
+      record: { ...sampleFourcut(), id: `preview-cocochi-${color}${side ?? ''}`, design: 'cocochi' as const, cocochiColor: color },
+      side,
+      caption: side ? `${COCOCHI_COLORS[color].name} · 뒷면` : COCOCHI_COLORS[color].name,
+    });
+    return { ...head, samples: [...COCOCHI_COLOR_IDS.map((c) => of(c)), of('mint', 'back')] };
+  }
+
   const of = (id: string, caption: string) => ({ record: { ...sampleFourcut(), id, design: 'card' as const }, caption });
-  return {
-    title: d.name,
-    desc: d.desc,
-    productId: d.productId,
-    price: d.price,
-    tags: d.kinds.map((k) => KIND_LABEL[k]),
-    samples: [of('cm52', 'R · 무지개 (1%)'), of('cm16', 'SS (4%)'), of('cm13', 'S (9%)'), of('cm3', 'A (18%)'), of('cm4', 'B (28%)'), of('cm0', 'C (40%)')],
-  };
+  return { ...head, samples: [of('cm52', 'R · 무지개 (1%)'), of('cm16', 'SS (4%)'), of('cm13', 'S (9%)'), of('cm3', 'A (18%)'), of('cm4', 'B (28%)'), of('cm0', 'C (40%)')] };
 }
 
 export const fourcutDesignProductById = (id: FourcutDesignItem['id']) => fourcutDesignProduct(FOURCUT_DESIGNS.find((d) => d.id === id)!);

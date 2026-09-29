@@ -1085,8 +1085,14 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   </>
                 )}
                 <Label text="뒷면 — 오늘의 하루" />
-                <FourcutDesignPicker value={fourcut.design} onChange={(design) => setFourcut((f) => ({ ...f, design }))} />
-                {fourcut.design !== 'card' && (
+                <FourcutDesignPicker
+                  value={fourcut.design}
+                  onChange={(design) => setFourcut((f) => ({ ...f, design, cocochiColor: f.cocochiColor ?? 'mint' }))}
+                  cocochiColor={fourcut.cocochiColor}
+                  onColor={(cocochiColor) => setFourcut((f) => ({ ...f, cocochiColor }))}
+                />
+                {/* 코코몬 카드와 코코치는 뒷면을 제 모양대로 그리므로 뒷면 종이를 고르지 않는다 */}
+                {fourcut.design !== 'card' && fourcut.design !== 'cocochi' && (
                   <ThemePicker
                     label="뒷면 종이"
                     base="fourcut"

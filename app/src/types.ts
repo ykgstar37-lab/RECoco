@@ -108,7 +108,10 @@ export type FourcutFrame = 'white' | 'black' | 'pink' | 'sky';
 export type FourcutLayout = 'strip' | 'grid' | 'wide';
 
 /** strip: 네컷 사진 그대로(무료) / card: 코코몬 카드(유료) */
-export type FourcutDesign = 'strip' | 'card';
+export type FourcutDesign = 'strip' | 'card' | 'cocochi';
+
+/** 코코치(열쇠고리) 껍데기 색 */
+export type CocochiColor = 'mint' | 'silver' | 'purple' | 'pink' | 'white';
 
 /** 코코몬 카드 등급 — 뽑을 때 무작위로 정해진다 (고르는 게 아니다) */
 export type MonsterRank = 'c' | 'b' | 'a' | 's' | 'ss' | 'r';
@@ -133,6 +136,7 @@ export interface FourcutRecord extends BaseRecord {
   theme?: PaperTheme; // 뒷면 종이 (없으면 기본 크림 줄노트)
   themeColor?: GridColor; // 모눈종이 격자 색
   design?: FourcutDesign; // 없으면 네컷 사진 그대로
+  cocochiColor?: CocochiColor; // 코코치 껍데기 색
 }
 
 export type GiftCard = 'yellow' | 'pink' | 'mint' | 'sky' | 'plain';

@@ -26,6 +26,7 @@ import {
 } from '../lib/shop';
 import { RETRO_COLORS, RETRO_COLOR_IDS } from '../templates/ConcertRetro';
 import { EXERCISE_TYPES } from '../templates/ExerciseSlip';
+import { COCOCHI_COLORS, COCOCHI_COLOR_IDS } from '../templates/FourcutCocochi';
 import { HOUSE_COLORS, HOUSE_COLOR_IDS } from '../templates/FoodHouse';
 import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
 import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
@@ -33,7 +34,7 @@ import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { ORDER_COLORS, ORDER_COLOR_IDS } from '../templates/FoodOrder';
 import { COLORS, FONTS } from '../theme';
-import { ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, TicketColor } from '../types';
+import { CocochiColor, ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, TicketColor } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 모양을 고른 다음 그 모양의 색을 고르는 동그라미 줄 */
@@ -635,7 +636,21 @@ export function MusicDesignPicker({ value, onChange }: { value: MusicDesign | un
 }
 
 /** 인생네컷 모양 견본 (네컷 사진 / 코코몬 카드) */
-export function FourcutDesignSwatch({ design, size = 44 }: { design: FourcutDesign; size?: number }) {
+export function FourcutDesignSwatch({ design, size = 44, color }: { design: FourcutDesign; size?: number; color?: CocochiColor }) {
+  if (design === 'cocochi') {
+    const c = COCOCHI_COLORS[color ?? 'mint'];
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        {/* 달걀 모양 껍데기 */}
+        <Path d="M20 3 C31 3 36 13 36 25 C36 39 29 48 20 48 C11 48 4 39 4 25 C4 13 9 3 20 3 Z" fill={c.shell} />
+        <Path d="M17 6 h6 a3 3 0 0 1 0 6 h-6 a3 3 0 0 1 0 -6 Z" fill="#fff" opacity={0.55} />
+        <Rect x={11} y={16} width={18} height={17} rx={3} fill={c.screen} stroke="#fff" strokeWidth={1.2} opacity={0.95} />
+        {[13, 20, 27].map((cx) => (
+          <Circle key={cx} cx={cx} cy={40} r={3} fill="#fff" opacity={0.8} />
+        ))}
+      </Svg>
+    );
+  }
   if (design === 'card')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -660,7 +675,17 @@ export function FourcutDesignSwatch({ design, size = 44 }: { design: FourcutDesi
 }
 
 /** 인생네컷 폼의 모양 고르기: 코코몬 카드는 사면 열린다 */
-export function FourcutDesignPicker({ value, onChange }: { value: FourcutDesign | undefined; onChange: (design: FourcutDesign) => void }) {
+export function FourcutDesignPicker({
+  value,
+  onChange,
+  cocochiColor,
+  onColor,
+}: {
+  value: FourcutDesign | undefined;
+  onChange: (design: FourcutDesign) => void;
+  cocochiColor?: CocochiColor;
+  onColor?: (color: CocochiColor) => void;
+}) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: FourcutDesign; product: PreviewProduct } | null>(null);
   const options: { id: FourcutDesign; name: string; price: number }[] = [...FREE_FOURCUT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOURCUT_DESIGNS];
@@ -681,7 +706,7 @@ export function FourcutDesignPicker({ value, onChange }: { value: FourcutDesign 
           return (
             <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
               <View style={locked && { opacity: 0.55 }}>
-                <FourcutDesignSwatch design={o.id} />
+                <FourcutDesignSwatch design={o.id} color={cocochiColor} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
                 {locked ? '🔒 ' : ''}
@@ -692,7 +717,15 @@ export function FourcutDesignPicker({ value, onChange }: { value: FourcutDesign 
           );
         })}
       </View>
+      {design === 'cocochi' && (
+        <ColorDots
+          colors={COCOCHI_COLOR_IDS.map((id) => ({ id, name: COCOCHI_COLORS[id].name, swatch: COCOCHI_COLORS[id].shell }))}
+          value={cocochiColor ?? 'mint'}
+          onPick={(c) => onColor?.(c)}
+        />
+      )}
       {design === 'card' && <Text style={styles.hint}>등급은 뽑을 때 무작위로 정해져요 (C · B · A · S · SS · R)</Text>}
+      {design === 'cocochi' && <Text style={styles.hint}>네컷 중 첫 사진이 작은 화면에 들어가요. 뒤집으면 그날의 일기가 떠요</Text>}
 
       <ProductPreview
         product={preview?.product ?? null}

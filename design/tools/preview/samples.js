@@ -54,6 +54,12 @@ module.exports = () => {
     { name: '코코몬_R', record: { ...fourBase, id: 'cm52', design: 'card' } },
     { name: '코코몬_QR', record: { ...fourQr, id: 'cm16', design: 'card' } },
     { name: '코코몬_빈칸', record: { ...fourBase, id: 'cm3', design: 'card', photos: [], title: '', place: '', withWhom: '', diary: '' } },
+    ...['mint', 'pink', 'purple', 'silver', 'white'].map((c) => ({
+      name: `코코치_${c}`,
+      record: { ...fourBase, id: `cc-${c}`, design: 'cocochi', cocochiColor: c },
+    })),
+    { name: '코코치_뒷면', record: { ...fourBase, id: 'cc-back', design: 'cocochi', cocochiColor: 'pink' }, side: 'back' },
+    { name: '코코치_빈칸', record: { ...fourBase, id: 'cc-empty', design: 'cocochi', cocochiColor: 'white', photos: [], title: '', place: '', withWhom: '', diary: '' }, side: 'back' },
     { name: '운동_러닝_기록표', record: { id: 'ex-run', createdAt: '2026-09-19T08:00:00', kind: 'exercise', date: '2026-09-19', time: '07:10', type: 'run',
       place: '한강공원 망원지구', minutes: 42, distance: 6.4, pace: "6'32\"", moves: [], effort: 4,
       memo: '다리가 후들거렸지만 해냈다. 강바람이 시원했음', photo: null, design: 'slip' } },
