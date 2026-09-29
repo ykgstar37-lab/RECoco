@@ -2,5 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true
-  }
+  },
+  // 테스트는 node 로 돌린다(`npm test`). node 타입을 안 들이려고 앱 타입 검사에서는 뺀다
+  "exclude": ["**/*.test.ts"]
 }

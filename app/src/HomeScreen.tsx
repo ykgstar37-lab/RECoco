@@ -55,6 +55,7 @@ export function HomeScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { owned, outfit } = useShop();
   const [gift, setGift] = useState<string | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   useEffect(() => {
     loadRecords().then(setRecords);
@@ -64,10 +65,19 @@ export function HomeScreen() {
     markFirstRun().catch(() => {});
   }, []);
 
+  // 저장이 실패하면 조용히 넘기지 않는다 — 기록은 폰 안이 유일한 원본이라 잃으면 끝이다
   const update = useCallback((next: RecoRecord[]) => {
     setRecords(next);
-    saveRecords(next).catch(() => {});
+    saveRecords(next)
+      .then(() => setSaveFailed(false))
+      .catch(() => setSaveFailed(true));
   }, []);
+
+  /** 안 써진 기록을 다시 저장해 본다 */
+  const retrySave = useCallback(() => {
+    setSaveFailed(false);
+    saveRecords(records).catch(() => setSaveFailed(true));
+  }, [records]);
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -131,17 +141,19 @@ export function HomeScreen() {
   // 영수증을 뽑는 동안에는 대사를 비운다 (출력 화면 뒤로 흰 글씨가 비치지 않게)
   const headline = printing
     ? ''
-    : gift
-      ? gift
-      : cheer
-        ? '영수증 나왔다!\n도장 쾅 찍어줄게'
-        : picking
-          ? (focusHint ?? '오늘은\n뭘 기록할까?')
-          : poke
-            ? poke
-            : todayCount > 0
-              ? `오늘 벌써\n${todayCount}장이나 남겼어!`
-              : '오늘 하루도\n영수증으로 남겨볼까?';
+    : saveFailed
+      ? '방금 기록을\n저장하지 못했어…'
+      : gift
+        ? gift
+        : cheer
+          ? '영수증 나왔다!\n도장 쾅 찍어줄게'
+          : picking
+            ? (focusHint ?? '오늘은\n뭘 기록할까?')
+            : poke
+              ? poke
+              : todayCount > 0
+                ? `오늘 벌써\n${todayCount}장이나 남겼어!`
+                : '오늘 하루도\n영수증으로 남겨볼까?';
 
   // 모자를 쓰면 그림 위쪽 빈 공간이 줄어든다
   const topEmpty = outfit ? Math.min(COCO_TOP_EMPTY, OUTFIT_TOP[outfit] / 320) : COCO_TOP_EMPTY;
@@ -211,6 +223,19 @@ export function HomeScreen() {
             ))}
           </View>
         </>
+      )}
+
+      {/* 저장이 안 됐으면 될 때까지 띄워 둔다 (기록은 폰 안이 유일한 원본이다) */}
+      {saveFailed && (
+        <View style={styles.saveWarn}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.saveWarnTitle}>기록을 폰에 저장하지 못했어요</Text>
+            <Text style={styles.saveWarnBody}>지금 앱을 끄면 사라질 수 있어요. 저장 공간이 부족하지 않은지 확인해 주세요.</Text>
+          </View>
+          <Pressable onPress={retrySave} hitSlop={8} style={({ pressed }) => [styles.saveWarnBtn, pressed && { opacity: 0.8 }]}>
+            <Text style={styles.saveWarnBtnText}>다시 저장</Text>
+          </Pressable>
+        </View>
       )}
 
       {/* 상단 바와 대사 사이는 비워두고, 대사와 코코는 붙여서 아래쪽에 모은다 */}
@@ -388,6 +413,21 @@ const styles = StyleSheet.create({
   headlineBox: { height: HEADLINE_H, justifyContent: 'flex-end', zIndex: 1 },
   // 코코가 남는 세로 공간을 전부 차지한다
   stage: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 6, marginHorizontal: -40 },
+  saveWarn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingLeft: 14,
+    paddingRight: 10,
+    marginTop: 4,
+  },
+  saveWarnTitle: { color: '#c0392b', fontSize: 14, fontFamily: FONTS.sansBold },
+  saveWarnBody: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 2, lineHeight: 17 },
+  saveWarnBtn: { backgroundColor: COLORS.orange, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 9 },
+  saveWarnBtnText: { color: '#fff', fontSize: 13, fontFamily: FONTS.sansBold },
   bottom: { minHeight: 92, justifyContent: 'center', marginTop: 8 },
   bottomRow: { paddingHorizontal: 18 },
   rollBtn: {
