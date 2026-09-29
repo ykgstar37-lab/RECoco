@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1290" height="2796" viewBox="0 0 1290 2796">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fffaf4"/>
+    </linearGradient>
+    <!-- 오른쪽 위에서 번지는 주황 빛 -->
+    <radialGradient id="glow" cx="0.84" cy="0.10" r="0.66">
+      <stop offset="0" stop-color="#ff7a2f" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ff7a2f" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 아래쪽에 깔리는 옅은 살구빛 -->
+    <radialGradient id="glow2" cx="0.12" cy="0.94" r="0.55">
+      <stop offset="0" stop-color="#ff7a2f" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#ff7a2f" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 기기 테두리: 가로 방향이라 양쪽 끝(옆면)이 밝게 깎여 보인다 -->
+    <linearGradient id="rail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f3eee9"/>
+      <stop offset="0.04" stop-color="#b3aaa2"/>
+      <stop offset="0.16" stop-color="#635a53"/>
+      <stop offset="0.5" stop-color="#3a342f"/>
+      <stop offset="0.84" stop-color="#635a53"/>
+      <stop offset="0.96" stop-color="#b3aaa2"/>
+      <stop offset="1" stop-color="#f3eee9"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.70"/>
+      <stop offset="0.24" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.58" stop-color="#ffffff" stop-opacity="0.46"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#26211d"/>
+      <stop offset="0.35" stop-color="#978d84"/>
+      <stop offset="0.6" stop-color="#544c45"/>
+      <stop offset="1" stop-color="#26211d"/>
+    </linearGradient>
+    <linearGradient id="glare" x1="0" y1="0" x2="0.75" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.16" stop-color="#ffffff" stop-opacity="0.05"/>
+      <stop offset="0.34" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="lens" cx="0.34" cy="0.28" r="0.8">
+      <stop offset="0" stop-color="#5a4638"/>
+      <stop offset="0.55" stop-color="#14100d"/>
+      <stop offset="1" stop-color="#070605"/>
+    </radialGradient>
+    <filter id="drop" x="-30%" y="-15%" width="160%" height="140%">
+      <feDropShadow dx="0" dy="34" stdDeviation="34" flood-color="#6b3410" flood-opacity="0.22"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#6b3410" flood-opacity="0.16"/>
+    </filter>
+    <clipPath id="screenClip"><path d="M 870.2 775 c 77.29 0 115.93 0 145.45 15.04 a 138 138 0 0 1 60.31 60.31 c 15.04 29.52 15.04 68.16 15.04 145.45 L 1091 2488.2 c 0 77.29 0 115.93 -15.04 145.45 a 138 138 0 0 1 -60.31 60.31 c -29.52 15.04 -68.16 15.04 -145.45 15.04 L 418.8 2709 c -77.29 0 -115.93 0 -145.45 -15.04 a 138 138 0 0 1 -60.31 -60.31 c -15.04 -29.52 -15.04 -68.16 -15.04 -145.45 L 198 995.8 c 0 -77.29 0 -115.93 15.04 -145.45 a 138 138 0 0 1 60.31 -60.31 c 29.52 -15.04 68.16 -15.04 145.45 -15.04 Z"/></clipPath>
+  </defs>
+
+  <g id="Background">
+    <rect width="1290" height="2796" fill="url(#bg)"/>
+    <rect width="1290" height="2796" fill="url(#glow)"/>
+    <rect width="1290" height="2796" fill="url(#glow2)"/>
+  </g>
+
+  <g id="Caption" font-family="Pretendard, Pretendard Variable, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+    <text x="117" y="198" font-size="36" font-weight="700" letter-spacing="9.1" fill="#ff7a2f">WRITE</text>
+    <text x="117" y="333" font-size="96" font-weight="800" letter-spacing="-3.9" fill="#1f1f22">제목만 치면</text>
+    <text x="117" y="450" font-size="96" font-weight="800" letter-spacing="-3.9" fill="#ff7a2f">나머지는 저절로</text>
+    <text x="117" y="551" font-size="40" font-weight="500" fill="#8b8b91">표지·저자·러닝타임·관람등급까지.</text>
+    <text x="117" y="611" font-size="40" font-weight="500" fill="#8b8b91">바코드와 예매 문자로도 채워져요.</text>
+  </g>
+
+  <g id="Device">
+    <g id="Side buttons">
+      <rect x="177" y="1099" width="13" height="73" rx="5.06" fill="url(#btn)"/>
+      <rect x="177" y="1224" width="13" height="140" rx="5.06" fill="url(#btn)"/>
+      <rect x="177" y="1403" width="13" height="140" rx="5.06" fill="url(#btn)"/>
+      <rect x="1099" y="1244" width="13" height="242" rx="5.06" fill="url(#btn)"/>
+    </g>
+    <path id="Body" d="M 861.2 760 c 85.69 0 128.53 0 161.26 16.68 a 153 153 0 0 1 66.86 66.86 c 16.68 32.73 16.68 75.57 16.68 161.26 L 1106 2479.2 c 0 85.69 0 128.53 -16.68 161.26 a 153 153 0 0 1 -66.86 66.86 c -32.73 16.68 -75.57 16.68 -161.26 16.68 L 427.8 2724 c -85.69 0 -128.53 0 -161.26 -16.68 a 153 153 0 0 1 -66.86 -66.86 c -16.68 -32.73 -16.68 -75.57 -16.68 -161.26 L 183 1004.8 c 0 -85.69 0 -128.53 16.68 -161.26 a 153 153 0 0 1 66.86 -66.86 c 32.73 -16.68 75.57 -16.68 161.26 -16.68 Z" fill="url(#rail)" filter="url(#drop)"/>
+    <path id="Rim" d="M 862.1 761.5 c 84.85 0 127.27 0 159.68 16.51 a 151.5 151.5 0 0 1 66.21 66.21 c 16.51 32.41 16.51 74.83 16.51 159.68 L 1104.5 2480.1 c 0 84.85 0 127.27 -16.51 159.68 a 151.5 151.5 0 0 1 -66.21 66.21 c -32.41 16.51 -74.83 16.51 -159.68 16.51 L 426.9 2722.5 c -84.85 0 -127.27 0 -159.68 -16.51 a 151.5 151.5 0 0 1 -66.21 -66.21 c -16.51 -32.41 -16.51 -74.83 -16.51 -159.68 L 184.5 1003.9 c 0 -84.85 0 -127.27 16.51 -159.68 a 151.5 151.5 0 0 1 66.21 -66.21 c 32.41 -16.51 74.83 -16.51 159.68 -16.51 Z" fill="none" stroke="url(#rim)" stroke-width="2"/>
+    <g clip-path="url(#screenClip)">
+      <rect x="198" y="775" width="893" height="1934" fill="#fff1e7"/>
+      <text x="644.5" y="1742" font-family="Pretendard, Pretendard Variable, Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-size="46" font-weight="700" fill="#ff7a2f" text-anchor="middle">screens/04-write.png</text>
+      <text x="644.5" y="1812" font-family="Pretendard, Pretendard Variable, Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-size="34" fill="#8b8b91" text-anchor="middle">여기에 폰 캡처를 넣으세요</text>
+      <!-- 유리 안쪽 그림자 (테두리 쪽만 살짝 어둡게) -->
+      <path d="M 870.2 775 c 77.29 0 115.93 0 145.45 15.04 a 138 138 0 0 1 60.31 60.31 c 15.04 29.52 15.04 68.16 15.04 145.45 L 1091 2488.2 c 0 77.29 0 115.93 -15.04 145.45 a 138 138 0 0 1 -60.31 60.31 c -29.52 15.04 -68.16 15.04 -145.45 15.04 L 418.8 2709 c -77.29 0 -115.93 0 -145.45 -15.04 a 138 138 0 0 1 -60.31 -60.31 c -15.04 -29.52 -15.04 -68.16 -15.04 -145.45 L 198 995.8 c 0 -77.29 0 -115.93 15.04 -145.45 a 138 138 0 0 1 60.31 -60.31 c 29.52 -15.04 68.16 -15.04 145.45 -15.04 Z" fill="none" stroke="#000000" stroke-opacity="0.18" stroke-width="8"/>
+    </g>
+    <g id="Dynamic island">
+      <rect x="502" y="802" width="286" height="72" rx="36" fill="#0a0806"/>
+      <circle cx="748.4" cy="838" r="18.72" fill="url(#lens)"/>
+      <circle cx="742.78" cy="832.38" r="5.24" fill="#ff7a2f" fill-opacity="0.45"/>
+    </g>
+    <path id="Glare" d="M 870.2 775 c 77.29 0 115.93 0 145.45 15.04 a 138 138 0 0 1 60.31 60.31 c 15.04 29.52 15.04 68.16 15.04 145.45 L 1091 2488.2 c 0 77.29 0 115.93 -15.04 145.45 a 138 138 0 0 1 -60.31 60.31 c -29.52 15.04 -68.16 15.04 -145.45 15.04 L 418.8 2709 c -77.29 0 -115.93 0 -145.45 -15.04 a 138 138 0 0 1 -60.31 -60.31 c -15.04 -29.52 -15.04 -68.16 -15.04 -145.45 L 198 995.8 c 0 -77.29 0 -115.93 15.04 -145.45 a 138 138 0 0 1 60.31 -60.31 c 29.52 -15.04 68.16 -15.04 145.45 -15.04 Z" fill="url(#glare)" pointer-events="none"/>
+  </g>
+</svg>
