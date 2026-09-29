@@ -207,25 +207,38 @@ async function backPlate(buf, body, win) {
    *
    * 알 밖으로 조금 넘쳐도 괜찮다 — 투명한 칸은 창 말고는 알파를 건드리지 않으니 안 비어져 나온다.
    */
-  const ecx = body.x + body.w / 2;
-  const ecy = body.y + body.h / 2;
-  const inEgg = (x, y) => {
-    const ny = (y - body.y) / body.h; // 0 위 ~ 1 아래
-    // 달걀은 타원보다 **통통해서** 초타원(n=2.6)으로 잡고, 위쪽만 살짝 좁힌다
-    const taper = ny < 0.4 ? 0.9 + 0.1 * (ny / 0.4) : 1;
-    const dx = Math.abs(x - ecx) / ((body.w / 2) * taper);
-    const dy = Math.abs(y - ecy) / (body.h / 2);
-    return dx ** 2.6 + dy ** 2.6 <= 1;
+  /**
+   * ⚠️ 수식으로 그린 알 안쪽만 칠했더니 **옆구리가 잘렸다** — 달걀은 수식보다 통통하다.
+   * 그러니 실측한 가장자리를 그대로 쓰되, **튀는 줄만** 이웃 줄의 중앙값으로 눌러 준다.
+   * 달걀 윤곽은 줄마다 매끄럽게 변하므로 매끄러운 줄은 제 값이 그대로 남고,
+   * 사슬이 닿아 부풀어 오른 줄만 안쪽으로 당겨진다.
+   */
+  const capped = (arr, inward) => {
+    const out = [];
+    for (let y = body.y; y < body.y + body.h; y++) {
+      if (arr[y] === undefined) continue;
+      const win = [];
+      for (let k = -40; k <= 40; k++) if (arr[y + k] !== undefined) win.push(arr[y + k]);
+      win.sort((a, b) => a - b);
+      const med = win[win.length >> 1];
+      out[y] = inward(arr[y], med);
+    }
+    return out;
   };
+  const L = capped(left, (v, med) => Math.max(v, med - 6));
+  const R = capped(right, (v, med) => Math.min(v, med + 6));
 
   for (let y = body.y; y < body.y + body.h; y++) {
-    if (left[y] === undefined) continue;
-    for (let x = left[y]; x <= right[y]; x++) {
-      if (!inEgg(x, y)) continue;
+    if (L[y] === undefined) continue;
+    for (let x = L[y]; x <= R[y]; x++) {
       const i = (y * W + x) * 4;
-      // 뚫린 칸(창)은 메우고, 반투명 테두리는 원본 알파를 살려 거칠어지지 않게 둔다
-      if (data[i + 3] < 16) paint(i, x, y, true);
-      else paint(i, x, y, false);
+      const a = data[i + 3];
+      /**
+       * ⚠️ 껍데기 가장자리에 **반투명 광택 띠**가 있다. 색만 칠하고 알파를 그대로 두면
+       * 거기로 뒤가 비쳐서 '안 채워진 띠'처럼 보인다 → 어지간히 진한 칸은 알파도 꽉 채운다.
+       * 아주 옅은 칸(16~60)만 남겨야 달걀 테두리가 거칠어지지 않는다.
+       */
+      paint(i, x, y, a < 16 || a >= 60);
     }
   }
 
