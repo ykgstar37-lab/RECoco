@@ -58,7 +58,11 @@ module.exports = () => {
       name: `코코치_${c}`,
       record: { ...fourBase, id: `cc-${c}`, design: 'cocochi', cocochiColor: c },
     })),
-    { name: '코코치_뒷면', record: { ...fourBase, id: 'cc-back', design: 'cocochi', cocochiColor: 'pink' }, side: 'back' },
+    ...['mint', 'pink', 'purple', 'silver', 'white'].map((c) => ({
+      name: `코코치뒷_${c}`,
+      record: { ...fourBase, id: `ccb-${c}`, design: 'cocochi', cocochiColor: c },
+      side: 'back',
+    })),
     { name: '코코치_빈칸', record: { ...fourBase, id: 'cc-empty', design: 'cocochi', cocochiColor: 'white', photos: [], title: '', place: '', withWhom: '', diary: '' }, side: 'back' },
     { name: '운동_러닝_기록표', record: { id: 'ex-run', createdAt: '2026-09-19T08:00:00', kind: 'exercise', date: '2026-09-19', time: '07:10', type: 'run',
       place: '한강공원 망원지구', minutes: 42, distance: 6.4, pace: "6'32\"", moves: [], effort: 4,

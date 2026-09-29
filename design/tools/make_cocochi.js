@@ -94,6 +94,42 @@ async function opaqueBox(buf) {
   return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
+/**
+ * 달걀 몸통만 (사슬 제외). 줄마다 '가장 긴 이어진 칸'이 몸통이고,
+ * 사슬은 따로 떨어진 짧은 토막으로 잡히므로 그걸로 가른다.
+ */
+async function bodyBox(buf) {
+  const img = sharp(buf).ensureAlpha();
+  const { width: W, height: H } = await img.metadata();
+  const { data } = await img.raw().toBuffer({ resolveWithObject: true });
+  let x0 = W;
+  let y0 = H;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < H; y++) {
+    let bestS = -1;
+    let bestE = -1;
+    let s = -1;
+    for (let x = 0; x <= W; x++) {
+      const on = x < W && data[(y * W + x) * 4 + 3] > 24;
+      if (on && s < 0) s = x;
+      if (!on && s >= 0) {
+        if (x - s > bestE - bestS) {
+          bestS = s;
+          bestE = x;
+        }
+        s = -1;
+      }
+    }
+    if (bestE - bestS < W * 0.12) continue; // 사슬처럼 가는 토막은 몸통이 아니다
+    if (bestS < x0) x0 = bestS;
+    if (bestE - 1 > x1) x1 = bestE - 1;
+    if (y < y0) y0 = y;
+    if (y > y1) y1 = y;
+  }
+  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const spots = [];
@@ -120,8 +156,9 @@ async function main() {
 
     const w = await window_(buf);
     const c = await opaqueBox(buf);
-    spots.push({ name, win: w, crop: c });
-    console.log(`  ${name.padEnd(7)} ${(buf.length / 1024 / 1024).toFixed(2)}MB  창 ${w.w}x${w.h}  그림 ${c.w}x${c.h}`);
+    const b = await bodyBox(buf);
+    spots.push({ name, win: w, crop: c, body: b });
+    console.log(`  ${name.padEnd(7)} ${(buf.length / 1024 / 1024).toFixed(2)}MB  창 ${w.w}x${w.h}  그림 ${c.w}x${c.h}  몸통 ${b.w}x${b.h} @${b.x},${b.y}`);
   }
 
   console.log(`\n원본 ${(before / 1024 / 1024).toFixed(1)}MB → ${(after / 1024 / 1024).toFixed(1)}MB`);
@@ -129,7 +166,7 @@ async function main() {
   console.log('const SPOT: Record<CocochiColor, Spot> = {');
   for (const s of spots)
     console.log(
-      `  ${s.name}: { crop: { x: ${s.crop.x}, y: ${s.crop.y}, w: ${s.crop.w}, h: ${s.crop.h} }, win: { x: ${s.win.x}, y: ${s.win.y}, w: ${s.win.w}, h: ${s.win.h} } },`,
+      `  ${s.name}: { crop: { x: ${s.crop.x}, y: ${s.crop.y}, w: ${s.crop.w}, h: ${s.crop.h} }, win: { x: ${s.win.x}, y: ${s.win.y}, w: ${s.win.w}, h: ${s.win.h} }, body: { x: ${s.body.x}, y: ${s.body.y}, w: ${s.body.w}, h: ${s.body.h} } },`,
     );
   console.log('};');
 }
