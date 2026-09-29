@@ -5,7 +5,7 @@ import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
 import { PreviewProduct, categoryProduct, designProduct, foodDesignProduct, fourcutDesignProduct, themeProduct } from '../lib/products';
-import { DESIGN_SHELF, FOOD_DESIGNS, FOURCUT_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { DESIGN_SHELF, FOOD_DESIGNS, FOURCUT_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, nextOutfit, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { ConcertDesign, RecordKind, ShowDesign } from '../types';
@@ -17,6 +17,7 @@ import { ConcertDesignSwatch, FoodDesignSwatch, FourcutDesignSwatch, ShowDesignS
 interface Props {
   visible: boolean;
   owned: string[];
+  recordCount: number;
   onClose: () => void;
   onBought: (productId: string) => void;
   onOpenCloset: () => void;
@@ -48,13 +49,13 @@ const SHELF: ShelfItem[] = [
 /** 분류 알약에 세울 카테고리 (테마가 하나라도 붙은 것만, 카테고리 차례대로) */
 const SHELF_KINDS = (Object.keys(KIND_LABEL) as RecordKind[]).filter((k) => SHELF.some((s) => s.kinds.includes(k)));
 
-/** 상점: 코코 모자(눌러서 옷장에서 입어보고 사기), 영수증 테마, 곧 나올 새 카테고리 */
-export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props) {
+/** 상점: 코코 모자(영수증을 모으면 하나씩 받는다), 영수증 테마, 새 카테고리 */
+export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenCloset }: Props) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [preview, setPreview] = useState<PreviewProduct | null>(null);
   const [filter, setFilter] = useState<RecordKind | null>(null);
-  const paidHats = OUTFITS.filter((o) => o.unlock.type === 'paid');
+  const next = nextOutfit(recordCount);
   const shown = filter ? SHELF.filter((s) => s.kinds.includes(filter)) : SHELF;
 
   useEffect(() => {
@@ -87,19 +88,19 @@ export function Shop({ visible, owned, onClose, onBought, onOpenCloset }: Props)
         </View>
 
         <ScrollView contentContainerStyle={styles.body}>
-          <Section title="코코 모자" sub={`하나에 ${won(1000)}원 · 기록하면 받는 모자도 있어요`}>
+          <Section title="코코 모자" sub={next ? `다음 모자까지 영수증 ${next.left}장` : '모자를 다 모았어요!'}>
             <View style={styles.hats}>
-              {paidHats.map((o) => {
-                const have = isUnlocked(o, owned, 0);
+              {OUTFITS.map((o) => {
+                const have = isUnlocked(o, recordCount);
                 return (
                   <Pressable key={o.id} onPress={onOpenCloset} style={({ pressed }) => [styles.hatCell, pressed && { opacity: 0.7 }]}>
-                    <View style={styles.hat}>
+                    <View style={[styles.hat, !have && styles.hatOff]}>
                       <CocoArt size={60} tone="white" outfit={o.id} id={`shop-${o.id}`} />
                     </View>
                     <Text style={styles.hatName} numberOfLines={1}>
                       {o.name}
                     </Text>
-                    <Text style={[styles.hatPrice, have && { color: COLORS.orange }]}>{have ? '보유' : o.unlock.type === 'paid' ? `${won(o.unlock.price)}원` : ''}</Text>
+                    <Text style={[styles.hatPrice, have && { color: COLORS.orange }]}>{have ? '받음' : `${o.records}장`}</Text>
                   </Pressable>
                 );
               })}
@@ -219,6 +220,7 @@ const styles = StyleSheet.create({
   hats: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, rowGap: 10 },
   hatCell: { width: '25%', paddingHorizontal: 4, alignItems: 'center' },
   hat: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4 },
+  hatOff: { backgroundColor: COLORS.line, opacity: 0.55 },
   hatName: { color: COLORS.ink, fontSize: 12, fontFamily: FONTS.sansBold, marginTop: 5 },
   hatPrice: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: 1 },
   closetLink: {

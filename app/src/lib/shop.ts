@@ -11,28 +11,37 @@ import type { ConcertDesign, ExerciseDesign, FoodDesign, FourcutDesign, MusicDes
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
 
-export type Unlock = { type: 'reward'; records: number } | { type: 'paid'; productId: string; price: number };
-
+/**
+ * 코코 옷은 팔지 않는다 — **영수증을 몇 장 뽑았는지로 하나씩 열린다** (2026-09-29 확정).
+ * 장수 순으로 적어 둘 것. 앞은 금방 닿게, 뒤로 갈수록 뜸하게. 왕관이 마지막 상이다.
+ */
 export interface OutfitItem {
   id: OutfitId;
   name: string;
-  unlock: Unlock;
+  /** 이 장수를 채우면 받는다 */
+  records: number;
 }
 
 export const OUTFITS: OutfitItem[] = [
-  { id: 'ribbon', name: '리본', unlock: { type: 'reward', records: 3 } },
-  { id: 'heart', name: '하트 꼬랑지', unlock: { type: 'reward', records: 10 } },
-  { id: 'straw', name: '밀짚모자', unlock: { type: 'reward', records: 30 } },
-  { id: 'beret', name: '베레모', unlock: { type: 'paid', productId: 'recoco.outfit.beret', price: 1000 } },
-  { id: 'crown', name: '왕관', unlock: { type: 'paid', productId: 'recoco.outfit.crown', price: 1000 } },
-  { id: 'party', name: '파티 고깔', unlock: { type: 'paid', productId: 'recoco.outfit.party', price: 1000 } },
-  { id: 'headphones', name: '헤드폰', unlock: { type: 'paid', productId: 'recoco.outfit.headphones', price: 1000 } },
-  { id: 'earflap', name: '귀도리 니트', unlock: { type: 'paid', productId: 'recoco.outfit.earflap', price: 1000 } },
-  { id: 'trapper', name: '털 방한모', unlock: { type: 'paid', productId: 'recoco.outfit.trapper', price: 1000 } },
-  { id: 'glasses', name: '빨간 안경', unlock: { type: 'paid', productId: 'recoco.outfit.glasses', price: 1000 } },
-  { id: 'cat', name: '고양이', unlock: { type: 'paid', productId: 'recoco.outfit.cat', price: 1000 } },
-  { id: 'dog', name: '강아지 귀', unlock: { type: 'paid', productId: 'recoco.outfit.dog', price: 1000 } },
+  { id: 'ribbon', name: '리본', records: 3 },
+  { id: 'heart', name: '하트 꼬랑지', records: 7 },
+  { id: 'straw', name: '밀짚모자', records: 12 },
+  { id: 'glasses', name: '빨간 안경', records: 20 },
+  { id: 'beret', name: '베레모', records: 30 },
+  { id: 'party', name: '파티 고깔', records: 45 },
+  { id: 'headphones', name: '헤드폰', records: 60 },
+  { id: 'cat', name: '고양이', records: 80 },
+  { id: 'earflap', name: '귀도리 니트', records: 100 },
+  { id: 'dog', name: '강아지 귀', records: 130 },
+  { id: 'trapper', name: '털 방한모', records: 165 },
+  { id: 'crown', name: '왕관', records: 200 },
 ];
+
+/** 다음에 받을 모자와 몇 장 남았는지 (다 받았으면 null) */
+export function nextOutfit(recordCount: number): { item: OutfitItem; left: number } | null {
+  const item = OUTFITS.find((o) => o.records > recordCount);
+  return item ? { item, left: item.records - recordCount } : null;
+}
 
 export interface ThemeItem {
   id: PaperTheme;
@@ -196,9 +205,7 @@ export async function loadShop(): Promise<ShopState> {
 export const saveOwned = (owned: string[]) => AsyncStorage.setItem(OWNED_KEY, JSON.stringify(owned));
 export const saveOutfit = (outfit: OutfitId | null) => (outfit ? AsyncStorage.setItem(OUTFIT_KEY, outfit) : AsyncStorage.removeItem(OUTFIT_KEY));
 
-export function isUnlocked(item: OutfitItem, owned: string[], recordCount: number) {
-  return item.unlock.type === 'reward' ? recordCount >= item.unlock.records : owned.includes(item.unlock.productId);
-}
+export const isUnlocked = (item: OutfitItem, recordCount: number) => recordCount >= item.records;
 
 // ── 앱 전체가 같이 보는 구매·옷 상태 ──
 let state: ShopState = { owned: [], outfit: null };

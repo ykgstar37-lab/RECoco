@@ -2,64 +2,41 @@ import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { won } from '../lib/format';
 import { tick } from '../lib/haptics';
-import { OUTFITS, OutfitItem, isUnlocked, purchase, purchaseErrorMessage } from '../lib/shop';
+import { OUTFITS, OutfitItem, isUnlocked } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { Coco, CocoArt } from './Coco';
 import { OutfitId } from './Outfits';
 
 interface Props {
   visible: boolean;
-  owned: string[];
   recordCount: number;
   outfit: OutfitId | null;
   onClose: () => void;
   onWear: (outfit: OutfitId | null) => void;
-  onBought: (productId: string) => void;
 }
 
-/** 코코 옷장: 눌러서 입혀보고, 해금된 옷은 입히고, 잠긴 옷은 사거나 기록으로 받는다 */
-export function Closet({ visible, owned, recordCount, outfit, onClose, onWear, onBought }: Props) {
+/** 코코 옷장: 눌러서 입혀보고, 받은 옷은 입힌다. 아직인 옷은 영수증을 더 모으면 열린다 */
+export function Closet({ visible, recordCount, outfit, onClose, onWear }: Props) {
   // 입어보는 중인 옷 (null = 맨머리)
   const [trying, setTrying] = useState<OutfitId | null>(outfit);
-  const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState('');
 
   useEffect(() => {
     if (!visible) return;
     setTrying(outfit);
-    setNotice('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   const item = OUTFITS.find((o) => o.id === trying) ?? null;
-  const unlocked = !item || isUnlocked(item, owned, recordCount);
-
-  const buy = async (productId: string) => {
-    if (busy) return;
-    setBusy(true);
-    setNotice('');
-    try {
-      onBought(await purchase(productId));
-      setNotice('고마워요! 코코가 신났어요');
-    } catch (e) {
-      setNotice(purchaseErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
-  };
+  const unlocked = !item || isUnlocked(item, recordCount);
 
   let action: { label: string; onPress?: () => void };
   if (!item) {
     action = outfit ? { label: '모자 벗기', onPress: () => onWear(null) } : { label: '지금 맨머리예요' };
   } else if (unlocked) {
     action = outfit === item.id ? { label: '입는 중' } : { label: `${item.name} 입히기`, onPress: () => onWear(item.id) };
-  } else if (item.unlock.type === 'reward') {
-    action = { label: `영수증 ${item.unlock.records - recordCount}장 더 모으면 받아요` };
   } else {
-    const { productId, price } = item.unlock;
-    action = { label: `${item.name} ${won(price)}원에 사기`, onPress: () => buy(productId) };
+    action = { label: `영수증 ${item.records - recordCount}장 더 모으면 받아요` };
   }
 
   return (
@@ -85,19 +62,18 @@ export function Closet({ visible, owned, recordCount, outfit, onClose, onWear, o
                 key={o.id}
                 outfit={o.id}
                 label={o.name}
-                status={statusOf(o, owned, recordCount, outfit)}
-                locked={!isUnlocked(o, owned, recordCount)}
+                status={statusOf(o, recordCount, outfit)}
+                locked={!isUnlocked(o, recordCount)}
                 selected={trying === o.id}
                 onPress={() => setTrying(o.id)}
               />
             ))}
           </View>
 
-          {!!notice && <Text style={styles.notice}>{notice}</Text>}
         </ScrollView>
 
         <Pressable
-          disabled={!action.onPress || busy}
+          disabled={!action.onPress}
           onPress={action.onPress}
           style={({ pressed }) => [styles.action, !action.onPress && styles.actionOff, pressed && { opacity: 0.85 }]}>
           <Text style={[styles.actionText, !action.onPress && styles.actionTextOff]}>{action.label}</Text>
@@ -107,10 +83,10 @@ export function Closet({ visible, owned, recordCount, outfit, onClose, onWear, o
   );
 }
 
-function statusOf(o: OutfitItem, owned: string[], recordCount: number, outfit: OutfitId | null) {
+function statusOf(o: OutfitItem, recordCount: number, outfit: OutfitId | null) {
   if (outfit === o.id) return '입는 중';
-  if (isUnlocked(o, owned, recordCount)) return '';
-  return o.unlock.type === 'reward' ? `영수증 ${o.unlock.records}장` : `${won(o.unlock.price)}원`;
+  if (isUnlocked(o, recordCount)) return '';
+  return `영수증 ${o.records}장`;
 }
 
 function Tile({
@@ -175,7 +151,6 @@ const styles = StyleSheet.create({
   tileArt: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4 },
   tileLabel: { color: COLORS.ink, fontSize: 12, fontFamily: FONTS.sansBold, marginTop: 6 },
   tileStatus: { color: COLORS.sub, fontSize: 10, fontFamily: FONTS.sans, marginTop: 1 },
-  notice: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center' },
   action: { marginHorizontal: 16, marginBottom: 8, backgroundColor: COLORS.orange, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   actionOff: { backgroundColor: COLORS.surface },
   actionText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },

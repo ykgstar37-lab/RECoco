@@ -105,7 +105,7 @@ export function HomeScreen() {
       setWeekOffset(Math.min(0, Math.round((sundayRecord.getTime() - sundayToday.getTime()) / (7 * 86400000))));
     }
     // 영수증 장수가 보상 기준에 닿으면 모자 선물
-    const reward = OUTFITS.find((o) => o.unlock.type === 'reward' && o.unlock.records === records.length + 1);
+    const reward = OUTFITS.find((o) => o.records === records.length + 1);
     setGift(reward ? `${reward.name} 받았다!\n옷장에서 씌워줘` : null);
     setCheer(true);
     setTimeout(() => {
@@ -291,16 +291,15 @@ export function HomeScreen() {
       />
       <Closet
         visible={closetOpen}
-        owned={owned}
         recordCount={records.length}
         outfit={outfit}
         onClose={() => setClosetOpen(false)}
         onWear={wearOutfit}
-        onBought={addOwned}
       />
       <Shop
         visible={shopOpen}
         owned={owned}
+        recordCount={records.length}
         onClose={() => setShopOpen(false)}
         onBought={addOwned}
         onOpenCloset={() => {
