@@ -130,6 +130,112 @@ async function bodyBox(buf) {
   return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
+/**
+ * 뒷면 그림을 굽는다. 몸통을 **민색으로 꽉 채우고** 사슬은 그대로 둔다.
+ * 판을 SVG 로 덧그리면 내 달걀 곡선이 실루엣과 꼭 맞지 않아 테두리가 새어 나왔다 —
+ * 그림 자체를 만들면 한 올도 안 샌다.
+ *
+ * ⚠️ '가장자리에서 흘려 채워 바깥을 찾는' 방법은 여기서 안 통한다.
+ *    사슬 끝 고리가 달걀에 닿아 **달걀과 사슬 사이 주머니를 가둬 버려서**, 그 주머니가
+ *    바깥으로 안 새고 몸통으로 잡힌다(사슬이 통째로 먹혔던 이유).
+ *    그래서 **몸통 네모 안 + 불투명** 으로 가르고, 창은 네모째 따로 메운다.
+ *
+ * 민색은 몸통의 중앙값을 뽑아 쓴다 (원본을 다시 그려도 알아서 따라온다).
+ */
+async function backPlate(buf, body, win) {
+  const img = sharp(buf).ensureAlpha();
+  const { width: W, height: H } = await img.metadata();
+  const { data } = await img.raw().toBuffer({ resolveWithObject: true });
+
+  const inBody = (x, y) => x >= body.x && x < body.x + body.w && y >= body.y && y < body.y + body.h;
+
+  // 민색: 몸통의 중앙값. 최빈값을 쓰면 은색·흰색이 하이라이트에 끌려 순백이 된다
+  const chans = [[], [], []];
+  for (let y = body.y; y < body.y + body.h; y += 2) {
+    for (let x = body.x; x < body.x + body.w; x += 2) {
+      const i = (y * W + x) * 4;
+      if (data[i + 3] < 250) continue;
+      for (let c = 0; c < 3; c++) chans[c].push(data[i + c]);
+    }
+  }
+  const flat = chans.map((v) => {
+    v.sort((a, b) => a - b);
+    return v[v.length >> 1] ?? 220;
+  });
+
+  // 가장자리로 갈수록 살짝 어둡게 — 도톰한 느낌만 남긴다
+  const shade = (x, y) => {
+    const dx = Math.abs(x - (body.x + body.w / 2)) / (body.w / 2);
+    const dy = Math.abs(y - (body.y + body.h / 2)) / (body.h / 2);
+    const d = Math.min(1, Math.hypot(dx, dy));
+    return 1 - 0.1 * d * d;
+  };
+  const paint = (i, x, y, opaque) => {
+    const k = shade(x, y);
+    for (let c = 0; c < 3; c++) out[i + c] = Math.round(flat[c] * k);
+    if (opaque) out[i + 3] = 255;
+  };
+
+  const out = Buffer.from(data);
+  const cx = Math.round(body.x + body.w / 2);
+  // 몸통이거나 창이면 '이어진 것'으로 본다 (창이 가운데를 뚫고 있어서 창도 이어야 한다).
+  // ⚠️ 기준을 100 으로 잡으면 **창 둘레 반투명 테두리**에서 퍼짐이 멈춰 젬이 새어 나온다.
+  //    달걀과 사슬 사이는 진짜로 비어 있으니(알파 0) 16 이면 거기서 알아서 멈춘다
+  const solid = (x, y) => {
+    if (!inBody(x, y)) return false;
+    if (x >= win.x && x < win.x + win.w && y >= win.y && y < win.y + win.h) return true;
+    return data[(y * W + x) * 4 + 3] >= 16;
+  };
+
+  // 줄마다 가운데에서 좌우로 퍼져 달걀 가장자리를 찾는다
+  const left = [];
+  const right = [];
+  for (let y = body.y; y < body.y + body.h; y++) {
+    if (!solid(cx, y)) continue;
+    let s = cx;
+    let e = cx;
+    while (s - 1 >= body.x && solid(s - 1, y)) s -= 1;
+    while (e + 1 < body.x + body.w && solid(e + 1, y)) e += 1;
+    left[y] = s;
+    right[y] = e;
+  }
+
+  /**
+   * ⚠️ 사슬이 달걀에 **닿아 있는** 줄에서는 퍼짐이 사슬로 넘어가, 알 사이 틈이 그대로 남아
+   * 가장자리가 톱니처럼 패였다(은색에서 400줄 넘게 이어져 중앙값으로도 안 눌렸다).
+   * 달걀은 매끄러운 알 모양이므로 **수식으로 그린 알 안쪽만** 칠한다. 사슬은 그 밖이라 안 닿는다.
+   *
+   * 알 밖으로 조금 넘쳐도 괜찮다 — 투명한 칸은 창 말고는 알파를 건드리지 않으니 안 비어져 나온다.
+   */
+  const ecx = body.x + body.w / 2;
+  const ecy = body.y + body.h / 2;
+  const inEgg = (x, y) => {
+    const ny = (y - body.y) / body.h; // 0 위 ~ 1 아래
+    // 달걀은 타원보다 **통통해서** 초타원(n=2.6)으로 잡고, 위쪽만 살짝 좁힌다
+    const taper = ny < 0.4 ? 0.9 + 0.1 * (ny / 0.4) : 1;
+    const dx = Math.abs(x - ecx) / ((body.w / 2) * taper);
+    const dy = Math.abs(y - ecy) / (body.h / 2);
+    return dx ** 2.6 + dy ** 2.6 <= 1;
+  };
+
+  for (let y = body.y; y < body.y + body.h; y++) {
+    if (left[y] === undefined) continue;
+    for (let x = left[y]; x <= right[y]; x++) {
+      if (!inEgg(x, y)) continue;
+      const i = (y * W + x) * 4;
+      // 뚫린 칸(창)은 메우고, 반투명 테두리는 원본 알파를 살려 거칠어지지 않게 둔다
+      if (data[i + 3] < 16) paint(i, x, y, true);
+      else paint(i, x, y, false);
+    }
+  }
+
+  // 민색이라 색 수가 적다 — 팔레트로 구우면 훨씬 가볍다
+  const png = await sharp(out, { raw: { width: W, height: H, channels: 4 } })
+    .png({ palette: true, colors: 64, compressionLevel: 9, effort: 10 })
+    .toBuffer();
+  return { png, flat: `#${flat.map((v) => v.toString(16).padStart(2, '0')).join('')}` };
+}
+
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const spots = [];
@@ -157,8 +263,14 @@ async function main() {
     const w = await window_(buf);
     const c = await opaqueBox(buf);
     const b = await bodyBox(buf);
-    spots.push({ name, win: w, crop: c, body: b });
-    console.log(`  ${name.padEnd(7)} ${(buf.length / 1024 / 1024).toFixed(2)}MB  창 ${w.w}x${w.h}  그림 ${c.w}x${c.h}  몸통 ${b.w}x${b.h} @${b.x},${b.y}`);
+
+    // 뒷면 (몸통을 민색으로 꽉 채운 것)
+    const back = await backPlate(buf, b, w);
+    fs.writeFileSync(path.join(OUT, `${name}-back.png`), back.png);
+    after += back.png.length;
+
+    spots.push({ name, win: w, crop: c, body: b, flat: back.flat });
+    console.log(`  ${name.padEnd(7)} 앞 ${(buf.length / 1024).toFixed(0)}KB + 뒤 ${(back.png.length / 1024).toFixed(0)}KB  민색 ${back.flat}  몸통 ${b.w}x${b.h}`);
   }
 
   console.log(`\n원본 ${(before / 1024 / 1024).toFixed(1)}MB → ${(after / 1024 / 1024).toFixed(1)}MB`);

@@ -2,9 +2,9 @@
 // 껍데기는 design/tools/make_cocochi.js 가 다듬은 그림(assets/cocochi/*.png)을 그대로 쓰고,
 // 사진과 글자만 창 안에 얹는다. 원본이 바뀌면 그 스크립트를 다시 돌려 SPOT 을 갱신할 것.
 //
-// 뒤집으면 같은 열쇠고리 뒷모습이 나온다. 뒷면은 **껍데기 색으로 덮은 민판**에
-// 날짜·제목·일기·위치(핀)·누구랑을 쓴다 — 작은 창에 몰아넣으면 서너 줄밖에 못 적는다.
-// 사슬과 바깥 테두리는 그림에서 그대로 남아 같은 물건으로 읽힌다.
+// 뒤집으면 같은 열쇠고리 뒷모습이 나온다. 뒷면은 **몸통을 민색으로 꽉 채워 구운 그림**
+// (`*-back.png`)이라 앞면 꾸밈이 한 올도 안 비친다. 사슬은 그대로 남아 같은 물건으로 읽힌다.
+// 그 위에 날짜·제목·일기·위치(핀)·누구랑을 쓴다 — 작은 창에 몰아넣으면 서너 줄밖에 못 적는다.
 //
 // ⚠️ 달걀이라 네모난 종이가 아니다 → PaperShadow(네모 그림자)를 쓰지 않는다.
 // 쓰면 투명한 배경에 옅은 회색 네모가 깔린다.
@@ -26,12 +26,13 @@ interface Box {
   h: number;
 }
 
-export const COCOCHI_COLORS: Record<CocochiColor, { name: string; shell: string; screen: string; ink: string; frame: number }> = {
-  mint: { name: '민트', shell: '#8fe3cd', screen: '#dff7ef', ink: '#1d6a59', frame: asset(require('../../assets/cocochi/mint.png')) },
-  pink: { name: '핑크', shell: '#ffb6cf', screen: '#ffeaf1', ink: '#8c3a58', frame: asset(require('../../assets/cocochi/pink.png')) },
-  purple: { name: '퍼플', shell: '#c5b3f0', screen: '#efe9ff', ink: '#4c3a8c', frame: asset(require('../../assets/cocochi/purple.png')) },
-  silver: { name: '실버', shell: '#cfd6de', screen: '#eef2f6', ink: '#3d4753', frame: asset(require('../../assets/cocochi/silver.png')) },
-  white: { name: '화이트', shell: '#f0ece8', screen: '#faf7f4', ink: '#4a4340', frame: asset(require('../../assets/cocochi/white.png')) },
+/** shell 은 색 동그라미용. back 은 몸통을 민색으로 꽉 채운 뒷면 그림(make_cocochi.js 가 굽는다) */
+export const COCOCHI_COLORS: Record<CocochiColor, { name: string; shell: string; screen: string; ink: string; frame: number; back: number }> = {
+  mint: { name: '민트', shell: '#afead9', screen: '#dff7ef', ink: '#1d6a59', frame: asset(require('../../assets/cocochi/mint.png')), back: asset(require('../../assets/cocochi/mint-back.png')) },
+  pink: { name: '핑크', shell: '#f8b9d2', screen: '#ffeaf1', ink: '#8c3a58', frame: asset(require('../../assets/cocochi/pink.png')), back: asset(require('../../assets/cocochi/pink-back.png')) },
+  purple: { name: '퍼플', shell: '#dbc0e9', screen: '#efe9ff', ink: '#4c3a8c', frame: asset(require('../../assets/cocochi/purple.png')), back: asset(require('../../assets/cocochi/purple-back.png')) },
+  silver: { name: '실버', shell: '#a8abb5', screen: '#eef2f6', ink: '#3d4753', frame: asset(require('../../assets/cocochi/silver.png')), back: asset(require('../../assets/cocochi/silver-back.png')) },
+  white: { name: '화이트', shell: '#e7dceb', screen: '#faf7f4', ink: '#4a4340', frame: asset(require('../../assets/cocochi/white.png')), back: asset(require('../../assets/cocochi/white-back.png')) },
 };
 
 export const COCOCHI_COLOR_IDS = Object.keys(COCOCHI_COLORS) as CocochiColor[];
@@ -83,19 +84,21 @@ function Shell({ color, id, back }: { color: CocochiColor; id: string; back?: bo
   const { win } = SPOT[color];
   return (
     <G>
-      {/* 뒷모습은 같은 껍데기를 좌우로 뒤집어 보여준다 (사슬이 반대쪽으로 간다) */}
+      {/* 뒷모습은 몸통을 민색으로 꽉 채운 그림을 좌우로 뒤집어 보여준다 (사슬이 반대쪽으로 간다) */}
       <G transform={back ? `translate(${PW} 0) scale(-1 1)` : undefined}>
-        <Image href={info.frame} x={X(0)} y={Y(0)} width={SHEET * kx} height={SHEET * ky} preserveAspectRatio="none" />
+        <Image href={back ? info.back : info.frame} x={X(0)} y={Y(0)} width={SHEET * kx} height={SHEET * ky} preserveAspectRatio="none" />
       </G>
-      {/* 창은 뚫려 있어서 뒤가 비친다 — 화면 바탕을 깔아준다 */}
-      <Rect
-        x={back ? PW - X(win.x + win.w) : X(win.x)}
-        y={Y(win.y)}
-        width={X(win.x + win.w) - X(win.x)}
-        height={Y(win.y + win.h) - Y(win.y)}
-        fill={info.screen}
-        clipPath={`url(#${id}-win)`}
-      />
+      {/* 앞면의 창은 뚫려 있어서 뒤가 비친다 — 화면 바탕을 깔아준다 (뒷면은 이미 메워져 있다) */}
+      {!back && (
+        <Rect
+          x={X(win.x)}
+          y={Y(win.y)}
+          width={X(win.x + win.w) - X(win.x)}
+          height={Y(win.y + win.h) - Y(win.y)}
+          fill={info.screen}
+          clipPath={`url(#${id}-win)`}
+        />
+      )}
     </G>
   );
 }
@@ -140,7 +143,7 @@ export function FourcutCocochiFront({ record: r, width, connected }: Props) {
   );
 }
 
-/** 달걀 모양 판 (몸통 네모에 맞춘 알 곡선). 뒷면을 이 색으로 덮는다 */
+/** 달걀 모양 (몸통 네모에 맞춘 알 곡선). 글이 테두리 밖으로 안 나가게 자르는 데 쓴다 */
 function eggPath(b: Box) {
   const cx = b.x + b.w / 2;
   const r = b.x + b.w;
@@ -167,9 +170,9 @@ function Pin({ x, y, size, fill }: { x: number; y: number; size: number; fill: s
 }
 
 /**
- * 뒷면: 같은 열쇠고리를 뒤집은 모습이되, **껍데기 색으로 덮은 민판**에 글을 쓴다.
- * 작은 화면 안에 몰아넣으면 서너 줄밖에 못 적어서, 뒤집은 면 전체를 쓴다.
- * 사슬·바깥 테두리는 앞면 그림에서 그대로 남으므로 같은 물건으로 읽힌다.
+ * 뒷면: 같은 열쇠고리를 뒤집은 모습. 몸통이 **민색으로 꽉 채워진 그림**이라 앞면 꾸밈이
+ * 한 올도 안 비친다 (`*-back.png`, make_cocochi.js 가 굽는다). 그 위에 글만 얹는다.
+ * 작은 창 안에 몰아넣으면 서너 줄밖에 못 적어서 뒤집은 면 전체를 쓴다.
  */
 export function FourcutCocochiBack({ record: r, width, connected }: Props) {
   const L = layoutFourcutCocochi(r);
@@ -182,7 +185,7 @@ export function FourcutCocochiBack({ record: r, width, connected }: Props) {
   // 뒷면은 좌우가 뒤집혀 있다
   const bw = X(body.x + body.w) - X(body.x);
   const panel: Box = { x: PW - X(body.x) - bw, y: Y(body.y), w: bw, h: Y(body.y + body.h) - Y(body.y) };
-  const inset = panel.w * 0.085;
+  const inset = panel.w * 0.07; // 글이 테두리에 붙지 않게
   const plate: Box = { x: panel.x + inset, y: panel.y + inset, w: panel.w - inset * 2, h: panel.h - inset * 2 };
 
   // 달걀이라 위아래가 좁다 — 글은 가운데 폭만 쓴다
@@ -219,12 +222,8 @@ export function FourcutCocochiBack({ record: r, width, connected }: Props) {
           </ClipPath>
         </Defs>
 
+        {/* 몸통이 이미 민색으로 꽉 채워진 그림이라 판을 덧그리지 않는다 */}
         <Shell color={color} id={id} back />
-
-        {/* 꾸밈을 덮는 민판 — 글 쓰는 자리 */}
-        <Path d={eggPath(plate)} fill={info.shell} />
-        <Path d={eggPath(plate)} fill="#fff" opacity={0.42} />
-        <Path d={eggPath(plate)} fill="none" stroke="#fff" strokeWidth={3} opacity={0.75} />
 
         <G clipPath={`url(#${id}-plate)`}>
           <T f="monoBold" x={cx} y={dateY} fontSize={20} fill={info.ink} opacity={0.6} letterSpacing={1.6} textAnchor="middle" children={date} />
