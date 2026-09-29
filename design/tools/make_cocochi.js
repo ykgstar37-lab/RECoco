@@ -201,13 +201,6 @@ async function backPlate(buf, body, win) {
   }
 
   /**
-   * ⚠️ 사슬이 달걀에 **닿아 있는** 줄에서는 퍼짐이 사슬로 넘어가, 알 사이 틈이 그대로 남아
-   * 가장자리가 톱니처럼 패였다(은색에서 400줄 넘게 이어져 중앙값으로도 안 눌렸다).
-   * 달걀은 매끄러운 알 모양이므로 **수식으로 그린 알 안쪽만** 칠한다. 사슬은 그 밖이라 안 닿는다.
-   *
-   * 알 밖으로 조금 넘쳐도 괜찮다 — 투명한 칸은 창 말고는 알파를 건드리지 않으니 안 비어져 나온다.
-   */
-  /**
    * ⚠️ 가장자리를 다듬으려다 두 번 헛짚었다. 둘 다 **옆구리를 잘라** 꾸밈이 드러났다:
    * - 수식(초타원)으로 알 안쪽만 칠하기 → 달걀이 수식보다 통통해서 모자랐다
    * - 이웃 줄 중앙값(±40)으로 누르기 → 위아래에서는 윤곽이 빠르게 벌어져서
@@ -216,9 +209,74 @@ async function backPlate(buf, body, win) {
    * 그래서 실측한 가장자리를 **그대로** 쓴다. 사슬이 달걀에 닿은 줄에서 가장자리가
    * 살짝 톱니지는 건 원본 그림 그대로라 남겨 둔다 (앞면에도 똑같이 있다).
    */
+  // 칠할 자리를 먼저 표로 만든다 (바로 칠하지 않고 아래에서 혹을 깎아낸 뒤 칠한다)
+  let mask = new Uint8Array(W * H);
   for (let y = body.y; y < body.y + body.h; y++) {
     if (left[y] === undefined) continue;
-    for (let x = left[y]; x <= right[y]; x++) {
+    for (let x = left[y]; x <= right[y]; x++) mask[y * W + x] = 1;
+  }
+
+  /**
+   * ⚠️ 고리와 사슬 클립이 달걀에 닿은 자리에서 칠이 **달걀 밖으로 삐져나온다**.
+   * 목이 가는 혹이라 **깎았다 다시 부풀리면**(열림 연산) 떨어져 나간다.
+   * 달걀 본체는 두툼해서 깎아도 안 끊긴다.
+   */
+  const R = 30;
+  const box = (src, r, pick) => {
+    const tmp = new Uint8Array(W * H);
+    const dst = new Uint8Array(W * H);
+    for (let y = 0; y < H; y++)
+      for (let x = 0; x < W; x++) {
+        let v = pick === Math.min ? 1 : 0;
+        for (let k = -r; k <= r; k++) {
+          const xx = x + k;
+          v = pick(v, xx < 0 || xx >= W ? 0 : src[y * W + xx]);
+        }
+        tmp[y * W + x] = v;
+      }
+    for (let x = 0; x < W; x++)
+      for (let y = 0; y < H; y++) {
+        let v = pick === Math.min ? 1 : 0;
+        for (let k = -r; k <= r; k++) {
+          const yy = y + k;
+          v = pick(v, yy < 0 || yy >= H ? 0 : tmp[yy * W + x]);
+        }
+        dst[y * W + x] = v;
+      }
+    return dst;
+  };
+
+  const core = box(mask, R, Math.min); // 깎기
+  // 깎고 남은 것 중 제일 큰 덩어리만 = 달걀 본체 (혹은 떨어져 나간다)
+  const seen = new Uint8Array(W * H);
+  let biggest = null;
+  for (let s = 0; s < W * H; s++) {
+    if (seen[s] || !core[s]) continue;
+    const cell = [s];
+    const q = [s];
+    seen[s] = 1;
+    while (q.length) {
+      const i = q.pop();
+      const x = i % W;
+      const y = (i / W) | 0;
+      for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, y > 0 ? i - W : -1, y < H - 1 ? i + W : -1]) {
+        if (j >= 0 && !seen[j] && core[j]) {
+          seen[j] = 1;
+          cell.push(j);
+          q.push(j);
+        }
+      }
+    }
+    if (!biggest || cell.length > biggest.length) biggest = cell;
+  }
+  const kept = new Uint8Array(W * H);
+  for (const i of biggest) kept[i] = 1;
+  const grown = box(kept, R, Math.max); // 다시 부풀리기
+  for (let i = 0; i < W * H; i++) mask[i] = mask[i] && grown[i] ? 1 : 0;
+
+  for (let y = body.y; y < body.y + body.h; y++) {
+    for (let x = body.x; x < body.x + body.w; x++) {
+      if (!mask[y * W + x]) continue;
       const i = (y * W + x) * 4;
       const a = data[i + 3];
       /**
