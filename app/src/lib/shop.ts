@@ -12,8 +12,13 @@ const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
 
 /**
- * 코코 옷은 팔지 않는다 — **영수증을 몇 장 뽑았는지로 하나씩 열린다** (2026-09-29 확정).
- * 장수 순으로 적어 둘 것. 앞은 금방 닿게, 뒤로 갈수록 뜸하게. 왕관이 마지막 상이다.
+ * 코코 옷은 **영수증을 몇 장 뽑았는지로 하나씩 열린다** (2026-09-29 확정).
+ * 장수 순으로 적어 둘 것. 앞은 금방 닿게, 뒤로 갈수록 뜸하게. 왕관 100장이 마지막 상이다.
+ *
+ * v1.0 은 무료라 미션으로만 연다. **유료화할 때는 옷도 판다** —
+ * 그때 상품 ID 는 `marketing/App Store/iap-products.md` 에 적어 둔 `recoco.outfit.*` 를 쓴다.
+ * 구매 경로(`Unlock` 유니온, 옷장의 결제 코드)는 커밋 78a9b2a 에서 걷어냈으니 거기서 되살리면 된다.
+ * 미션으로 이미 받은 옷은 유료화 뒤에도 그대로 둔다.
  */
 export interface OutfitItem {
   id: OutfitId;
@@ -24,17 +29,17 @@ export interface OutfitItem {
 
 export const OUTFITS: OutfitItem[] = [
   { id: 'ribbon', name: '리본', records: 3 },
-  { id: 'heart', name: '하트 꼬랑지', records: 7 },
-  { id: 'straw', name: '밀짚모자', records: 12 },
-  { id: 'glasses', name: '빨간 안경', records: 20 },
-  { id: 'beret', name: '베레모', records: 30 },
-  { id: 'party', name: '파티 고깔', records: 45 },
-  { id: 'headphones', name: '헤드폰', records: 60 },
-  { id: 'cat', name: '고양이', records: 80 },
-  { id: 'earflap', name: '귀도리 니트', records: 100 },
-  { id: 'dog', name: '강아지 귀', records: 130 },
-  { id: 'trapper', name: '털 방한모', records: 165 },
-  { id: 'crown', name: '왕관', records: 200 },
+  { id: 'heart', name: '하트 꼬랑지', records: 6 },
+  { id: 'straw', name: '밀짚모자', records: 10 },
+  { id: 'glasses', name: '빨간 안경', records: 15 },
+  { id: 'beret', name: '베레모', records: 21 },
+  { id: 'party', name: '파티 고깔', records: 28 },
+  { id: 'headphones', name: '헤드폰', records: 36 },
+  { id: 'cat', name: '고양이', records: 45 },
+  { id: 'earflap', name: '귀도리 니트', records: 56 },
+  { id: 'dog', name: '강아지 귀', records: 70 },
+  { id: 'trapper', name: '털 방한모', records: 84 },
+  { id: 'crown', name: '왕관', records: 100 },
 ];
 
 /** 다음에 받을 모자와 몇 장 남았는지 (다 받았으면 null) */
