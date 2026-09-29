@@ -95,37 +95,37 @@ async function opaqueBox(buf) {
 }
 
 /**
- * 달걀 몸통만 (사슬 제외). 줄마다 '가장 긴 이어진 칸'이 몸통이고,
- * 사슬은 따로 떨어진 짧은 토막으로 잡히므로 그걸로 가른다.
+ * 달걀 몸통 네모 (사슬 제외).
+ *
+ * ⚠️ 줄마다 '가장 긴 불투명 칸'으로 재면 **창이 가로지르는 줄에서 왼쪽 토막만** 잡혀,
+ *    정작 제일 넓은 줄이 빠진다. 민트에서 15px 좁게 재졌고, 그만큼 옆구리가 안 칠해져
+ *    광택 띠가 남아 있었다. 그러니 **창도 몸통으로 치고** 가운데에서 좌우로 퍼뜨린다.
+ *    사슬은 투명한 틈 건너에 있어 알아서 빠진다.
  */
-async function bodyBox(buf) {
+async function bodyBox(buf, win) {
   const img = sharp(buf).ensureAlpha();
   const { width: W, height: H } = await img.metadata();
   const { data } = await img.raw().toBuffer({ resolveWithObject: true });
+  const solid = (x, y) => {
+    if (x < 0 || x >= W) return false;
+    if (x >= win.x && x < win.x + win.w && y >= win.y && y < win.y + win.h) return true;
+    return data[(y * W + x) * 4 + 3] >= 16;
+  };
+  const cx = Math.round(win.x + win.w / 2); // 창은 몸통 한가운데에 있다
   let x0 = W;
   let y0 = H;
   let x1 = -1;
   let y1 = -1;
   for (let y = 0; y < H; y++) {
-    let bestS = -1;
-    let bestE = -1;
-    let s = -1;
-    for (let x = 0; x <= W; x++) {
-      const on = x < W && data[(y * W + x) * 4 + 3] > 24;
-      if (on && s < 0) s = x;
-      if (!on && s >= 0) {
-        if (x - s > bestE - bestS) {
-          bestS = s;
-          bestE = x;
-        }
-        s = -1;
-      }
-    }
-    if (bestE - bestS < W * 0.12) continue; // 사슬처럼 가는 토막은 몸통이 아니다
-    if (bestS < x0) x0 = bestS;
-    if (bestE - 1 > x1) x1 = bestE - 1;
-    if (y < y0) y0 = y;
-    if (y > y1) y1 = y;
+    if (!solid(cx, y)) continue;
+    let s = cx;
+    let e = cx;
+    while (solid(s - 1, y)) s -= 1;
+    while (solid(e + 1, y)) e += 1;
+    if (x0 > s) x0 = s;
+    if (x1 < e) x1 = e;
+    if (y0 > y) y0 = y;
+    if (y1 < y) y1 = y;
   }
   return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
@@ -208,29 +208,17 @@ async function backPlate(buf, body, win) {
    * 알 밖으로 조금 넘쳐도 괜찮다 — 투명한 칸은 창 말고는 알파를 건드리지 않으니 안 비어져 나온다.
    */
   /**
-   * ⚠️ 수식으로 그린 알 안쪽만 칠했더니 **옆구리가 잘렸다** — 달걀은 수식보다 통통하다.
-   * 그러니 실측한 가장자리를 그대로 쓰되, **튀는 줄만** 이웃 줄의 중앙값으로 눌러 준다.
-   * 달걀 윤곽은 줄마다 매끄럽게 변하므로 매끄러운 줄은 제 값이 그대로 남고,
-   * 사슬이 닿아 부풀어 오른 줄만 안쪽으로 당겨진다.
+   * ⚠️ 가장자리를 다듬으려다 두 번 헛짚었다. 둘 다 **옆구리를 잘라** 꾸밈이 드러났다:
+   * - 수식(초타원)으로 알 안쪽만 칠하기 → 달걀이 수식보다 통통해서 모자랐다
+   * - 이웃 줄 중앙값(±40)으로 누르기 → 위아래에서는 윤곽이 빠르게 벌어져서
+   *   **실측값이 중앙값보다 최대 64px 바깥**이다. 그만큼이 통째로 잘려 나갔다
+   *
+   * 그래서 실측한 가장자리를 **그대로** 쓴다. 사슬이 달걀에 닿은 줄에서 가장자리가
+   * 살짝 톱니지는 건 원본 그림 그대로라 남겨 둔다 (앞면에도 똑같이 있다).
    */
-  const capped = (arr, inward) => {
-    const out = [];
-    for (let y = body.y; y < body.y + body.h; y++) {
-      if (arr[y] === undefined) continue;
-      const win = [];
-      for (let k = -40; k <= 40; k++) if (arr[y + k] !== undefined) win.push(arr[y + k]);
-      win.sort((a, b) => a - b);
-      const med = win[win.length >> 1];
-      out[y] = inward(arr[y], med);
-    }
-    return out;
-  };
-  const L = capped(left, (v, med) => Math.max(v, med - 6));
-  const R = capped(right, (v, med) => Math.min(v, med + 6));
-
   for (let y = body.y; y < body.y + body.h; y++) {
-    if (L[y] === undefined) continue;
-    for (let x = L[y]; x <= R[y]; x++) {
+    if (left[y] === undefined) continue;
+    for (let x = left[y]; x <= right[y]; x++) {
       const i = (y * W + x) * 4;
       const a = data[i + 3];
       /**
@@ -242,9 +230,8 @@ async function backPlate(buf, body, win) {
     }
   }
 
-  // 민색이라 색 수가 적다 — 팔레트로 구우면 훨씬 가볍다
   const png = await sharp(out, { raw: { width: W, height: H, channels: 4 } })
-    .png({ palette: true, colors: 64, compressionLevel: 9, effort: 10 })
+    .png({ compressionLevel: 9, effort: 10 })
     .toBuffer();
   return { png, flat: `#${flat.map((v) => v.toString(16).padStart(2, '0')).join('')}` };
 }
@@ -275,7 +262,7 @@ async function main() {
 
     const w = await window_(buf);
     const c = await opaqueBox(buf);
-    const b = await bodyBox(buf);
+    const b = await bodyBox(buf, w);
 
     // 뒷면 (몸통을 민색으로 꽉 채운 것)
     const back = await backPlate(buf, b, w);
