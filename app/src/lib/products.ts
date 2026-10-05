@@ -281,14 +281,10 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                 ]
               : kind === 'daily'
                 ? [
-                    {
-                      record: sampleDaily(0),
-                      more: [sampleDaily(1, { tag: '내 강아지' }), sampleDaily(2, { tag: '연애' })],
-                      connected: true,
-                      caption: '사진이 줄줄이 이어져요',
-                    },
+                    { record: sampleDaily(0), more: [sampleDaily(1), sampleDaily(2)], connected: true, caption: '사진이 줄줄이 이어져요' },
                     { record: sampleDaily(0), side: 'back' as const, caption: '탭하면 뒷면에 그날의 글' },
-                    { record: sampleDaily(2, { tag: '연애', title: '100일', memo: '케이크 고르느라 30분 걸렸다.', place: '' }), side: 'back' as const, caption: '소분류마다 색이 달라요' },
+                    { record: sampleDaily(1), side: 'back' as const, caption: '소분류마다 색이 달라요' },
+                    { record: sampleDaily(2), side: 'back' as const, caption: '가로 사진 뒷면' },
                   ]
               : kind === 'music'
                 ? [

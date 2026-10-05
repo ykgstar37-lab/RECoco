@@ -118,11 +118,14 @@ export function sampleConcert(): ConcertRecord {
   };
 }
 
-/** 앱에 넣어 둔 예시 사진 (일상 미리보기용, assets/samples) */
+/**
+ * 앱에 넣어 둔 예시 사진 (일상 미리보기용, assets/samples).
+ * ⚠️ 지금은 사용자가 뒷면 진하기를 보려고 준 마인크래프트 캡처다 — **출시 전에 우리 그림으로 바꿀 것** (남의 게임 그림)
+ */
 const SAMPLE_PHOTOS = [
-  { mod: require('../../assets/samples/daily-1.jpg'), width: 480, height: 853 },
-  { mod: require('../../assets/samples/daily-2.jpg'), width: 480, height: 360 },
-  { mod: require('../../assets/samples/daily-3.jpg'), width: 480, height: 640 },
+  { mod: require('../../assets/samples/daily-1.jpg'), width: 480, height: 480 },
+  { mod: require('../../assets/samples/daily-2.jpg'), width: 480, height: 613 },
+  { mod: require('../../assets/samples/daily-3.jpg'), width: 480, height: 360 },
 ];
 
 const uriOf = (m: unknown): string => {
@@ -132,6 +135,12 @@ const uriOf = (m: unknown): string => {
   return o?.uri ?? uriOf(o?.default);
 };
 
+const SAMPLE_TEXT: Pick<DailyRecord, 'tag' | 'title' | 'memo' | 'place'>[] = [
+  { tag: '친구', title: '셀카 장인', memo: '사진 찍어준다더니 자기 얼굴만 찍었다. 플래시 때문에 눈 아팠음.', place: '지민이네 집' },
+  { tag: '나', title: '', memo: '오늘은 아무것도 안 하고 누워만 있었다. 그래도 괜찮은 하루.', place: '' },
+  { tag: '내 강아지', title: '꽃밭 산책', memo: '분홍 꽃밭에서 한참 놀았다. 집에 와서 바로 기절.', place: '동네 공원' },
+];
+
 export function sampleDaily(i = 0, extra: Partial<DailyRecord> = {}): DailyRecord {
   const p = SAMPLE_PHOTOS[i % SAMPLE_PHOTOS.length];
   return {
@@ -140,10 +149,7 @@ export function sampleDaily(i = 0, extra: Partial<DailyRecord> = {}): DailyRecor
     kind: 'daily',
     date: '2026-10-03',
     photo: { uri: uriOf(p.mod), width: p.width, height: p.height },
-    tag: '친구',
-    title: '퇴근길 노을',
-    memo: '하늘이 너무 예뻐서 버스 한 정거장 먼저 내렸다.',
-    place: '망원 한강공원',
+    ...SAMPLE_TEXT[i % SAMPLE_TEXT.length],
     ...extra,
   };
 }
