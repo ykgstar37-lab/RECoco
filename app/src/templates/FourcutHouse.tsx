@@ -100,7 +100,7 @@ function CocoSitting({ x, y, w }: { x: number; y: number; w: number }) {
   );
 }
 
-/** 창틀 위에 올려 둔 작은 화분 (파란 지붕 집). x: 가운데, y: 화분 밑바닥 */
+/** 창턱 왼쪽 끝에 올려 둔 작은 화분 (파란 지붕 집). x: 가운데, y: 화분 밑바닥 */
 function FlowerPot({ x, y }: { x: number; y: number }) {
   const leaf = '#5f9463';
   return (
@@ -270,7 +270,6 @@ export function FourcutHouseFront({ record: r, width, connected = false }: Props
         <Rect x={FX} y={g.frameTop} width={FW} height={g.frameBot - g.frameTop} rx={FR} fill={g.color.frame} />
         <Rect x={FX - 18} y={g.frameBot - 8} width={FW + 36} height={18} rx={6} fill={g.color.frame} />
         <Rect x={FX - 18} y={g.frameBot + 6} width={FW + 36} height={4} rx={2} fill="#000" opacity={0.1} />
-        {g.color.roof === 'grid' && <FlowerPot x={FX + FW - 48} y={g.frameTop} />}
         <G clipPath={`url(#${id}-strip)`}>
           <Rect x={sx} y={sy} width={sw} height={STRIP} fill="#1b1a1c" />
           {qr ? (
@@ -302,6 +301,8 @@ export function FourcutHouseFront({ record: r, width, connected = false }: Props
             })
           )}
         </G>
+        {/* 사진보다 앞에 그려야 화분이 띠에 안 가린다 */}
+        {g.color.roof === 'grid' && <FlowerPot x={FX + 4} y={g.frameBot - 8} />}
       </G>
     </Svg>
   );
