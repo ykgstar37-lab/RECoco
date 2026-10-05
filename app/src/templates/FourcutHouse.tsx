@@ -45,7 +45,7 @@ const ROOF_SIZE: Record<Roof, { top: number; h: number }> = {
   stripe: { top: 138, h: 170 },
   grid: { top: 20, h: 280 },
   dots: { top: 20, h: 210 },
-  chimney: { top: 70, h: 200 },
+  chimney: { top: 100, h: 200 },
 };
 
 function geometry(r: FourcutRecord) {
@@ -86,14 +86,15 @@ function CocoSitting({ x, y, w }: { x: number; y: number; w: number }) {
   const s = w / 320; // 몸통이 viewBox 40~360 (폭 320)
   return (
     <G transform={`translate(${x - 200 * s} ${y - 302 * s}) scale(${s})`}>
-      <Path d={COCO_BODY} fill="#fb9449" />
-      <Path d="M214,58 Q206,72 196,80" stroke="#e8692a" strokeWidth={7} strokeLinecap="round" fill="none" />
-      <Path d="M246,64 Q238,76 242,90" stroke="#e8692a" strokeWidth={7} strokeLinecap="round" fill="none" />
-      <Ellipse cx={108} cy={228} rx={24} ry={13} fill="#f5675b" opacity={0.85} />
-      <Ellipse cx={292} cy={228} rx={24} ry={13} fill="#f5675b" opacity={0.85} />
+      {/* 흰 코코 (메인 화면의 white 톤). 흰 바탕에 묻히지 않게 아주 옅은 테두리만 */}
+      <Path d={COCO_BODY} fill="#ffffff" stroke="#f1dccf" strokeWidth={6} strokeLinejoin="round" />
+      <Path d="M214,58 Q206,72 196,80" stroke="#ffc9a1" strokeWidth={7} strokeLinecap="round" fill="none" />
+      <Path d="M246,64 Q238,76 242,90" stroke="#ffc9a1" strokeWidth={7} strokeLinecap="round" fill="none" />
+      <Ellipse cx={108} cy={228} rx={24} ry={13} fill="#ffb18c" opacity={0.85} />
+      <Ellipse cx={292} cy={228} rx={24} ry={13} fill="#ffb18c" opacity={0.85} />
       <Circle cx={158} cy={190} r={14.5} fill="#3a2a22" />
       <Circle cx={242} cy={190} r={14.5} fill="#3a2a22" />
-      <Path d="M158,224 Q200,217 242,224 Q247,227 240,236 C228,272 172,272 160,236 Q153,227 158,224 Z" fill="#ffffff" />
+      <Path d="M158,224 Q200,217 242,224 Q247,227 240,236 C228,272 172,272 160,236 Q153,227 158,224 Z" fill="#3a2a22" />
       <Ellipse cx={200} cy={258} rx={22} ry={11} fill="#f06470" />
     </G>
   );
@@ -121,9 +122,10 @@ function RoofArt({ g, id }: { g: Geo; id: string }) {
     return (
       <G>
         {[
-          [chX + 30, chTop - 22, 13],
-          [chX + 52, chTop - 46, 17],
-          [chX + 40, chTop - 70, 11],
+          // 동그라미끼리 떨어뜨려 한 김씩 피어오르게
+          [chX + 22, chTop - 20, 10],
+          [chX + 46, chTop - 52, 13],
+          [chX + 30, chTop - 86, 9],
         ].map(([cx, cy, r], i) => (
           <Circle key={i} cx={cx} cy={cy} r={r} fill="#fff" stroke="#d9d4c8" strokeWidth={2} />
         ))}
@@ -199,10 +201,7 @@ function Shell({ g, id, connected }: { g: Geo; id: string; connected: boolean })
       <Rect x={X0} y={wallTop - 1} width={X1 - X0} height={wallBot - wallTop + 1} fill={color.wall} />
       <RoofArt g={g} id={id} />
       {color.roof === 'stripe' && <CocoSitting x={X1 - 120} y={top + 8} w={150} />}
-      {/* 걸려 있는 명패 */}
-      <Line x1={CX - 30} y1={wallBot - 66} x2={CX} y2={wallBot - 82} stroke={INK} strokeWidth={1.4} opacity={0.6} />
-      <Line x1={CX + 30} y1={wallBot - 66} x2={CX} y2={wallBot - 82} stroke={INK} strokeWidth={1.4} opacity={0.6} />
-      <Circle cx={CX} cy={wallBot - 82} r={3} fill={INK} opacity={0.6} />
+      {/* 명패 */}
       <Rect x={CX - 46} y={wallBot - 66} width={92} height={30} rx={15} fill="#fff" stroke={color.frame} strokeWidth={2.4} />
       <T f="sansBold" x={CX} y={wallBot - 46} fontSize={14} fill={INK} textAnchor="middle" children={BRAND.en} />
       <PaperOverlay id={id} d={outline(g)} width={CW} height={g.height} wrinkle="none" surface="grain" />
