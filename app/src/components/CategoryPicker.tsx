@@ -12,6 +12,7 @@ export const CATEGORIES: { kind: RecordKind; label: string; hint: string }[] = [
   { kind: 'spending', label: '소비', hint: '오늘 뭐 샀어?' },
   { kind: 'travel', label: '여행', hint: '어디 다녀왔어?' },
   { kind: 'fourcut', label: '인생네컷', hint: '누구랑 찍었어?' },
+  { kind: 'daily', label: '일상', hint: '오늘 남기고 싶은 사진 있어?' },
   { kind: 'gift', label: '선물', hint: '누구랑 선물 주고받았어?' },
   { kind: 'food', label: '카페·맛집', hint: '뭐 맛있는 거 먹었어?' },
   { kind: 'show', label: '공연·전시', hint: '무슨 공연 봤어?' },

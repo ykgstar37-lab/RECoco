@@ -1,4 +1,4 @@
-export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food' | 'show' | 'concert' | 'exercise' | 'music';
+export type RecordKind = 'reading' | 'movie' | 'spending' | 'travel' | 'fourcut' | 'gift' | 'food' | 'show' | 'concert' | 'exercise' | 'music' | 'daily';
 
 interface BaseRecord {
   id: string;
@@ -320,4 +320,30 @@ export interface MusicRecord extends BaseRecord {
   color?: string; // 모양의 색
 }
 
-export type RecoRecord = ReadingRecord | MovieRecord | SpendingRecord | TravelRecord | FourcutRecord | GiftRecord | FoodRecord | ShowRecord | ConcertRecord | ExerciseRecord | MusicRecord;
+/**
+ * 일상: 사진첩 사진 한 장(인스타 스토리를 저장해 둔 것 등)을 그대로 모아 두는 카테고리 (무료).
+ * tag 는 사용자가 만든 소분류(연애·친구·내 강아지 …). 목록에서 소분류별로 골라 본다
+ */
+export interface DailyRecord extends BaseRecord {
+  kind: 'daily';
+  date: string; // YYYY-MM-DD
+  photo: Photo | null;
+  tag: string; // 소분류 이름, '' = 안 고름
+  title: string; // 한 줄 제목 (선택)
+  memo: string;
+  place: string;
+}
+
+export type RecoRecord =
+  | ReadingRecord
+  | MovieRecord
+  | SpendingRecord
+  | TravelRecord
+  | FourcutRecord
+  | GiftRecord
+  | FoodRecord
+  | ShowRecord
+  | ConcertRecord
+  | ExerciseRecord
+  | MusicRecord
+  | DailyRecord;

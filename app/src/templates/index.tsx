@@ -16,6 +16,7 @@ import { FourcutCard, layoutFourcutCard } from './FourcutCard';
 import { FourcutCocochiBack, FourcutCocochiFront, layoutFourcutCocochi } from './FourcutCocochi';
 import { FourcutHouseBack, FourcutHouseFront, layoutFourcutHouse } from './FourcutHouse';
 import { ExercisePhoto, layoutExercisePhoto } from './ExercisePhoto';
+import { DailyStory, layoutDaily } from './DailyStory';
 import { ExerciseSlip, layoutExerciseSlip } from './ExerciseSlip';
 import { MusicAlbum, layoutMusicAlbum } from './MusicAlbum';
 import { MusicList, layoutMusicList } from './MusicList';
@@ -96,6 +97,8 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
       return record.design === 'card' ? layoutExercisePhoto(record) : layoutExerciseSlip(record);
     case 'music':
       return record.design === 'list' ? layoutMusicList(record) : layoutMusicAlbum(record);
+    case 'daily':
+      return layoutDaily(record);
   }
 }
 
@@ -168,6 +171,8 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
       return record.design === 'card' ? <ExercisePhoto record={record} width={width} connected={connected} /> : <ExerciseSlip record={record} width={width} connected={connected} />;
     case 'music':
       return record.design === 'list' ? <MusicList record={record} width={width} connected={connected} /> : <MusicAlbum record={record} width={width} connected={connected} />;
+    case 'daily':
+      return <DailyStory record={record} width={width} connected={connected} />;
   }
 });
 
@@ -183,4 +188,5 @@ export const KIND_LABEL: Record<RecoRecord['kind'], string> = {
   concert: '콘서트',
   exercise: '운동',
   music: '음악',
+  daily: '일상',
 };

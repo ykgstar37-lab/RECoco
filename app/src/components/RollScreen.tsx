@@ -9,6 +9,7 @@ import { categoryUnlocked, useShop } from '../lib/shop';
 import { KIND_LABEL, sizeOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord, RecordKind } from '../types';
+import { tagColorOf } from '../templates/DailyStory';
 import { CATEGORIES } from './CategoryPicker';
 import { FlipCard } from './FlipCard';
 import { FoldableReceipt } from './FoldableReceipt';
@@ -32,6 +33,7 @@ interface Props {
 export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd, onSave, onDelete }: Props) {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [kind, setKind] = useState<RecordKind | null>(null);
+  const [tag, setTag] = useState<string | null>(null); // 일상 소분류
   const { owned } = useShop();
 
   const insets = useSafeAreaInsets();
@@ -42,6 +44,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   useEffect(() => {
     if (!visible) return;
     setKind(null);
+    setTag(null);
     drag.value = screenH;
     drag.value = withTiming(0, {
       duration: 320,
@@ -85,11 +88,14 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   const paperW = Math.min(screenW - 44, 440);
   // 날짜 → 카테고리 순서로 거른다 (둘 다 걸 수 있음)
   const byDate = date ? records.filter((r) => r.date === date) : records;
-  const list = kind ? byDate.filter((r) => r.kind === kind) : byDate;
+  const ofKind = kind ? byDate.filter((r) => r.kind === kind) : byDate;
+  // 일상은 소분류로 한 번 더 거른다 (기록에 붙은 소분류만 알약으로 세운다)
+  const dailyTags = kind === 'daily' ? [...new Set(ofKind.map((r) => (r.kind === 'daily' ? r.tag.trim() : '')).filter(Boolean))] : [];
+  const list = kind === 'daily' && tag ? ofKind.filter((r) => r.kind === 'daily' && r.tag.trim() === tag) : ofKind;
   const kindLabel = kind ? CATEGORIES.find((c) => c.kind === kind)?.label : null;
   // 제목은 짧게 (＋·닫기 버튼과 한 줄에 들어가야 해서). 카테고리는 아래 장수 줄에 붙인다
   const title = date ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일` : kindLabel ? `${kindLabel} 영수증` : '나의 영수증';
-  const countLabel = `${date && kindLabel ? `${kindLabel} ` : ''}${list.length}장`;
+  const countLabel = `${date && kindLabel ? `${kindLabel} ` : ''}${kind === 'daily' && tag ? `${tag} ` : ''}${list.length}장`;
 
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={() => close()}>
@@ -132,13 +138,36 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
               const on = kind === c.kind;
               const n = c.kind ? byDate.filter((r) => r.kind === c.kind).length : byDate.length;
               return (
-                <Pressable key={c.label} onPress={() => setKind(c.kind)} style={[styles.tab, on && styles.tabOn]}>
+                <Pressable
+                  key={c.label}
+                  onPress={() => {
+                    setKind(c.kind);
+                    setTag(null);
+                  }}
+                  style={[styles.tab, on && styles.tabOn]}>
                   <Text style={[styles.tabText, on && styles.tabTextOn]}>{c.label}</Text>
                   <Text style={[styles.tabCount, on && styles.tabTextOn]}>{n}</Text>
                 </Pressable>
               );
             })}
           </ScrollView>
+
+          {dailyTags.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagsScroll} contentContainerStyle={styles.tags}>
+              {[null, ...dailyTags].map((t) => {
+                const on = tag === t;
+                const color = t ? tagColorOf(t) : COLORS.ink;
+                const n = t ? ofKind.filter((r) => r.kind === 'daily' && r.tag.trim() === t).length : ofKind.length;
+                return (
+                  <Pressable key={t ?? 'all'} onPress={() => setTag(t)} style={[styles.tag, on && { backgroundColor: color, borderColor: color }]}>
+                    {t && <View style={[styles.tagDot, { backgroundColor: on ? '#fff' : color }]} />}
+                    <Text style={[styles.tagText, on && styles.tagTextOn]}>{t ?? '모두'}</Text>
+                    <Text style={[styles.tagCount, on && styles.tagTextOn]}>{n}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
 
           <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
             {list.length === 0 && (
@@ -186,7 +215,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
           </ScrollView>
 
           {/* 오른쪽 아래: 카테고리를 골랐을 때만 그 영수증 더미를 작게 띄운다 */}
-          {kind && <ReceiptStack key={`${kind}-${date}`} records={list} bottom={insets.bottom + 16} onOpen={open} />}
+          {kind && <ReceiptStack key={`${kind}-${date}-${tag}`} records={list} bottom={insets.bottom + 16} onOpen={open} />}
         </Animated.View>
         <RecordDetail
           key={detailId ?? 'none'}
@@ -204,6 +233,23 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
 }
 
 const styles = StyleSheet.create({
+  tagsScroll: { flexGrow: 0 },
+  tags: { paddingHorizontal: 18, gap: 6, paddingBottom: 10 },
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: COLORS.line,
+  },
+  tagDot: { width: 7, height: 7, borderRadius: 3.5 },
+  tagText: { color: COLORS.ink, fontSize: 13, fontFamily: FONTS.sansBold },
+  tagTextOn: { color: '#fff' },
+  tagCount: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans },
   backdrop: { backgroundColor: 'rgba(40,20,0,0.35)' },
   sheet: {
     flex: 1,

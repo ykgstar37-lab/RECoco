@@ -29,6 +29,7 @@ import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
   ConcertRecord,
+  DailyRecord,
   FoodMenu,
   FoodRecord,
   FoodType,
@@ -61,6 +62,7 @@ import { BoardingPassPaste } from './BoardingPassPaste';
 import { BoardingPassScan } from './BoardingPassScan';
 import { CouponPaste } from './CouponPaste';
 import { CardSmsPaste } from './CardSmsPaste';
+import { DailyTagPicker } from './DailyTagPicker';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
 import { DISMISS_ON_DRAG, KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
@@ -91,6 +93,7 @@ const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
   { kind: 'spending', label: '소비', ready: true },
   { kind: 'travel', label: '여행', ready: true },
   { kind: 'fourcut', label: '인생네컷', ready: true },
+  { kind: 'daily', label: '일상', ready: true },
   { kind: 'gift', label: '선물', ready: true },
   { kind: 'food', label: '카페·맛집', ready: true },
   { kind: 'show', label: '공연·전시', ready: true },
@@ -210,6 +213,16 @@ const emptyExercise = (): Omit<ExerciseRecord, 'id' | 'createdAt'> => ({
   memo: '',
   photo: null,
   design: 'slip',
+});
+
+const emptyDaily = (): Omit<DailyRecord, 'id' | 'createdAt'> => ({
+  kind: 'daily',
+  date: today(),
+  photo: null,
+  tag: '',
+  title: '',
+  memo: '',
+  place: '',
 });
 
 const emptyMusic = (): Omit<MusicRecord, 'id' | 'createdAt'> => ({
@@ -350,6 +363,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
   const [concert, setConcert] = useState(emptyConcert);
   const [exercise, setExercise] = useState(emptyExercise);
   const [music, setMusic] = useState(emptyMusic);
+  const [daily, setDaily] = useState(emptyDaily);
   const [foodSmsOpen, setFoodSmsOpen] = useState(false);
   const { owned } = useShop();
   const [qrOpen, setQrOpen] = useState(false);
@@ -448,6 +462,9 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
       case 'music':
         setMusic({ ...rest, tracks: rest.tracks.length ? rest.tracks : [{ title: '', artist: '', stars: 5 }] });
         break;
+      case 'daily':
+        setDaily(rest);
+        break;
     }
   }, [visible, initialKind, editing]);
 
@@ -460,6 +477,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
     setConcert(emptyConcert());
     setExercise(emptyExercise());
     setMusic(emptyMusic());
+    setDaily(emptyDaily());
     setReading(emptyReading());
     setMovie(emptyMovie());
     setSpending(emptySpending());
@@ -525,6 +543,9 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
       if (exercise.minutes <= 0 && exercise.distance <= 0) return setError('운동한 시간이나 거리를 적어주세요.');
       const moves = exercise.moves.filter((m) => m.name.trim()).map((m) => ({ ...m, name: m.name.trim() }));
       record = { ...base, ...exercise, moves } as ExerciseRecord;
+    } else if (kind === 'daily') {
+      if (!daily.photo) return setError('남길 사진을 골라주세요.');
+      record = { ...base, ...daily, title: daily.title.trim(), memo: daily.memo.trim(), place: daily.place.trim() } as DailyRecord;
     } else if (kind === 'music') {
       const tracks = music.tracks.filter((t) => t.title.trim()).map((t) => ({ ...t, title: t.title.trim(), artist: t.artist.trim() }));
       if (!music.title.trim() && !tracks.length) return setError('앨범·노래 이름을 적어주세요.');
@@ -1505,6 +1526,46 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
               </>
             )}
 
+            {kind === 'daily' && (
+              <>
+                <Label text="사진 *" />
+                <View style={styles.coverRow}>
+                  <Pressable
+                    onPress={async () => {
+                      await withPhotoBusy(async () => {
+                        const [pic] = await pickPhotos(1);
+                        if (pic) setDaily((d) => ({ ...d, photo: pic }));
+                      });
+                    }}
+                    style={styles.dailyPhoto}
+                    accessibilityLabel="사진 고르기">
+                    {daily.photo ? (
+                      <>
+                        <Image source={{ uri: daily.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setDaily((d) => ({ ...d, photo: null }))}>
+                          <Text style={styles.slotRemoveText}>×</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <Text style={styles.slotText}>+</Text>
+                    )}
+                    {photoBusy && <PhotoBusy />}
+                  </Pressable>
+                  <Text style={styles.coverHelp}>
+                    사진첩에서 한 장 골라요.{'\n'}인스타 스토리는 저장해 두면{'\n'}사진첩에 들어가 있어요.
+                  </Text>
+                </View>
+                <Label text="소분류" />
+                <DailyTagPicker value={daily.tag} onChange={(tag) => setDaily((d) => ({ ...d, tag }))} />
+                <Row>
+                  <Field label="제목 (선택)" value={daily.title} onChange={(v) => setDaily({ ...daily, title: v })} placeholder="100일 기념 한강" />
+                  <DateField label="날짜" value={daily.date} onChange={(v) => setDaily({ ...daily, date: v })} />
+                </Row>
+                <Field label="어디서 (선택)" value={daily.place} onChange={(v) => setDaily({ ...daily, place: v })} placeholder="반포 한강공원" />
+                <Field label="한 줄 (선택)" value={daily.memo} onChange={(v) => setDaily({ ...daily, memo: v })} placeholder="노을이 너무 예뻐서 한참 앉아 있었다" multiline />
+              </>
+            )}
+
             {kind === 'exercise' && (
               <>
                 <View style={styles.segment}>
@@ -1965,6 +2026,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   giftPhotoImage: { position: 'absolute' },
+  // 일상 사진 칸은 스토리처럼 세로로 길게 (9:16)
+  dailyPhoto: {
+    width: 108,
+    height: 192,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.line,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   photoBusy: { backgroundColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center' },
   missingKey: { color: COLORS.danger, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
   qrBox: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 14, gap: 12, alignItems: 'center' },

@@ -29,5 +29,7 @@ export function shortLabel(r: RecoRecord) {
       return EXERCISE_TYPES[r.type]?.label ?? '운동';
     case 'music':
       return r.title.trim() || r.artist.trim() || '음악';
+    case 'daily':
+      return r.title.trim() || r.tag.trim() || `${r.date.replace(/-/g, '.')} 일상`;
   }
 }
