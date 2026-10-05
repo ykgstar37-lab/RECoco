@@ -666,8 +666,8 @@ export function FourcutDesignSwatch({ design, size = 44, color, houseColor }: { 
         <Rect x={9} y={15} width={22} height={36} fill={c.wall} stroke={COLORS.line} strokeWidth={0.8} />
         {c.roof === 'chimney' ? (
           <G>
-            <Rect x={24} y={4} width={4} height={8} fill={c.tile} />
-            <Path d="M6 18 L20 4 L34 18" stroke={c.tile} strokeWidth={4} fill="none" />
+            <Rect x={25} y={5} width={4} height={8} fill={c.tile} />
+            <Path d="M8 16 L20 2 L32 16 Z" fill={c.tile} />
           </G>
         ) : c.roof === 'stripe' ? (
           <Path d="M8 16 L12 6 H28 L32 16 Z" fill={c.tile} />

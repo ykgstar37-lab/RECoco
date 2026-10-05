@@ -33,7 +33,7 @@ export const FOURCUT_HOUSE_COLORS: Record<FourcutHouseColor, { name: string; roo
   pink: { name: '분홍', roof: 'stripe', tile: '#eaa7b6', pattern: '#f8dbe2', wall: '#fbf1ee', frame: '#8a6448', swatch: '#eaa7b6' },
   blue: { name: '파랑', roof: 'grid', tile: '#4a6cc0', pattern: '#dfe7fb', wall: '#ebebeb', frame: '#8a6448', swatch: '#4a6cc0' },
   red: { name: '빨강', roof: 'dots', tile: '#d2525e', pattern: '#fff5f2', wall: '#e9f2fa', frame: '#4f8a5b', swatch: '#d2525e' },
-  green: { name: '초록', roof: 'chimney', tile: '#4c8c57', pattern: '#4c8c57', wall: '#faf6ea', frame: '#d24c5a', swatch: '#4c8c57' },
+  green: { name: '초록', roof: 'chimney', tile: '#4c8c57', pattern: '#78ae80', wall: '#faf6ea', frame: '#d24c5a', swatch: '#4c8c57' },
 };
 
 export const FOURCUT_HOUSE_COLOR_IDS = Object.keys(FOURCUT_HOUSE_COLORS) as FourcutHouseColor[];
@@ -70,10 +70,9 @@ export function layoutFourcutHouse(r: FourcutRecord): TemplateLayout {
 const roofShape = (g: Geo) =>
   g.color.roof === 'stripe' ? `M${X0 - 10},${g.wallTop} L${X0 + 44},${g.top} H${X1 - 44} L${X1 + 10},${g.wallTop} Z` : `M${X0 - 8},${g.wallTop} L${CX},${g.top} L${X1 + 8},${g.wallTop} Z`;
 
-/** 집 윤곽 (그림자·질감용). 초록은 벽 꼭대기가 뾰족하다 */
+/** 집 윤곽 (그림자·질감용) */
 function outline(g: Geo) {
-  const { color, top, wallTop, wallBot } = g;
-  if (color.roof === 'chimney') return `M${X0},${wallTop} L${CX},${top} L${X1},${wallTop} V${wallBot} H${X0} Z`;
+  const { wallTop, wallBot } = g;
   return `M${X0},${wallTop} H${X1} V${wallBot} H${X0} Z ${roofShape(g)}`;
 }
 
@@ -130,46 +129,31 @@ function Scallop({ y, x0, x1, fill }: { y: number; x0: number; x1: number; fill:
   return <Path d={`${d} Z`} fill={fill} />;
 }
 
+/** 초록 지붕 굴뚝 + 서로 떨어진 연기 동그라미 (지붕 뒤에 그린다) */
+function Chimney({ g }: { g: Geo }) {
+  const { color, top, wallTop } = g;
+  const slope = (wallTop - top) / (CX - X0);
+  const chX = X1 - 120;
+  const chTop = top + 40;
+  return (
+    <G>
+      {[
+        // 동그라미끼리 떨어뜨려 한 김씩 피어오르게
+        [chX + 22, chTop - 20, 10],
+        [chX + 46, chTop - 52, 13],
+        [chX + 30, chTop - 86, 9],
+      ].map(([cx, cy, r], i) => (
+        <Circle key={i} cx={cx} cy={cy} r={r} fill="#fff" stroke="#d9d4c8" strokeWidth={2} />
+      ))}
+      <Rect x={chX} y={chTop} width={50} height={wallTop - chTop - (X1 - chX - 50) * slope + 10} rx={4} fill={color.tile} />
+      <Rect x={chX - 6} y={chTop - 4} width={62} height={14} rx={4} fill="#3d7347" />
+    </G>
+  );
+}
+
 function RoofArt({ g, id }: { g: Geo; id: string }) {
   const { color, top, wallTop } = g;
   const clip = `${id}-roof`;
-
-  if (color.roof === 'chimney') {
-    // 벽이 뾰족하게 올라가고, 그 두 변을 따라 굵은 초록 띠가 처마처럼 걸린다. 굴뚝에선 연기가 몽글몽글
-    const slope = (wallTop - top) / (CX - X0);
-    const over = 30;
-    const chX = X1 - 120;
-    const chTop = top + 40;
-    return (
-      <G>
-        {[
-          // 동그라미끼리 떨어뜨려 한 김씩 피어오르게
-          [chX + 22, chTop - 20, 10],
-          [chX + 46, chTop - 52, 13],
-          [chX + 30, chTop - 86, 9],
-        ].map(([cx, cy, r], i) => (
-          <Circle key={i} cx={cx} cy={cy} r={r} fill="#fff" stroke="#d9d4c8" strokeWidth={2} />
-        ))}
-        <Rect x={chX} y={chTop} width={50} height={wallTop - chTop - (X1 - chX - 50) * slope + 10} rx={4} fill={color.tile} />
-        <Rect x={chX - 6} y={chTop - 4} width={62} height={14} rx={4} fill={color.tile} />
-        <Path d={`M${X0},${wallTop} L${CX},${top} L${X1},${wallTop} Z`} fill={color.wall} />
-        <Path
-          d={`M${X0 - over},${wallTop + over * slope} L${CX},${top} L${X1 + over},${wallTop + over * slope}`}
-          stroke={color.tile}
-          strokeWidth={36}
-          fill="none"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-        {/* 꼭대기 아래 작은 하트 창 */}
-        <Path
-          d={`M${CX},${top + 118} C${CX - 30},${top + 96} ${CX - 22},${top + 70} ${CX},${top + 84} C${CX + 22},${top + 70} ${CX + 30},${top + 96} ${CX},${top + 118} Z`}
-          fill={color.frame}
-          opacity={0.85}
-        />
-      </G>
-    );
-  }
 
   const shape = roofShape(g);
   const rand = seededRandom(`${id}-dots`);
@@ -180,8 +164,12 @@ function RoofArt({ g, id }: { g: Geo; id: string }) {
           <Path d={shape} />
         </ClipPath>
       </Defs>
+      {color.roof === 'chimney' && <Chimney g={g} />}
       <Path d={shape} fill={color.tile} />
       <G clipPath={`url(#${clip})`}>
+        {/* 초록 지붕: 가로 기와 줄 */}
+        {color.roof === 'chimney' &&
+          Array.from({ length: 9 }, (_, i) => <Line key={i} x1={X0 - 10} y1={wallTop - 26 - i * 26} x2={X1 + 10} y2={wallTop - 26 - i * 26} stroke={color.pattern} strokeWidth={2.4} />)}
         {color.roof === 'stripe' &&
           Array.from({ length: 22 }, (_, i) => <Line key={i} x1={X0 + 6 + i * 20} y1={top} x2={X0 + 6 + i * 20} y2={wallTop} stroke={color.pattern} strokeWidth={2.4} />)}
         {color.roof === 'grid' && (
@@ -207,8 +195,19 @@ function RoofArt({ g, id }: { g: Geo; id: string }) {
           <Line x1={CX} y1={wallTop - 120} x2={CX} y2={wallTop - 44} stroke={color.tile} strokeWidth={4} />
         </G>
       )}
-      {/* 처마 끝 물결 (벽 쪽으로 늘어진다) */}
-      <Scallop y={wallTop - 1} x0={X0 - (color.roof === 'stripe' ? 10 : 8)} x1={X1 + (color.roof === 'stripe' ? 10 : 8)} fill={color.tile} />
+      {/* 초록 지붕엔 작은 하트 창 */}
+      {color.roof === 'chimney' && (
+        <Path
+          d={`M${CX},${wallTop - 52} C${CX - 30},${wallTop - 74} ${CX - 22},${wallTop - 100} ${CX},${wallTop - 86} C${CX + 22},${wallTop - 100} ${CX + 30},${wallTop - 74} ${CX},${wallTop - 52} Z`}
+          fill="#f4f1e8"
+        />
+      )}
+      {/* 처마 끝: 초록은 곧은 선, 나머지는 물결 (벽 쪽으로 늘어진다) */}
+      {color.roof === 'chimney' ? (
+        <Rect x={X0 - 8} y={wallTop - 4} width={X1 - X0 + 16} height={8} rx={3} fill="#3d7347" />
+      ) : (
+        <Scallop y={wallTop - 1} x0={X0 - (color.roof === 'stripe' ? 10 : 8)} x1={X1 + (color.roof === 'stripe' ? 10 : 8)} fill={color.tile} />
+      )}
     </G>
   );
 }
