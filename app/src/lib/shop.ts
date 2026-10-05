@@ -176,25 +176,8 @@ export const fourcutDesignUnlocked = (id: FourcutDesign | undefined, owned: stri
 /** 운동·음악의 무료 모양 */
 export const FREE_EXERCISE_DESIGNS: { id: ExerciseDesign; name: string }[] = [
   { id: 'slip', name: '기록표' },
-  { id: 'card', name: '기록 카드' },
+  { id: 'card', name: '사진 위 기록' },
 ];
-
-export interface ExerciseDesignItem {
-  id: Exclude<ExerciseDesign, 'slip' | 'card'>;
-  name: string;
-  desc: string;
-  productId: string;
-  price: number;
-  kinds: RecordKind[];
-}
-
-/** 운동 유료 모양: 사진을 배경으로 깔고 기록을 띄운다 (러닝 앱 공유 화면처럼) */
-export const EXERCISE_DESIGNS: ExerciseDesignItem[] = [
-  { id: 'photo', name: '사진 위 기록', desc: '내 사진을 배경으로 꽉 깔고 거리·페이스·시간을 그 위에 띄운다', productId: 'recoco.theme.exercise-photo', price: 1000, kinds: ['exercise'] },
-];
-
-export const exerciseDesignUnlocked = (id: ExerciseDesign | undefined, owned: string[]) =>
-  !id || FREE_EXERCISE_DESIGNS.some((d) => d.id === id) || owned.includes(EXERCISE_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 export const FREE_MUSIC_DESIGNS: { id: MusicDesign; name: string }[] = [
   { id: 'album', name: '앨범 카드' },
@@ -207,7 +190,7 @@ export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: s
   food: { name: '카페·맛집', desc: '메뉴마다 별점을 매기는 주문서 · 인쇄 색 4가지', icon: '☕', productId: 'recoco.category.food', price: 1500 },
   show: { name: '공연·전시', desc: '뮤지컬·연극·전시 · 흰 무지 티켓 · 포스터 입장권', icon: '🎫', productId: 'recoco.category.show', price: 1500 },
   concert: { name: '콘서트', desc: '밤하늘 티켓 · 흰 무지 티켓', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
-  exercise: { name: '운동', desc: '러닝·헬스·요가·등산·수영 · 기록표와 기록 카드', icon: '🏋', productId: 'recoco.category.exercise', price: 1500 },
+  exercise: { name: '운동', desc: '러닝·헬스·요가·등산·수영 · 기록표와 사진 위 기록', icon: '🏋', productId: 'recoco.category.exercise', price: 1500 },
   music: { name: '음악', desc: '앨범 감상과 플레이리스트 · 앨범 카드와 영수증', icon: '🎧', productId: 'recoco.category.music', price: 1500 },
 };
 

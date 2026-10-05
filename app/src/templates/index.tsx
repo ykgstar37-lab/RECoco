@@ -12,7 +12,6 @@ import { PhotoTicket, layoutPhotoTicket } from './PhotoTicket';
 import { ReadingReceipt, layoutReading } from './ReadingReceipt';
 import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
 import { ShowHolo, layoutShowHolo } from './ShowHolo';
-import { ExerciseCard, layoutExerciseCard } from './ExerciseCard';
 import { FourcutCard, layoutFourcutCard } from './FourcutCard';
 import { FourcutCocochiBack, FourcutCocochiFront, layoutFourcutCocochi } from './FourcutCocochi';
 import { FourcutHouseBack, FourcutHouseFront, layoutFourcutHouse } from './FourcutHouse';
@@ -94,7 +93,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
               ? layoutPlainTicket(record)
               : layoutConcert(record);
     case 'exercise':
-      return record.design === 'card' ? layoutExerciseCard(record) : record.design === 'photo' ? layoutExercisePhoto(record) : layoutExerciseSlip(record);
+      return record.design === 'card' ? layoutExercisePhoto(record) : layoutExerciseSlip(record);
     case 'music':
       return record.design === 'list' ? layoutMusicList(record) : layoutMusicAlbum(record);
   }
@@ -166,13 +165,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
         <ConcertTicket record={record} width={width} connected={connected} />
       );
     case 'exercise':
-      return record.design === 'card' ? (
-        <ExerciseCard record={record} width={width} connected={connected} />
-      ) : record.design === 'photo' ? (
-        <ExercisePhoto record={record} width={width} connected={connected} />
-      ) : (
-        <ExerciseSlip record={record} width={width} connected={connected} />
-      );
+      return record.design === 'card' ? <ExercisePhoto record={record} width={width} connected={connected} /> : <ExerciseSlip record={record} width={width} connected={connected} />;
     case 'music':
       return record.design === 'list' ? <MusicList record={record} width={width} connected={connected} /> : <MusicAlbum record={record} width={width} connected={connected} />;
   }

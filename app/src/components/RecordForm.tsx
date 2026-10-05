@@ -1606,7 +1606,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     )}
                     {photoBusy && <PhotoBusy />}
                   </Pressable>
-                  <Text style={styles.coverHelp}>{exercise.design === 'photo' ? '기록 뒤에 배경으로 꽉 깔려요.\n세로 사진이 잘 어울려요.' : '기록표·기록 카드 가운데에 들어가요.'}</Text>
+                  <Text style={styles.coverHelp}>{exercise.design === 'card' ? '기록 뒤에 배경으로 꽉 깔려요.\n세로 사진이 잘 어울려요.' : '기록표 가운데에 들어가요.'}</Text>
                 </View>
 
                 <Label text="힘든 정도" />

@@ -13,8 +13,6 @@ import { sampleConcert, sampleExercise, sampleFood, sampleFourcut, sampleGift, s
 import {
   CONCERT_DESIGNS,
   ConcertDesignItem,
-  EXERCISE_DESIGNS,
-  ExerciseDesignItem,
   FOOD_DESIGNS,
   FOURCUT_DESIGNS,
   FoodDesignItem,
@@ -177,24 +175,6 @@ export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
 
 export const fourcutDesignProductById = (id: FourcutDesignItem['id']) => fourcutDesignProduct(FOURCUT_DESIGNS.find((d) => d.id === id)!);
 
-/** 운동 사진 위 기록: 러닝·등산·헬스를 한 장씩 */
-export function exerciseDesignProduct(d: ExerciseDesignItem): PreviewProduct {
-  return {
-    title: d.name,
-    desc: d.desc,
-    productId: d.productId,
-    price: d.price,
-    tags: d.kinds.map((k) => KIND_LABEL[k]),
-    requires: d.kinds,
-    samples: [
-      { record: { ...sampleExercise('run'), id: `preview-exercise-${d.id}-run`, design: d.id }, caption: '러닝' },
-      { record: { ...sampleExercise('gym'), id: `preview-exercise-${d.id}-gym`, design: d.id }, caption: '헬스' },
-    ],
-  };
-}
-
-export const exerciseDesignProductById = (id: ExerciseDesignItem['id']) => exerciseDesignProduct(EXERCISE_DESIGNS.find((d) => d.id === id)!);
-
 /** 콘서트·공연전시 영수증 모양 하나의 미리보기 (두 카테고리가 같이 쓰면 양쪽 예시를 다 보여준다) */
 /** 이 모양에서 고를 수 있는 색 (없으면 단색 모양) */
 const designColors = (id: ConcertDesign | ShowDesign): { id: TicketColor; name: string }[] =>
@@ -295,7 +275,7 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
               ? [
                   { record: sampleExercise('run'), caption: '기록표 · 러닝' },
                   { record: { ...sampleExercise('gym'), id: 'preview-exercise-gym-slip' }, caption: '기록표 · 헬스' },
-                  { record: { ...sampleExercise('run'), id: 'preview-exercise-card', design: 'card' }, caption: '기록 카드' },
+                  { record: { ...sampleExercise('run'), id: 'preview-exercise-card', design: 'card' }, caption: '사진 위 기록' },
                 ]
               : kind === 'music'
                 ? [

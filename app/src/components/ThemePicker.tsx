@@ -6,7 +6,6 @@ import { won } from '../lib/format';
 import {
   PreviewProduct,
   concertDesignProductById,
-  exerciseDesignProductById,
   foodDesignProductById,
   fourcutDesignProductById,
   showDesignProductById,
@@ -14,7 +13,6 @@ import {
 } from '../lib/products';
 import {
   CONCERT_DESIGNS,
-  EXERCISE_DESIGNS,
   FOOD_DESIGNS,
   FREE_CONCERT_DESIGNS,
   FREE_EXERCISE_DESIGNS,
@@ -27,7 +25,6 @@ import {
   SHOW_DESIGNS,
   THEMES,
   concertDesignUnlocked,
-  exerciseDesignUnlocked,
   foodDesignUnlocked,
   fourcutDesignUnlocked,
   showDesignUnlocked,
@@ -547,10 +544,10 @@ const styles = StyleSheet.create({
   dotFill: { width: 22, height: 22, borderRadius: 11, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
 });
 
-/** 운동 모양 견본 (기록표 / 기록 카드) */
+/** 운동 모양 견본 (기록표 / 사진 위 기록) */
 export function ExerciseDesignSwatch({ design, type = 'run', size = 44 }: { design: ExerciseDesign; type?: ExerciseType; size?: number }) {
   const accent = EXERCISE_TYPES[type]?.accent ?? EXERCISE_TYPES.run.accent;
-  if (design === 'photo')
+  if (design === 'card')
     // 사진(어두운 풍경) 위 오른쪽에 큰 숫자와 작은 칸
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -564,8 +561,7 @@ export function ExerciseDesignSwatch({ design, type = 'run', size = 44 }: { desi
         ))}
       </Svg>
     );
-  if (design === 'card')
-    return (
+  return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
         <Rect x={2} y={2} width={36} height={48} rx={5} fill={accent} />
         <Rect x={7} y={10} width={14} height={4} rx={2} fill="#fff" />
@@ -589,49 +585,24 @@ export function ExerciseDesignSwatch({ design, type = 'run', size = 44 }: { desi
   );
 }
 
-/** 운동 폼의 모양 고르기: 기록표·기록 카드는 무료, 사진 위 기록은 사면 열린다 */
+/** 운동 폼의 모양 고르기 (둘 다 무료) */
 export function ExerciseDesignPicker({ value, type, onChange }: { value: ExerciseDesign | undefined; type: ExerciseType; onChange: (design: ExerciseDesign) => void }) {
-  const { owned } = useShop();
-  const [preview, setPreview] = useState<{ id: ExerciseDesign; product: PreviewProduct } | null>(null);
-  const options: { id: ExerciseDesign; name: string; price: number }[] = [...FREE_EXERCISE_DESIGNS.map((d) => ({ ...d, price: 0 })), ...EXERCISE_DESIGNS];
   const design = value ?? 'slip';
-
-  const choose = (id: ExerciseDesign) => {
-    if (exerciseDesignUnlocked(id, owned)) return onChange(id);
-    setPreview({ id, product: exerciseDesignProductById(id as Exclude<ExerciseDesign, 'slip' | 'card'>) });
-  };
-
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>기록 모양</Text>
       <View style={styles.row}>
-        {options.map((o) => {
+        {FREE_EXERCISE_DESIGNS.map((o) => {
           const on = design === o.id;
-          const locked = !exerciseDesignUnlocked(o.id, owned);
           return (
-            <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
-              <View style={locked && { opacity: 0.55 }}>
-                <ExerciseDesignSwatch design={o.id} type={type} />
-              </View>
-              <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
-                {locked ? '🔒 ' : ''}
-                {o.name}
-              </Text>
-              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
+            <Pressable key={o.id} onPress={() => onChange(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={o.name}>
+              <ExerciseDesignSwatch design={o.id} type={type} />
+              <Text style={[styles.name, on && { color: COLORS.orange }]}>{o.name}</Text>
             </Pressable>
           );
         })}
       </View>
-      {design === 'photo' && <Text style={styles.hint}>위에서 고른 사진이 배경으로 꽉 깔리고, 기록이 그 위에 떠요</Text>}
-
-      <ProductPreview
-        product={preview?.product ?? null}
-        onClose={() => setPreview(null)}
-        onBought={() => {
-          if (preview) onChange(preview.id);
-          setPreview(null);
-        }}
-      />
+      {design === 'card' && <Text style={styles.hint}>위에서 고른 사진이 배경으로 꽉 깔리고, 기록이 그 위에 떠요</Text>}
     </View>
   );
 }

@@ -261,8 +261,11 @@ export interface ConcertRecord extends BaseRecord {
 
 export type ExerciseType = 'run' | 'gym' | 'yoga' | 'hike' | 'swim';
 
-/** slip: 운동 기록표(흰 영수증), card: 기록 카드(진한 색) — 둘 다 무료 / photo: 사진 위 기록(유료, 사진을 배경으로 깔고 숫자를 띄운다) */
-export type ExerciseDesign = 'slip' | 'card' | 'photo';
+/**
+ * slip: 운동 기록표(흰 영수증), card: 사진 위 기록(사진을 배경으로 깔고 숫자를 띄운다) — 둘 다 무료.
+ * card 는 예전 '기록 카드'(종류 색으로 꽉 찬 카드) 자리를 그대로 이어받았다 (2026-10-05)
+ */
+export type ExerciseDesign = 'slip' | 'card';
 
 /** 헬스일 때 종목마다 적는 줄 */
 export interface ExerciseSet {
