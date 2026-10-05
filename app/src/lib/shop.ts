@@ -13,6 +13,8 @@ import type { ConcertDesign, ExerciseDesign, FoodDesign, FourcutDesign, MusicDes
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
+/** 무료로 받은 상품 (산 것과 따로 둔다 — 구매 복원·스토어와 섞이지 않게) */
+const CLAIMED_KEY = 'recoco.claimed.v1';
 
 /**
  * 코코 옷은 **영수증을 몇 장 뽑았는지로 하나씩 열린다** (2026-09-29 확정).
@@ -204,44 +206,41 @@ export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {
 };
 
 export interface ShopState {
-  /** 쓸 수 있는 productId. 전부 열린 사람(v1.0·유료화 전 사용자)은 모든 상품이 들어 있다 */
+  /** 쓸 수 있는 productId = 산 것 + 무료로 받은 것 */
   owned: string[];
-  /** 실제로 산 productId (저장·복원은 이것만) */
+  /** 실제로 산 productId (스토어 복원은 이것만) */
   purchased: string[];
-  /** 산 것과 상관없이 전부 열려 있는지 (lib/launch.ts) */
+  /** 상점에서 '무료로 받기'로 받은 productId */
+  claimed: string[];
+  /** 돈 없이 받을 수 있는 사람인지 (v1.0 전부 · 유료화 전부터 쓰던 사람, lib/launch.ts) */
   allOpen: boolean;
   outfit: OutfitId | null; // 입고 있는 옷
 }
 
-/** 파는 상품 전부 (카테고리 + 영수증 모양). 코코 옷은 미션이라 빠진다 */
-export const ALL_PRODUCT_IDS = [
-  ...new Set([
-    ...Object.values(PAID_CATEGORIES).map((c) => c!.productId),
-    ...THEMES.map((t) => t.productId),
-    ...FOOD_DESIGNS.map((d) => d.productId),
-    ...FOURCUT_DESIGNS.map((d) => d.productId),
-    ...CONCERT_DESIGNS.map((d) => d.productId),
-    ...SHOW_DESIGNS.map((d) => d.productId),
-  ]),
-];
-
-const withAccess = (purchased: string[], allOpen: boolean, outfit: OutfitId | null): ShopState => ({
+/**
+ * 저절로 다 열지 않는다 — 무료여도 상점에서 하나씩 '무료로 받기'를 눌러야 쓴다 (2026-10-06 사용자 요청).
+ * 받은 것만 메인 ＋ 알약·폼 모양 고르기·목록 탭에 나타난다
+ */
+const withAccess = (purchased: string[], claimed: string[], allOpen: boolean, outfit: OutfitId | null): ShopState => ({
   purchased,
+  claimed,
   allOpen,
   outfit,
-  owned: allOpen ? [...new Set([...ALL_PRODUCT_IDS, ...purchased])] : purchased,
+  owned: [...new Set([...purchased, ...claimed])],
 });
 
 export async function loadShop(): Promise<ShopState> {
   // 첫 실행 날짜를 먼저 심고(처음이면 오늘), iOS 는 애플 계정이 처음 받은 빌드도 본다 → 그걸로 전부 열지 정한다.
   // 전부 무료인 판에서는 애플에 묻지 않는다 (볼 필요가 없다)
-  const [owned, outfit, since, firstBuild] = await Promise.all([
+  const [owned, claimed, outfit, since, firstBuild] = await Promise.all([
     AsyncStorage.getItem(OWNED_KEY),
+    AsyncStorage.getItem(CLAIMED_KEY),
     AsyncStorage.getItem(OUTFIT_KEY),
     markFirstRun().catch(() => null),
     FREE_FOR_ALL ? Promise.resolve(null) : firstBuildIOS(),
   ]);
-  return withAccess(owned ? (JSON.parse(owned) as string[]) : [], opensAll(since, firstBuild), (outfit as OutfitId | null) || null);
+  const list = (raw: string | null) => (raw ? (JSON.parse(raw) as string[]) : []);
+  return withAccess(list(owned), list(claimed), opensAll(since, firstBuild), (outfit as OutfitId | null) || null);
 }
 
 export const saveOwned = (owned: string[]) => AsyncStorage.setItem(OWNED_KEY, JSON.stringify(owned));
@@ -250,8 +249,7 @@ export const saveOutfit = (outfit: OutfitId | null) => (outfit ? AsyncStorage.se
 export const isUnlocked = (item: OutfitItem, recordCount: number) => recordCount >= item.records;
 
 // ── 앱 전체가 같이 보는 구매·옷 상태 ──
-// 무료판이면 불러오기 전부터 열어 둔다 (잠깐 잠겼다 풀리는 깜빡임 없이)
-let state: ShopState = withAccess([], FREE_FOR_ALL, null);
+let state: ShopState = withAccess([], [], FREE_FOR_ALL, null);
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
@@ -275,8 +273,16 @@ export function useShop() {
 
 export function addOwned(productId: string) {
   if (state.purchased.includes(productId)) return;
-  state = withAccess([...state.purchased, productId], state.allOpen, state.outfit);
+  state = withAccess([...state.purchased, productId], state.claimed, state.allOpen, state.outfit);
   saveOwned(state.purchased).catch(() => {});
+  emit();
+}
+
+/** 무료로 받기 (결제 없이). 돈 없이 받을 수 있는 사람만 */
+export function claim(productId: string) {
+  if (!state.allOpen || state.claimed.includes(productId)) return;
+  state = withAccess(state.purchased, [...state.claimed, productId], state.allOpen, state.outfit);
+  AsyncStorage.setItem(CLAIMED_KEY, JSON.stringify(state.claimed)).catch(() => {});
   emit();
 }
 
@@ -288,6 +294,8 @@ export function wearOutfit(outfit: OutfitId | null) {
 
 /** 사고 나서 상태에 반영까지 */
 export async function buy(productId: string) {
+  // 무료로 받을 수 있는 사람은 결제창 없이 바로 받는다
+  if (state.allOpen) return claim(productId);
   addOwned(await purchase(productId));
 }
 

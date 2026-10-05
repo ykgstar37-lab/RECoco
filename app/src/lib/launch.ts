@@ -1,6 +1,6 @@
 // 유료화 스위치. 여기 값만 바꾸면 앱 전체의 잠금이 따라 바뀐다.
 //
-// v1.0: FREE_FOR_ALL = true → 카테고리·테마가 전부 열린 채로 무료.
+// v1.0: FREE_FOR_ALL = true → 카테고리·테마를 전부 무료로 **받을 수 있다** (상점에서 하나씩 '무료로 받기', 저절로 열리지는 않는다).
 // 유료화하는 업데이트에서:
 //   FREE_FOR_ALL    = false
 //   PAID_SINCE      = '유료화 판이 나가는 날 (YYYY-MM-DD)'
@@ -12,7 +12,7 @@
 //  1. iOS: 애플 계정이 처음 받은 빌드 번호 < PAID_FROM_BUILD  (lib/appTransaction — 재설치·기기 변경에도 남는다)
 //  2. 폰에 적힌 첫 실행 날짜 < PAID_SINCE                      (lib/since — 안드로이드는 이것뿐)
 
-/** 지금은 모두에게 전부 무료 */
+/** 지금은 모두 무료로 받을 수 있다 */
 export const FREE_FOR_ALL = true;
 
 /** 유료화가 시작된 날. 이 날보다 먼저 처음 연 사람은 계속 전부 무료 (유료화 전에는 null) */
@@ -21,7 +21,7 @@ export const PAID_SINCE: string | null = null;
 /** 유료화 판의 iOS 빌드 번호. 이보다 작은 빌드로 처음 받은 사람은 계속 전부 무료 (유료화 전에는 null) */
 export const PAID_FROM_BUILD: number | null = null;
 
-/** 이 사람에게 전부 열어줄지 */
+/** 이 사람이 돈 없이 받을 수 있는지 */
 export function opensAll(since: string | null, firstBuild: number | null) {
   if (FREE_FOR_ALL) return true;
   if (firstBuild !== null && PAID_FROM_BUILD !== null && firstBuild < PAID_FROM_BUILD) return true;

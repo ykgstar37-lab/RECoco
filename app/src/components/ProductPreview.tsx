@@ -127,12 +127,14 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
             ) : (
               <Text style={[styles.buyText, (have || !!needKinds) && styles.buyTextOff]}>
                 {have
-                  ? allOpen && !purchased.includes(product.productId)
-                    ? '지금은 무료로 쓸 수 있어요'
-                    : '이미 가지고 있어요'
+                  ? purchased.includes(product.productId)
+                    ? '이미 가지고 있어요'
+                    : '받았어요 · 바로 쓸 수 있어요'
                   : needKinds
                     ? `${needKinds.map((k) => KIND_LABEL[k]).join(' 또는 ')}을(를) 먼저 사야 써요`
-                    : `${won(product.price)}원에 사기`}
+                    : allOpen
+                      ? '무료로 받기'
+                      : `${won(product.price)}원에 사기`}
               </Text>
             )}
           </Pressable>

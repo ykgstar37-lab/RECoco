@@ -123,7 +123,7 @@ interface Props {
 
 /** 기록 폼의 종이 고르기: 산 테마는 바로 고르고, 안 산 테마는 미리보기에서 사기 */
 export function ThemePicker({ label, base, value, color, onChange }: Props) {
-  const { owned } = useShop();
+  const { owned, allOpen } = useShop();
   const [preview, setPreview] = useState<{ id: PaperTheme; product: PreviewProduct } | null>(null);
 
   const pick = (id: PaperTheme | undefined) => onChange(id, id === 'grid' ? (themeColors(id).some((c) => c.id === color) ? color : 'green') : undefined);
@@ -226,7 +226,7 @@ export function FoodDesignPicker({
   /** 모양을 고르면 그 모양에서 쓸 수 있는 색도 같이 정해서 준다 */
   onChange: (design: FoodDesign, color: FoodColor) => void;
 }) {
-  const { owned } = useShop();
+  const { owned, allOpen } = useShop();
   const [preview, setPreview] = useState<{ id: FoodDesign; product: PreviewProduct } | null>(null);
   const options: { id: FoodDesign; name: string; price: number }[] = [...FREE_FOOD_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOOD_DESIGNS];
   // 예전 '단색 주문서' 기록은 주문서 + 먹색으로 보여준다
@@ -256,7 +256,7 @@ export function FoodDesignPicker({
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
+              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
@@ -356,7 +356,7 @@ export function ConcertDesignPicker({
   color: TicketColor | undefined;
   onChange: (design: ConcertDesign, color: TicketColor | undefined) => void;
 }) {
-  const { owned } = useShop();
+  const { owned, allOpen } = useShop();
   const [preview, setPreview] = useState<{ id: ConcertDesign; product: PreviewProduct } | null>(null);
   const options: { id: ConcertDesign; name: string; price: number }[] = [...FREE_CONCERT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...CONCERT_DESIGNS];
   const design = value ?? 'ticket';
@@ -384,7 +384,7 @@ export function ConcertDesignPicker({
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
+              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
@@ -470,7 +470,7 @@ export function ShowDesignPicker({
   color: TicketColor | undefined;
   onChange: (design: ShowDesign, color: TicketColor | undefined) => void;
 }) {
-  const { owned } = useShop();
+  const { owned, allOpen } = useShop();
   const [preview, setPreview] = useState<{ id: ShowDesign; product: PreviewProduct } | null>(null);
   const options: { id: ShowDesign; name: string; price: number }[] = [...FREE_SHOW_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SHOW_DESIGNS];
   // 'ticket' 은 레트로의 예전 이름
@@ -499,7 +499,7 @@ export function ShowDesignPicker({
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
+              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
@@ -734,7 +734,7 @@ export function FourcutDesignPicker({
   houseColor?: FourcutHouseColor;
   onHouseColor?: (color: FourcutHouseColor) => void;
 }) {
-  const { owned } = useShop();
+  const { owned, allOpen } = useShop();
   const [preview, setPreview] = useState<{ id: FourcutDesign; product: PreviewProduct } | null>(null);
   const options: { id: FourcutDesign; name: string; price: number }[] = [...FREE_FOURCUT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOURCUT_DESIGNS];
   const design = value ?? 'strip';
@@ -760,7 +760,7 @@ export function FourcutDesignPicker({
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
+              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
