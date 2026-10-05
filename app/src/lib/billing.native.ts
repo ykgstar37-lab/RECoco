@@ -1,17 +1,20 @@
 // 스토어 결제 (App Store · Google Play). expo-iap 을 감싸서 shop.ts 가 쓰기 좋은 모양으로만 내놓는다.
 // 레코코 상품은 전부 비소모성 1회 구매라 소비(consume)하지 않고 확인만 한다 → "뭘 샀나"는 스토어가 기억한다.
-import {
-  finishTransaction,
-  getAvailablePurchases,
-  initConnection,
-  isUserCancelledError,
-  purchaseErrorListener,
-  purchaseUpdatedListener,
-  requestPurchase,
-  type Purchase,
-} from 'expo-iap';
+import type { Purchase } from 'expo-iap';
 
-export const canBuy = true;
+// ⚠️ expo-iap 을 넣기 전에 만든 개발 빌드에는 그 네이티브 모듈이 없다 → 그냥 import 하면 켜자마자 죽는다.
+// 불러오다 실패하면 결제만 끄고(canBuy = false) 나머지는 그대로 돌게 한다.
+const iap: typeof import('expo-iap') | null = (() => {
+  try {
+    return require('expo-iap') as typeof import('expo-iap');
+  } catch {
+    return null;
+  }
+})();
+
+export const canBuy = !!iap;
+const { finishTransaction, getAvailablePurchases, initConnection, isUserCancelledError, purchaseErrorListener, purchaseUpdatedListener, requestPurchase } = (iap ??
+  {}) as typeof import('expo-iap');
 
 /** 결제창을 띄웠다가 사용자가 취소함 (개발 중 자동 해금에서 빼려고 구분한다) */
 export class PurchaseCancelled extends Error {}

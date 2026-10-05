@@ -5,7 +5,6 @@
 // ⚠️ TestFlight·샌드박스에서는 늘 '1.0' 으로 온다 → 실제 스토어(Production)에서 받은 값만 믿는다.
 // 한 번 받으면 폰에 적어 둔다 (오프라인이거나 iOS 16 미만이면 못 받을 수 있어서).
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getAppTransactionIOS } from 'expo-iap';
 import { Platform } from 'react-native';
 
 const KEY = 'recoco.firstBuild.v1';
@@ -20,6 +19,8 @@ export async function firstBuildIOS(): Promise<number | null> {
     // 못 읽으면 애플에 다시 묻는다
   }
   try {
+    // expo-iap 이 없는 옛 빌드면 여기서 던져져 아래 catch 로 간다
+    const { getAppTransactionIOS } = require('expo-iap') as typeof import('expo-iap');
     const tx = await getAppTransactionIOS();
     if (!tx || String(tx.environment).toLowerCase() !== 'production') return null;
     const build = parseInt(tx.originalAppVersion, 10);
