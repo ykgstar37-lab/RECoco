@@ -252,26 +252,27 @@ export const showDesignProduct = designProduct;
 export const concertDesignProductById = (id: ConcertDesignItem['id']) => designProduct(CONCERT_DESIGNS.find((d) => d.id === id)!);
 export const showDesignProductById = (id: ShowDesignItem['id']) => designProduct(SHOW_DESIGNS.find((d) => d.id === id)!);
 
+/** 카테고리 미리보기: 사진은 한 장에만 넣고 나머지는 사진 없이 — 둘 다 어떻게 보이는지 보여준다 */
 export function categoryProduct(kind: RecordKind): PreviewProduct | null {
   const c = PAID_CATEGORIES[kind];
   if (!c) return null;
   const samples: PreviewSample[] =
     kind === 'gift'
       ? [
-          { record: sampleGift('yellow'), caption: '받은 선물' },
-          { record: { ...sampleGift('pink'), direction: 'given', person: '엄마', item: '수박 한 통', brand: '', price: 0, message: '여름엔 역시 수박! 시원하게 드세요.', photo: SAMPLE_SHOTS.melon() }, caption: '보낸 선물' },
+          { record: sampleGift('yellow'), caption: '받은 선물 · 사진' },
+          { record: { ...sampleGift('pink'), direction: 'given', person: '엄마', item: '수박 한 통', brand: '', price: 0, message: '여름엔 역시 수박! 시원하게 드세요.', photo: null }, caption: '보낸 선물 · 사진 없이' },
         ]
       : kind === 'food'
         ? [
-            { record: sampleFood(), caption: '주문서 · 초록' },
-            { record: { ...sampleFood(), id: 'preview-food-ink', color: 'ink' }, caption: '주문서 · 먹색' },
-            { record: { ...sampleFood(), id: 'preview-food-navy', color: 'navy' }, caption: '주문서 · 남색' },
-            { record: { ...sampleFood(), id: 'preview-food-wine', color: 'wine' }, caption: '주문서 · 팥색' },
+            { record: sampleFood(), caption: '주문서 · 초록 · 사진' },
+            { record: { ...sampleFood(), id: 'preview-food-ink', color: 'ink', photo: null }, caption: '주문서 · 먹색 · 사진 없이' },
+            { record: { ...sampleFood(), id: 'preview-food-navy', color: 'navy', photo: null }, caption: '주문서 · 남색 · 사진 없이' },
+            { record: { ...sampleFood(), id: 'preview-food-wine', color: 'wine', photo: null }, caption: '주문서 · 팥색 · 사진 없이' },
             {
               record: {
                 ...sampleFood(),
                 id: 'preview-food-meal',
-                photo: SAMPLE_SHOTS.meal(),
+                photo: null,
                 place: '골목 칼국수',
                 area: '망원동',
                 type: 'meal',
@@ -285,25 +286,25 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                 revisit: 'maybe',
                 memo: '',
               },
-              caption: '식당',
+              caption: '식당 · 사진 없이',
             },
           ]
         : kind === 'show'
           ? [
-              { record: { ...sampleShow('play'), id: 'preview-show-plain', design: 'plain' }, caption: '흰 무지' },
-              { record: { ...sampleShow('play'), id: 'preview-show-poster', design: 'poster' }, caption: '포스터 입장권' },
-              { record: { ...sampleShow('exhibition'), id: 'preview-show-ex', design: 'poster', photo: SAMPLE_SHOTS.exhibit2() }, caption: '전시' },
+              { record: { ...sampleShow('play'), id: 'preview-show-plain', design: 'plain', photo: null }, caption: '흰 무지 · 사진 없이' },
+              { record: { ...sampleShow('play'), id: 'preview-show-poster', design: 'poster', photo: SAMPLE_SHOTS.poster() }, caption: '포스터 입장권 · 사진' },
+              { record: { ...sampleShow('exhibition'), id: 'preview-show-ex', design: 'poster', photo: SAMPLE_SHOTS.exhibit2() }, caption: '전시 · 사진' },
             ]
           : kind === 'concert'
             ? [
-                { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain' }, caption: '흰 무지' },
-                { record: sampleConcert(), caption: '밤하늘 티켓' },
+                { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain', photo: null }, caption: '흰 무지 · 사진 없이' },
+                { record: sampleConcert(), caption: '밤하늘 티켓 · 사진' },
               ]
             : kind === 'exercise'
               ? [
-                  { record: sampleExercise('run'), caption: '기록표 · 러닝' },
-                  { record: { ...sampleExercise('gym'), id: 'preview-exercise-gym-slip' }, caption: '기록표 · 헬스' },
-                  { record: { ...sampleExercise('run'), id: 'preview-exercise-card', design: 'card', photo: SAMPLE_SHOTS.exercise() }, caption: '사진 위 기록' },
+                  { record: sampleExercise('run'), caption: '기록표 · 러닝 · 사진 없이' },
+                  { record: { ...sampleExercise('gym'), id: 'preview-exercise-gym-slip' }, caption: '기록표 · 헬스 · 사진 없이' },
+                  { record: { ...sampleExercise('run'), id: 'preview-exercise-card', design: 'card', photo: SAMPLE_SHOTS.exercise() }, caption: '사진 위 기록 · 사진' },
                 ]
               : kind === 'daily'
                 ? [
@@ -314,8 +315,8 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                   ]
               : kind === 'music'
                 ? [
-                    { record: sampleMusic('album'), caption: '앨범 카드' },
-                    { record: sampleMusic('list'), caption: '플레이리스트 영수증' },
+                    { record: sampleMusic('album'), caption: '앨범 카드 · 사진' },
+                    { record: { ...sampleMusic('list'), photo: null }, caption: '플레이리스트 · 사진 없이' },
                   ]
                 : [];
   const help = kind === 'daily' ? '사진과 글은 예시예요. 내 사진첩 사진으로 채워져요.' : undefined;

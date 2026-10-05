@@ -152,6 +152,7 @@ export const SAMPLE_SHOTS = {
   music: () => shot(require('../../assets/samples/music.jpg'), 480, 480),
   exhibit: () => shot(require('../../assets/samples/exhibit-1.jpg'), 480, 480),
   exhibit2: () => shot(require('../../assets/samples/exhibit-2.jpg'), 480, 480),
+  poster: () => shot(require('../../assets/samples/show-poster.jpg'), 480, 480),
 };
 
 /** 인생네컷 테마 미리보기 사진 (사용자가 준 것, 사진 칸 비율에 맞춰 잘라 둠) — ⚠️ 이것도 마인크래프트 캡처라 출시 전에 바꿀 것 */
