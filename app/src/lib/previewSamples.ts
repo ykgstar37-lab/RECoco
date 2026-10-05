@@ -92,7 +92,7 @@ export function sampleShow(type: ShowType = 'play'): ShowRecord {
     photo: SAMPLE_SHOTS.stage(),
   };
   if (type === 'exhibition')
-    return { ...base, time: '14:30', title: '빛과 그림자', artist: '김하늘', place: '서울시립미술관', seat: '', memo: '마지막 방 영상이 제일 좋았다. 도록도 샀다.' };
+    return { ...base, photo: SAMPLE_SHOTS.exhibit(), time: '14:30', title: '빛과 그림자', artist: '김하늘', place: '서울시립미술관', seat: '', memo: '마지막 방 영상이 제일 좋았다. 도록도 샀다.' };
   if (type === 'play')
     return { ...base, title: '레미제라블', artist: '조승우, 정성화', place: '블루스퀘어 신한카드홀', seat: '1층 7열 12번', memo: '커튼콜에서 눈물 날 뻔했다.' };
   return { ...base, title: '한여름밤의 콘서트', artist: '새벽밴드', place: '올림픽공원 올림픽홀', seat: '스탠딩 A구역 132번', memo: '앙코르 세 곡. 목이 다 쉬었다.' };
@@ -150,6 +150,8 @@ export const SAMPLE_SHOTS = {
   cake: () => shot(require('../../assets/samples/gift-cake.jpg'), 400, 400),
   melon: () => shot(require('../../assets/samples/gift-melon.jpg'), 400, 400),
   music: () => shot(require('../../assets/samples/music.jpg'), 480, 480),
+  exhibit: () => shot(require('../../assets/samples/exhibit-1.jpg'), 480, 480),
+  exhibit2: () => shot(require('../../assets/samples/exhibit-2.jpg'), 480, 480),
 };
 
 /** 인생네컷 테마 미리보기 사진 (사용자가 준 것, 사진 칸 비율에 맞춰 잘라 둠) — ⚠️ 이것도 마인크래프트 캡처라 출시 전에 바꿀 것 */
@@ -183,7 +185,7 @@ export function sampleDaily(i = 0, extra: Partial<DailyRecord> = {}): DailyRecor
 }
 
 export function sampleExercise(type: ExerciseRecord['type'] = 'run'): ExerciseRecord {
-  const base = { id: `preview-exercise-${type}`, createdAt: '2026-09-19T08:00:00.000Z', kind: 'exercise' as const, date: '2026-09-19', time: '07:10', type, photo: SAMPLE_SHOTS.exercise(), design: 'slip' as const };
+  const base = { id: `preview-exercise-${type}`, createdAt: '2026-09-19T08:00:00.000Z', kind: 'exercise' as const, date: '2026-09-19', time: '07:10', type, photo: null, design: 'slip' as const };
   if (type === 'gym')
     return {
       ...base,
