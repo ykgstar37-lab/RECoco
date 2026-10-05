@@ -21,7 +21,7 @@ SubFlow 는 화면까지 SVG 로 그려서 한 장에 100~170KB 였다.
 | 파일 | 무엇을 찍나 | 붙는 말 |
 |---|---|---|
 | `01-home.png` | 코코가 있는 홈 | 오늘 하루도 / **영수증으로** |
-| `02-receipts.png` | 여러 카테고리 영수증이 보이는 목록 | 열한 가지 기록, / **저마다 다른 종이** |
+| `02-receipts.png` | 여러 카테고리 영수증이 보이는 목록 | 열두 가지 기록, / **저마다 다른 종이** |
 | `03-roll.png` | 롤(이어 붙인 영수증) 화면 | 모으면 / **길게 이어져요** |
 | `04-write.png` | 독서나 영화 폼 — 검색 결과가 뜬 순간 | 제목만 치면 / **나머지는 저절로** |
 | `05-themes.png` | 종이·모양 고르는 칸 (색 동그라미까지) | 같은 기록도 / **종이를 바꾸면** |
@@ -36,13 +36,18 @@ SubFlow 는 화면까지 SVG 로 그려서 한 장에 100~170KB 였다.
 ## 규격
 
 ```
-node marketing/store/render-png.mjs 6.9   # 1290x2796
-node marketing/store/render-png.mjs 6.7   # 1284x2778
-node marketing/store/render-png.mjs 6.5   # 1242x2688
+node marketing/store/render-png.mjs 6.5    # 1284x2778  App Store 6.5" — 꼭 내야 하는 칸
+node marketing/store/render-png.mjs 6.9    # 1320x2868  App Store 6.9" — 선택 (없으면 6.5" 를 늘려 쓴다)
+node marketing/store/render-png.mjs play   # 1080x2160  Google Play 휴대전화
 ```
 
-⚠️ **6.5·6.7 슬롯에 1290×2796 을 올리면 거부당한다.** SubFlow 때 겪었다.
-6.9 슬롯에만 1290×2796 을 쓸 것.
+확인한 날: 2026-10-06 (애플 Screenshot specifications, 구글 Play 그래픽 요건)
+
+- **App Store**: 1~10장, png/jpg, **투명 없이**. 칸마다 딱 그 픽셀만 받는다 (SubFlow 때 1290×2796 을 6.5 칸에 올렸다가 거부)
+- **Google Play**: 2~8장, png/jpg(24bit, 투명 없이), 320~3840px, **긴 변 ≤ 짧은 변 × 2**
+  → 아이폰용(1284×2778 = 2.16배)을 그대로 올리면 거부된다. 그래서 `play` 는 따로 2:1 로 뽑는다
+  (그림은 그대로 두고 배경만 양옆으로 조금 넓힌다). 홍보 대상이 되려면 1080px 이상으로 4장 이상
+- **Play 에만 더 필요한 것** (아직 없음): 대표 그래픽 **1024×500**, 앱 아이콘 **512×512** (32bit png, 1MB 이하)
 
 ## 함정 두 가지
 

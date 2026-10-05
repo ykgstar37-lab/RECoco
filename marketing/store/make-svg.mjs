@@ -55,7 +55,7 @@ const SHOTS = [
   {
     file: '02-receipts',
     cap: 'RECEIPTS',
-    a: '열한 가지 기록,',
+    a: '열두 가지 기록,',
     b: '저마다 다른 종이',
     s1: '독서·영화·소비·여행·네컷부터',
     s2: '공연·콘서트·운동·음악까지.',
@@ -133,17 +133,17 @@ function svg(shot) {
   const hasShot = fs.existsSync(path.join(OUT, screenPng));
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1" gradientUnits="userSpaceOnUse" gradientTransform="scale(${W} ${H})">
       <stop offset="0" stop-color="#ffffff"/>
       <stop offset="1" stop-color="${C.paper}"/>
     </linearGradient>
     <!-- 오른쪽 위에서 번지는 주황 빛 -->
-    <radialGradient id="glow" cx="0.84" cy="0.10" r="0.66">
+    <radialGradient id="glow" cx="0.84" cy="0.10" r="0.66" gradientUnits="userSpaceOnUse" gradientTransform="scale(${W} ${H})">
       <stop offset="0" stop-color="${C.orange}" stop-opacity="0.22"/>
       <stop offset="1" stop-color="${C.orange}" stop-opacity="0"/>
     </radialGradient>
     <!-- 아래쪽에 깔리는 옅은 살구빛 -->
-    <radialGradient id="glow2" cx="0.12" cy="0.94" r="0.55">
+    <radialGradient id="glow2" cx="0.12" cy="0.94" r="0.55" gradientUnits="userSpaceOnUse" gradientTransform="scale(${W} ${H})">
       <stop offset="0" stop-color="${C.orange}" stop-opacity="0.12"/>
       <stop offset="1" stop-color="${C.orange}" stop-opacity="0"/>
     </radialGradient>
@@ -187,9 +187,10 @@ function svg(shot) {
   </defs>
 
   <g id="Background">
-    <rect width="${W}" height="${H}" fill="url(#bg)"/>
-    <rect width="${W}" height="${H}" fill="url(#glow)"/>
-    <rect width="${W}" height="${H}" fill="url(#glow2)"/>
+    <!-- 양옆으로 넉넉히: 플레이스토어(2:1)처럼 더 넓은 규격은 viewBox 만 넓혀 이 배경이 이어지게 한다 -->
+    <rect x="-400" width="${W + 800}" height="${H}" fill="url(#bg)"/>
+    <rect x="-400" width="${W + 800}" height="${H}" fill="url(#glow)"/>
+    <rect x="-400" width="${W + 800}" height="${H}" fill="url(#glow2)"/>
   </g>
 
   <g id="Caption" font-family="${FONT}">
