@@ -19,7 +19,7 @@ import { newId, nowTime, today, won } from '../lib/format';
 import { cropIfCoupon } from '../lib/giftPhoto';
 import { fillRect } from '../lib/photoCrop';
 import { downloadPhoto, pickPhotos } from '../lib/photos';
-import { isFreeSlot, slotAspect, slotOf } from '../lib/photoSlots';
+import { MultiDraft, fitsAspect, isFreeSlot, multiAspect, slotAspect, slotOf } from '../lib/photoSlots';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { EXERCISE_TYPES, USES_DISTANCE } from '../templates/ExerciseSlip';
@@ -378,13 +378,30 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
   const [couponShotOpen, setCouponShotOpen] = useState(false);
   // 교환권 캡처에서 찾아낸 상품 그림 자리 (원본 전체로 돌렸다가 다시 돌아올 수 있게 들고 있는다)
   const [giftCrop, setGiftCrop] = useState<PhotoCrop | null>(null);
-  // 사진 자르기 화면 (사진 한 장 칸): 고른 직후 자동으로 뜨고, '칸에 맞게 자르기'로 다시 연다
-  const [cropping, setCropping] = useState<{ photo: Photo; aspect: number; free: boolean; apply: (p: Photo) => void } | null>(null);
-  /** 이 기록(모양)의 사진 칸 비율로 자르기 화면을 연다. 사진 칸이 없는 모양이면 그대로 둔다 */
-  const askCrop = (draft: { kind: RecordKind; design?: string }, photo: Photo, apply: (p: Photo) => void) => {
+  // 사진 자르기 화면: 고른 직후 자동으로 뜨고(칸 비율과 이미 맞으면 건너뜀), '자르기'로 다시 연다.
+  // 여러 장을 한꺼번에 고르면 한 장씩 차례로 띄운다
+  type CropJob = { photo: Photo; aspect: number; free: boolean; apply: (p: Photo) => void; step?: string };
+  const [cropQueue, setCropQueue] = useState<CropJob[]>([]);
+  const cropping = cropQueue[0] ?? null;
+  const nextCrop = () => setCropQueue((q) => q.slice(1));
+  /** 사진 한 장 칸: 이 기록(모양)의 칸 비율로 자르기 화면을 연다. force 면 비율이 맞아도 연다 */
+  const askCrop = (draft: { kind: RecordKind; design?: string }, photo: Photo, apply: (p: Photo) => void, force = false) => {
     const slot = slotOf(draft);
     if (!slot) return;
-    setCropping({ photo, aspect: slotAspect(slot, photo), free: isFreeSlot(slot), apply });
+    const aspect = slotAspect(slot, photo);
+    const free = isFreeSlot(slot);
+    if (!force && (free || fitsAspect(photo, aspect))) return; // 일상은 원본 비율 그대로도 되니 직접 누를 때만
+    setCropQueue((q) => [...q, { photo, aspect, free, apply }]);
+  };
+  /** 여러 장 칸 (인생네컷·여행): 고른 칸들을 차례로. 안 쓰이는 사진·비율이 맞는 사진은 건너뛴다 */
+  const askCropMany = (draft: MultiDraft, photos: (Photo | null)[], indices: number[], applyAt: (i: number, p: Photo) => void, force = false) => {
+    const jobs = indices
+      .map((i) => ({ i, photo: photos[i], aspect: multiAspect(draft, photos, i) }))
+      .filter((j): j is { i: number; photo: Photo; aspect: number } => !!j.photo && j.aspect !== null && (force || !fitsAspect(j.photo, j.aspect)));
+    setCropQueue((q) => [
+      ...q,
+      ...jobs.map((j, k) => ({ photo: j.photo, aspect: j.aspect, free: false, apply: (p: Photo) => applyAt(j.i, p), step: jobs.length > 1 ? `${k + 1}/${jobs.length}` : undefined })),
+    ]);
   };
   // 앨범에서 고른 사진을 앱 폴더로 옮기는 데 시간이 걸려서, 그동안 칸 위에 도는 표시를 띄운다
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -1046,7 +1063,12 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   <Field label="게이트" value={travel.gate} onChange={(v) => setTravel({ ...travel, gate: v })} placeholder="05" />
                 </Row>
                 <Label text="여행 사진 (0~4장 · 장수에 따라 배치가 바뀌어요)" />
-                <PhotoSlots photos={travel.photos} onChange={(photos) => setTravel({ ...travel, photos })} />
+                <PhotoSlots
+                  photos={travel.photos}
+                  onChange={(photos) => setTravel({ ...travel, photos })}
+                  onPicked={(photos, indices) => askCropMany(travel, photos, indices, (i, p) => setTravel((t) => ({ ...t, photos: t.photos.map((x, j) => (j === i ? p : x)) })))}
+                  onCrop={(i) => askCropMany(travel, travel.photos, [i], (k, p) => setTravel((t) => ({ ...t, photos: t.photos.map((x, j) => (j === k ? p : x)) })), true)}
+                />
               </>
             )}
 
@@ -1103,7 +1125,14 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                       })}
                     </View>
                     <Label text="사진 (칸 순서대로 들어가요)" />
-                    <PhotoSlots photos={fourcut.photos} onChange={(photos) => setFourcut({ ...fourcut, photos })} />
+                    <PhotoSlots
+                      photos={fourcut.photos}
+                      onChange={(photos) => setFourcut({ ...fourcut, photos })}
+                      onPicked={(photos, indices) =>
+                        askCropMany(fourcut, photos, indices, (i, p) => setFourcut((f) => ({ ...f, photos: f.photos.map((x, j) => (j === i ? p : x)) })))
+                      }
+                      onCrop={(i) => askCropMany(fourcut, fourcut.photos, [i], (k, p) => setFourcut((f) => ({ ...f, photos: f.photos.map((x, j) => (j === k ? p : x)) })), true)}
+                    />
                     <Label text="프레임" />
                     <View style={styles.row}>
                       {FRAMES.map((f) => (
@@ -1387,7 +1416,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </Text>
                 </View>
                 {!!food.photo && (
-                  <Pressable onPress={() => askCrop(food, food.photo!, (q) => setFood((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                  <Pressable onPress={() => askCrop(food, food.photo!, (q) => setFood((x) => ({ ...x, photo: q })), true)} hitSlop={6} style={styles.cropLink}>
                     <Text style={styles.cropLinkText}>{food.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                   </Pressable>
                 )}
@@ -1472,7 +1501,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   <Text style={styles.coverHelp}>입장권 가운데에 들어가요.{'\n'}없으면 종류에 맞는 그림이 그려져요.</Text>
                 </View>
                 {!!show.photo && (
-                  <Pressable onPress={() => askCrop(show, show.photo!, (q) => setShow((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                  <Pressable onPress={() => askCrop(show, show.photo!, (q) => setShow((x) => ({ ...x, photo: q })), true)} hitSlop={6} style={styles.cropLink}>
                     <Text style={styles.cropLinkText}>{show.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                   </Pressable>
                 )}
@@ -1546,7 +1575,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   <Text style={styles.coverHelp}>티켓 가운데에 들어가요.{'\n'}팔찌 모양에는 사진이 들어가지 않아요.</Text>
                 </View>
                 {!!concert.photo && (
-                  <Pressable onPress={() => askCrop(concert, concert.photo!, (q) => setConcert((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                  <Pressable onPress={() => askCrop(concert, concert.photo!, (q) => setConcert((x) => ({ ...x, photo: q })), true)} hitSlop={6} style={styles.cropLink}>
                     <Text style={styles.cropLinkText}>{concert.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                   </Pressable>
                 )}
@@ -1596,7 +1625,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </Text>
                 </View>
                 {!!daily.photo && (
-                  <Pressable onPress={() => askCrop(daily, daily.photo!, (q) => setDaily((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                  <Pressable onPress={() => askCrop(daily, daily.photo!, (q) => setDaily((x) => ({ ...x, photo: q })), true)} hitSlop={6} style={styles.cropLink}>
                     <Text style={styles.cropLinkText}>{daily.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                   </Pressable>
                 )}
@@ -1719,7 +1748,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   <Text style={styles.coverHelp}>{exercise.design === 'card' ? '기록 뒤에 배경으로 꽉 깔려요.\n세로 사진이 잘 어울려요.' : '기록표 가운데에 들어가요.'}</Text>
                 </View>
                 {!!exercise.photo && (
-                  <Pressable onPress={() => askCrop(exercise, exercise.photo!, (q) => setExercise((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                  <Pressable onPress={() => askCrop(exercise, exercise.photo!, (q) => setExercise((x) => ({ ...x, photo: q })), true)} hitSlop={6} style={styles.cropLink}>
                     <Text style={styles.cropLinkText}>{exercise.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                   </Pressable>
                 )}
@@ -1816,7 +1845,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   <Text style={styles.coverHelp}>앨범 카드에 크게 들어가요.</Text>
                 </View>
                 {!!music.photo && (
-                  <Pressable onPress={() => askCrop(music, music.photo!, (q) => setMusic((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                  <Pressable onPress={() => askCrop(music, music.photo!, (q) => setMusic((x) => ({ ...x, photo: q })), true)} hitSlop={6} style={styles.cropLink}>
                     <Text style={styles.cropLinkText}>{music.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                   </Pressable>
                 )}
@@ -1846,10 +1875,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
           photo={cropping?.photo ?? null}
           aspect={cropping?.aspect ?? 1}
           free={cropping?.free}
-          onCancel={() => setCropping(null)}
+          step={cropping?.step}
+          onCancel={nextCrop}
           onDone={(p) => {
             cropping?.apply(p);
-            setCropping(null);
+            nextCrop();
           }}
         />
       </SafeAreaView>
@@ -1867,7 +1897,19 @@ function PhotoBusy() {
   );
 }
 
-function PhotoSlots({ photos, onChange }: { photos: (Photo | null)[]; onChange: (p: (Photo | null)[]) => void }) {
+function PhotoSlots({
+  photos,
+  onChange,
+  onPicked,
+  onCrop,
+}: {
+  photos: (Photo | null)[];
+  onChange: (p: (Photo | null)[]) => void;
+  /** 새로 고른 사진들이 들어간 칸 (자르기 화면을 차례로 띄운다) */
+  onPicked?: (photos: (Photo | null)[], indices: number[]) => void;
+  /** 이 칸 사진을 다시 자르기 */
+  onCrop?: (index: number) => void;
+}) {
   // 지금 채워지는 중인 칸들 (그 칸에만 도는 표시를 띄운다)
   const [filling, setFilling] = useState<number[]>([]);
   const pick = async (index: number) => {
@@ -1880,6 +1922,7 @@ function PhotoSlots({ photos, onChange }: { photos: (Photo | null)[]; onChange: 
       const next = [...photos];
       picked.forEach((p, k) => (next[targets[k]] = p));
       onChange(next);
+      onPicked?.(next, targets.slice(0, picked.length));
     } finally {
       setFilling([]);
     }
@@ -1894,6 +1937,11 @@ function PhotoSlots({ photos, onChange }: { photos: (Photo | null)[]; onChange: 
               <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => onChange(photos.map((x, j) => (j === i ? null : x)))}>
                 <Text style={styles.slotRemoveText}>×</Text>
               </Pressable>
+              {onCrop && (
+                <Pressable hitSlop={6} style={styles.slotCrop} onPress={() => onCrop(i)} accessibilityLabel={`${i + 1}번 사진 자르기`}>
+                  <Text style={styles.slotCropText}>자르기</Text>
+                </Pressable>
+              )}
             </>
           ) : (
             <Text style={styles.slotText}>+{'\n'}{i + 1}</Text>
@@ -2055,6 +2103,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   slotRemoveText: { color: '#fff', fontSize: 15, lineHeight: 17 },
+  slotCrop: { position: 'absolute', left: 4, right: 4, bottom: 4, alignItems: 'center', paddingVertical: 3, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.55)' },
+  slotCropText: { color: '#fff', fontSize: 11, fontFamily: FONTS.sansBold },
   frameChip: {
     flexDirection: 'row',
     alignItems: 'center',

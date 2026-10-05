@@ -7,6 +7,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, Ellipse, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect } from '../lib/photoCrop';
 import { parseDate, seededRandom, withParticle } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -232,6 +233,12 @@ function Shell({ g, id, connected }: { g: Geo; id: string; connected: boolean })
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
 
+/** 자르기 화면용: 사진을 n 장 넣었을 때 한 칸의 세로/가로 비율 */
+export const houseCellAspect = (n: number) => {
+  const k = Math.min(4, Math.max(1, n));
+  return (STRIP - GAP * (k - 1)) / k / (FW - FPAD * 2);
+};
+
 /** 채운 사진만 모은다. 하나도 없으면 빈 칸 네 개 */
 function photosOf(r: FourcutRecord): (Photo | null)[] {
   const filled = r.photos.filter(Boolean) as Photo[];
@@ -285,7 +292,7 @@ export function FourcutHouseFront({ record: r, width, connected = false }: Props
                     </ClipPath>
                   </Defs>
                   {p ? (
-                    <Image href={{ uri: p.uri }} x={sx} y={y} width={sw} height={cellH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${cid})`} />
+                    <Image href={{ uri: p.uri }} {...coverRect(p, { x: sx, y, width: sw, height: cellH })} preserveAspectRatio="none" clipPath={`url(#${cid})`} />
                   ) : (
                     <G>
                       <Rect x={sx} y={y} width={sw} height={cellH} fill="#dcd9d3" />

@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect } from '../lib/photoCrop';
 import { seededRandom } from '../lib/format';
 import { fitLine, measure } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -96,11 +97,8 @@ function PhotoSlot({ photo, slot: s, clipId }: { photo: Photo; slot: Slot; clipI
       <Rect x={s.x} y={s.y} width={s.w} height={s.h} rx={4} fill="#e4e6e9" />
       <Image
         href={{ uri: photo.uri }}
-        x={s.x}
-        y={s.y}
-        width={s.w}
-        height={s.h}
-        preserveAspectRatio="xMidYMid slice"
+        {...coverRect(photo, { x: s.x, y: s.y, width: s.w, height: s.h })}
+        preserveAspectRatio="none"
         clipPath={`url(#${clipId})`}
       />
     </G>

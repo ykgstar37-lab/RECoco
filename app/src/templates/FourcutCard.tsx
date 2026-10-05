@@ -4,6 +4,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect } from '../lib/photoCrop';
 import { seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -160,6 +161,19 @@ const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f
 /** 카드에 쓸 그림: 고른 사진이 있으면 첫 장, 없으면 QR로 받은 네컷 전체 */
 const artOf = (r: FourcutRecord) => r.photos.find(Boolean) ?? r.frameImage;
 
+/**
+ * 자르기 화면용: 사진 창의 세로/가로 비율. 등급은 저장할 때 뽑혀서 고를 때는 모르니
+ * 여섯 등급 창의 평균으로 잡는다 (등급마다 조금씩 달라도 남는 쪽은 가운데 기준으로 잘린다)
+ */
+export const cocomonArtAspect = () => {
+  const list = Object.values(SPOT).map(({ crop, win }) => {
+    const w = ((win.x1 - win.x0) * PW) / crop.w;
+    const h = ((win.bottom - win.topL) * PH) / crop.h;
+    return h / w;
+  });
+  return list.reduce((a, b) => a + b, 0) / list.length;
+};
+
 export function layoutFourcutCard(_r: FourcutRecord): TemplateLayout {
   return { width: PW + PAD * 2, height: PH + PAD * 2 + 14, foldAt: 0, displayRatio: 0.82, inset: { top: PAD, bottom: PAD + 14 } };
 }
@@ -230,11 +244,13 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
         {art && (
           <Image
             href={{ uri: art.uri }}
-            x={X(win.x0 + INSET)}
-            y={Y(win.topL + INSET)}
-            width={X(win.x1 - INSET) - X(win.x0 + INSET)}
-            height={Y(win.bottom - INSET) - Y(win.topL + INSET)}
-            preserveAspectRatio="xMidYMid slice"
+            {...coverRect(art, {
+              x: X(win.x0 + INSET),
+              y: Y(win.topL + INSET),
+              width: X(win.x1 - INSET) - X(win.x0 + INSET),
+              height: Y(win.bottom - INSET) - Y(win.topL + INSET),
+            })}
+            preserveAspectRatio="none"
             clipPath={`url(#${id}-win)`}
           />
         )}

@@ -19,11 +19,13 @@ interface Props {
   aspect: number;
   /** 비율 고르기 줄을 보여줄지 (일상처럼 칸이 넓게 열려 있을 때) */
   free?: boolean;
+  /** 여러 장을 차례로 자를 때 '2/4' 같은 표시 */
+  step?: string;
   onDone: (photo: Photo) => void;
   onCancel: () => void;
 }
 
-export function PhotoCropper({ photo, aspect, free = false, onDone, onCancel }: Props) {
+export function PhotoCropper({ photo, aspect, free = false, step, onDone, onCancel }: Props) {
   const { width: screenW, height: screenH } = useWindowDimensions();
   // free 모드: null = 원본 비율 그대로 (자르지 않음)
   const [choice, setChoice] = useState<number | null>(aspect);
@@ -130,9 +132,9 @@ export function PhotoCropper({ photo, aspect, free = false, onDone, onCancel }: 
         <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
           <View style={styles.top}>
             <Pressable onPress={onCancel} hitSlop={10}>
-              <Text style={styles.cancel}>취소</Text>
+              <Text style={styles.cancel}>{step ? '건너뛰기' : '취소'}</Text>
             </Pressable>
-            <Text style={styles.title}>칸에 맞게 자르기</Text>
+            <Text style={styles.title}>칸에 맞게 자르기{step ? ` · ${step}` : ''}</Text>
             <Pressable onPress={done} hitSlop={10}>
               <Text style={styles.done}>완료</Text>
             </Pressable>

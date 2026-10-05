@@ -14,7 +14,13 @@ import { PHOTO_SLOT as PLAIN_TICKET } from '../templates/PlainTicket';
 import { PHOTO_SLOT as SHOW_HOLO } from '../templates/ShowHolo';
 import { PHOTO_SLOT as SHOW_RETRO } from '../templates/ShowRetro';
 import { PHOTO_SLOT as SHOW_TICKET } from '../templates/ShowTicket';
-import { Photo, RecoRecord } from '../types';
+import { FOURCUT_LAYOUTS } from '../templates/Fourcut';
+import { cocomonArtAspect } from '../templates/FourcutCard';
+import { cocochiScreenAspect } from '../templates/FourcutCocochi';
+import { houseCellAspect } from '../templates/FourcutHouse';
+import { travelSlots } from '../templates/TravelPass';
+import { CocochiColor, FourcutLayout, Photo, RecoRecord } from '../types';
+import { photoRatio } from './photoCrop';
 
 export interface PhotoSlot {
   /** 칸 폭 */
@@ -75,3 +81,35 @@ export const FREE_ASPECTS: { label: string; value: number | null }[] = [
 
 /** 칸이 비율을 넓게 받아 주는지 (일상) — 그러면 비율 고르기 줄을 보여준다 */
 export const isFreeSlot = (slot: PhotoSlot) => slot.max / slot.w >= 2;
+
+/** 여러 장 칸 기록 (인생네컷·여행) 의 고르는 중 모습 */
+export interface MultiDraft {
+  kind: 'fourcut' | 'travel';
+  design?: string;
+  layout?: FourcutLayout;
+  cocochiColor?: CocochiColor;
+}
+
+/**
+ * 여러 장 중 index 번째 사진이 들어갈 칸의 세로/가로 비율. 안 쓰이는 사진이면 null.
+ * - 네컷 그대로: 레이아웃 칸 (index 자리 그대로)
+ * - 하우스네컷: 넣은 장수만큼 나뉜 칸 / 코코치·코코몬: 첫 장만 쓴다
+ * - 여행: 채운 사진 장수에 따라 배치가 바뀐다 (빈칸은 건너뛰고 차례대로)
+ */
+export function multiAspect(d: MultiDraft, photos: (Photo | null)[], index: number): number | null {
+  const filled = photos.map((p, i) => (p ? i : -1)).filter((i) => i >= 0);
+  const rank = filled.indexOf(index);
+  if (rank < 0) return null;
+  if (d.kind === 'travel') {
+    const s = travelSlots(Math.min(4, filled.length))[rank];
+    return s ? s.h / s.w : null;
+  }
+  if (d.design === 'card') return rank === 0 ? cocomonArtAspect() : null;
+  if (d.design === 'cocochi') return rank === 0 ? cocochiScreenAspect(d.cocochiColor ?? 'mint') : null;
+  if (d.design === 'house') return rank < 4 ? houseCellAspect(filled.length) : null;
+  const s = (FOURCUT_LAYOUTS[d.layout ?? 'strip'] ?? FOURCUT_LAYOUTS.strip).slots[index];
+  return s ? s.h / s.w : null;
+}
+
+/** 사진 비율이 칸과 거의 같으면 자르기를 건너뛴다 (4% 안쪽) */
+export const fitsAspect = (photo: Photo, aspect: number) => Math.abs(photoRatio(photo) - aspect) / aspect < 0.04;

@@ -11,6 +11,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect } from '../lib/photoCrop';
 import { fitLine, fitLines, measure } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
 import { CocochiColor, FourcutRecord } from '../types';
@@ -137,11 +138,17 @@ export function FourcutCocochiFront({ record: r, width, connected }: Props) {
 
         <Shell color={color} id={id} />
 
-        {art && <Image href={{ uri: art.uri }} x={box.x} y={box.y} width={box.w} height={box.h} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-win)`} />}
+        {art && <Image href={{ uri: art.uri }} {...coverRect(art, { x: box.x, y: box.y, width: box.w, height: box.h })} preserveAspectRatio="none" clipPath={`url(#${id}-win)`} />}
       </G>
     </Svg>
   );
 }
+
+/** 자르기 화면용: 이 색 코코치 화면(창)의 세로/가로 비율 */
+export const cocochiScreenAspect = (color: CocochiColor) => {
+  const b = screenBox(color, false);
+  return b.h / b.w;
+};
 
 /** 달걀 모양 (몸통 네모에 맞춘 알 곡선). 글이 테두리 밖으로 안 나가게 자르는 데 쓴다 */
 function eggPath(b: Box) {

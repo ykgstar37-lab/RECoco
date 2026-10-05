@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, LinearGradient, Path, Rect, Stop, Text } from 'react-native-svg';
 
+import { coverRect } from '../lib/photoCrop';
 import { parseDate, seededRandom, withParticle } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -148,7 +149,7 @@ function PhotoCell({
       </Defs>
       <Rect x={s.x} y={s.y} width={s.w} height={s.h} rx={3} fill={frame.slot} />
       {photo ? (
-        <Image href={{ uri: photo.uri }} x={s.x} y={s.y} width={s.w} height={s.h} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id})`} />
+        <Image href={{ uri: photo.uri }} {...coverRect(photo, { x: s.x, y: s.y, width: s.w, height: s.h })} preserveAspectRatio="none" clipPath={`url(#${id})`} />
       ) : (
         <G opacity={0.5}>
           <Rect x={cx - 30} y={cy - 26} width={60} height={44} rx={8} fill="none" stroke={frame.ink} strokeWidth={3} />
