@@ -332,6 +332,7 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
               : kind === 'music'
                 ? [
                     { record: sampleMusic('album'), caption: '앨범 카드 · 사진' },
+                    { record: { ...sampleMusic('album'), id: 'preview-music-album-bare', photo: null }, caption: '앨범 카드 · 사진 없이' },
                     { record: { ...sampleMusic('list'), photo: null }, caption: '플레이리스트 · 사진 없이' },
                   ]
                 : [];
