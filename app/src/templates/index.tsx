@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-import { FourcutRecord, RecoRecord } from '../types';
+import { DailyRecord, FourcutRecord, RecoRecord } from '../types';
 import { ConcertRetro, layoutConcertRetro } from './ConcertRetro';
 import { ConcertTicket, layoutConcert } from './ConcertTicket';
 import { FoodHouse, layoutFoodHouse } from './FoodHouse';
@@ -16,7 +16,7 @@ import { FourcutCard, layoutFourcutCard } from './FourcutCard';
 import { FourcutCocochiBack, FourcutCocochiFront, layoutFourcutCocochi } from './FourcutCocochi';
 import { FourcutHouseBack, FourcutHouseFront, layoutFourcutHouse } from './FourcutHouse';
 import { ExercisePhoto, layoutExercisePhoto } from './ExercisePhoto';
-import { DailyStory, layoutDaily } from './DailyStory';
+import { DailyBack, DailyStory, layoutDaily } from './DailyStory';
 import { ExerciseSlip, layoutExerciseSlip } from './ExerciseSlip';
 import { MusicAlbum, layoutMusicAlbum } from './MusicAlbum';
 import { MusicList, layoutMusicList } from './MusicList';
@@ -53,6 +53,17 @@ export function FourcutBack(p: FourcutFace) {
   // 하우스네컷는 같은 집을 뒤집어 창틀 안에 일기를 쓴다
   if (p.record.design === 'house') return <FourcutHouseBack {...p} />;
   return <FourcutNoteBack {...p} />;
+}
+
+/** 탭해서 뒤집히는 기록 (인생네컷 · 일상). 코코몬 카드는 뒷면이 없다 */
+export type FlippableRecord = FourcutRecord | DailyRecord;
+
+export const isFlippable = (r: RecoRecord): r is FlippableRecord => r.kind === 'daily' || (r.kind === 'fourcut' && r.design !== 'card');
+
+/** 뒤집은 면 */
+export function RecordBack({ record, width, connected }: { record: FlippableRecord; width: number; connected?: boolean }) {
+  if (record.kind === 'daily') return <DailyBack record={record} width={width} connected={connected} />;
+  return <FourcutBack record={record} width={width} connected={connected} />;
 }
 
 export function layoutOf(record: RecoRecord): TemplateLayout {

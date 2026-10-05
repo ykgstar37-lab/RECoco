@@ -6,19 +6,19 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { seededRandom } from '../lib/format';
 import { bump } from '../lib/haptics';
-import { FourcutBack, FourcutFront, sizeOf } from '../templates';
+import { FlippableRecord, RecordBack, RecordPaper, sizeOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
-import { FourcutRecord, RecoRecord } from '../types';
+import { RecoRecord } from '../types';
 
 interface Props {
-  record: FourcutRecord;
+  record: FlippableRecord;
   rollWidth: number;
   /** 롤로 이어 붙일 때: 기울이지 않고 아래 여백 없이 */
   connected?: boolean;
   onLongPress?: (record: RecoRecord) => void;
 }
 
-/** 인생네컷: 탭하면 앞(사진) ↔ 뒤(오늘의 하루)로 뒤집힌다 */
+/** 인생네컷·일상: 탭하면 앞(사진) ↔ 뒤(오늘의 하루)로 뒤집힌다 */
 function FlipCardBase({ record, rollWidth, connected = false, onLongPress }: Props) {
   const { width, height } = sizeOf(record, rollWidth, connected);
   const flip = useSharedValue(0); // 0 앞면, 1 뒷면
@@ -56,10 +56,10 @@ function FlipCardBase({ record, rollWidth, connected = false, onLongPress }: Pro
         <Animated.View style={[{ width, height, transform: [{ rotate: `${tilt}deg` }] }]}>
           <Animated.View style={[StyleSheet.absoluteFill, lift]}>
             <Animated.View style={[StyleSheet.absoluteFill, styles.face, front]}>
-              <FourcutFront record={record} width={width} connected={connected} />
+              <RecordPaper record={record} width={width} connected={connected} />
             </Animated.View>
             <Animated.View style={[StyleSheet.absoluteFill, styles.face, back]}>
-              <FourcutBack record={record} width={width} />
+              <RecordBack record={record} width={width} connected={connected} />
             </Animated.View>
           </Animated.View>
         </Animated.View>

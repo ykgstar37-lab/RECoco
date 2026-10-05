@@ -9,7 +9,7 @@ import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
 import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { CocochiColor, ConcertDesign, FourcutHouseColor, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
-import { sampleConcert, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
+import { sampleConcert, sampleDaily, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
 import {
   CONCERT_DESIGNS,
   ConcertDesignItem,
@@ -28,8 +28,10 @@ export interface PreviewSample {
   record: RecoRecord;
   /** 가로로 납작한 모양은 한 칸에 여러 색을 세로로 쌓아 보여준다 */
   more?: RecoRecord[];
-  /** 인생네컷 뒷면을 보여줄 때 */
+  /** 인생네컷·일상 뒷면을 보여줄 때 */
   side?: 'back';
+  /** more 까지 롤처럼 틈 없이 이어 붙여 보여줄 때 (일상) */
+  connected?: boolean;
   caption: string;
 }
 
@@ -277,6 +279,17 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                   { record: { ...sampleExercise('gym'), id: 'preview-exercise-gym-slip' }, caption: '기록표 · 헬스' },
                   { record: { ...sampleExercise('run'), id: 'preview-exercise-card', design: 'card' }, caption: '사진 위 기록' },
                 ]
+              : kind === 'daily'
+                ? [
+                    {
+                      record: sampleDaily(0),
+                      more: [sampleDaily(1, { tag: '내 강아지' }), sampleDaily(2, { tag: '연애' })],
+                      connected: true,
+                      caption: '사진이 줄줄이 이어져요',
+                    },
+                    { record: sampleDaily(0), side: 'back' as const, caption: '탭하면 뒷면에 그날의 글' },
+                    { record: sampleDaily(2, { tag: '연애', title: '100일', memo: '케이크 고르느라 30분 걸렸다.', place: '' }), side: 'back' as const, caption: '소분류마다 색이 달라요' },
+                  ]
               : kind === 'music'
                 ? [
                     { record: sampleMusic('album'), caption: '앨범 카드' },

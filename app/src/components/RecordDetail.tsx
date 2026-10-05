@@ -3,7 +3,7 @@ import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWind
 import Animated, { FadeInUp, FadeOut } from 'react-native-reanimated';
 
 import { canCapture, saveCard, shareCard } from '../lib/share';
-import { FourcutBack, KIND_LABEL, RecordPaper, sizeOf } from '../templates';
+import { KIND_LABEL, RecordBack, RecordPaper, isFlippable, sizeOf } from '../templates';
 import { BRAND, COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { CocoArt } from './Coco';
@@ -49,8 +49,8 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   if (!record) return null;
   const rollW = Math.min(screenW - 48, 440);
   const { width } = sizeOf(record, rollW);
-  // 코코몬 카드는 뒷면이 없다 (카드 한 장으로 끝)
-  const isFourcut = record.kind === 'fourcut' && record.design !== 'card';
+  // 인생네컷·일상은 뒤집어 볼 수 있다 (코코몬 카드는 뒷면이 없다)
+  const flippable = isFlippable(record);
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
@@ -69,14 +69,14 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {/* 이 카드가 그대로 이미지로 저장된다 */}
           <View ref={cardRef} collapsable={false} style={styles.card}>
-            {isFourcut && back ? <FourcutBack record={record} width={width} /> : <RecordPaper record={record} width={width} />}
+            {flippable && back ? <RecordBack record={record} width={width} /> : <RecordPaper record={record} width={width} />}
             <View style={styles.mark}>
               <CocoArt size={26} tone="white" id="detail-mark" />
               <Text style={styles.markText}>{BRAND.ko}</Text>
             </View>
           </View>
 
-          {isFourcut && (
+          {flippable && (
             <Pressable onPress={() => setBack((b) => !b)} style={styles.flip}>
               <Text style={styles.flipText}>{back ? '앞면 보기' : '뒷면 보기 (오늘의 하루)'}</Text>
             </Pressable>

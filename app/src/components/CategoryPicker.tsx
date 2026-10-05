@@ -12,13 +12,13 @@ export const CATEGORIES: { kind: RecordKind; label: string; hint: string }[] = [
   { kind: 'spending', label: '소비', hint: '오늘 뭐 샀어?' },
   { kind: 'travel', label: '여행', hint: '어디 다녀왔어?' },
   { kind: 'fourcut', label: '인생네컷', hint: '누구랑 찍었어?' },
-  { kind: 'daily', label: '일상', hint: '오늘 남기고 싶은 사진 있어?' },
   { kind: 'gift', label: '선물', hint: '누구랑 선물 주고받았어?' },
   { kind: 'food', label: '카페·맛집', hint: '뭐 맛있는 거 먹었어?' },
   { kind: 'show', label: '공연·전시', hint: '무슨 공연 봤어?' },
   { kind: 'concert', label: '콘서트', hint: '누구 콘서트 갔어?' },
   { kind: 'exercise', label: '운동', hint: '오늘 뭐 했어?' },
   { kind: 'music', label: '음악', hint: '무슨 노래 들었어?' },
+  { kind: 'daily', label: '일상', hint: '오늘 남기고 싶은 사진 있어?' },
 ];
 
 interface Props {

@@ -81,6 +81,8 @@ interface Props {
   records?: RecoRecord[];
   /** 메인에서 고른 카테고리로 열기 */
   initialKind?: RecordKind;
+  /** 다른 앱에서 공유로 받은 사진 (일상으로 열 때 사진 칸에 미리 넣는다) */
+  sharedPhoto?: Photo | null;
   /** 있으면 새로 만들지 않고 이 기록을 고친다 */
   editing?: RecoRecord | null;
   onClose: () => void;
@@ -93,13 +95,13 @@ const KINDS: { kind: RecordKind; label: string; ready: boolean }[] = [
   { kind: 'spending', label: '소비', ready: true },
   { kind: 'travel', label: '여행', ready: true },
   { kind: 'fourcut', label: '인생네컷', ready: true },
-  { kind: 'daily', label: '일상', ready: true },
   { kind: 'gift', label: '선물', ready: true },
   { kind: 'food', label: '카페·맛집', ready: true },
   { kind: 'show', label: '공연·전시', ready: true },
   { kind: 'concert', label: '콘서트', ready: true },
   { kind: 'exercise', label: '운동', ready: true },
   { kind: 'music', label: '음악', ready: true },
+  { kind: 'daily', label: '일상', ready: true },
 ];
 
 const FRAMES: { key: FourcutFrame; label: string; color: string }[] = [
@@ -339,7 +341,7 @@ interface ItemDraft {
   time?: string;
 }
 
-export function RecordForm({ visible, records = [], initialKind, editing, onClose, onSubmit }: Props) {
+export function RecordForm({ visible, records = [], initialKind, sharedPhoto, editing, onClose, onSubmit }: Props) {
   const [kind, setKind] = useState<RecordKind>(initialKind ?? 'reading');
   const [reading, setReading] = useState(emptyReading);
   const [movie, setMovie] = useState(emptyMovie);
@@ -414,6 +416,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
     if (!visible) return;
     if (!editing) {
       if (initialKind) setKind(initialKind);
+      if (initialKind === 'daily' && sharedPhoto) setDaily({ ...emptyDaily(), photo: sharedPhoto });
       return;
     }
     // 고치기: 기존 기록 내용으로 채운다
@@ -466,7 +469,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
         setDaily(rest);
         break;
     }
-  }, [visible, initialKind, editing]);
+  }, [visible, initialKind, editing, sharedPhoto]);
 
   const reset = () => {
     setTravel(emptyTravel());
@@ -1552,11 +1555,12 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>
-                    사진첩에서 한 장 골라요.{'\n'}인스타 스토리는 저장해 두면{'\n'}사진첩에 들어가 있어요.
+                    사진첩에서 아무 사진이나 한 장.{'\n'}폭에 맞춰 그대로 붙고,{'\n'}모으면 줄줄이 이어져요.{'\n'}사진첩에서 공유 → 레코코로도 돼요.
                   </Text>
                 </View>
                 <Label text="소분류" />
                 <DailyTagPicker value={daily.tag} onChange={(tag) => setDaily((d) => ({ ...d, tag }))} />
+                <Label text="뒷면 — 탭하면 사진이 옅어지고 이 글이 떠요" />
                 <Row>
                   <Field label="제목 (선택)" value={daily.title} onChange={(v) => setDaily({ ...daily, title: v })} placeholder="100일 기념 한강" />
                   <DateField label="날짜" value={daily.date} onChange={(v) => setDaily({ ...daily, date: v })} />

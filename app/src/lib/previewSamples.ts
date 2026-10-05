@@ -1,5 +1,7 @@
 // 상점 미리보기용 예시 기록 (저장되지 않음)
-import { ConcertRecord, ExerciseRecord, FoodRecord, FourcutRecord, GiftCard, GiftRecord, MusicRecord, PaperTheme, ShowRecord, ShowType, SpendingRecord } from '../types';
+import { Image } from 'react-native';
+
+import { ConcertRecord, DailyRecord, ExerciseRecord, FoodRecord, FourcutRecord, GiftCard, GiftRecord, MusicRecord, PaperTheme, ShowRecord, ShowType, SpendingRecord } from '../types';
 
 export function sampleSpending(theme?: PaperTheme): SpendingRecord {
   return {
@@ -113,6 +115,36 @@ export function sampleConcert(): ConcertRecord {
     memo: '앙코르 세 곡. 목이 다 쉬었다.',
     photo: null,
     design: 'ticket',
+  };
+}
+
+/** 앱에 넣어 둔 예시 사진 (일상 미리보기용, assets/samples) */
+const SAMPLE_PHOTOS = [
+  { mod: require('../../assets/samples/daily-1.jpg'), width: 480, height: 853 },
+  { mod: require('../../assets/samples/daily-2.jpg'), width: 480, height: 360 },
+  { mod: require('../../assets/samples/daily-3.jpg'), width: 480, height: 640 },
+];
+
+const uriOf = (m: unknown): string => {
+  if (typeof m === 'number') return Image.resolveAssetSource(m)?.uri ?? '';
+  if (typeof m === 'string') return m;
+  const o = m as { uri?: string; default?: unknown };
+  return o?.uri ?? uriOf(o?.default);
+};
+
+export function sampleDaily(i = 0, extra: Partial<DailyRecord> = {}): DailyRecord {
+  const p = SAMPLE_PHOTOS[i % SAMPLE_PHOTOS.length];
+  return {
+    id: `preview-daily-${i}`,
+    createdAt: '2026-10-03T19:00:00.000Z',
+    kind: 'daily',
+    date: '2026-10-03',
+    photo: { uri: uriOf(p.mod), width: p.width, height: p.height },
+    tag: '친구',
+    title: '퇴근길 노을',
+    memo: '하늘이 너무 예뻐서 버스 한 정거장 먼저 내렸다.',
+    place: '망원 한강공원',
+    ...extra,
   };
 }
 

@@ -158,6 +158,17 @@ function Shape({ emoji }: { emoji: string }) {
           <Path d="M42,29 H33 V42 H42 Q45,42 45,39 V32 Q45,29 42,29 Z" fill="#b9c8ff" {...s} />
         </G>
       );
+    case '📷':
+      // 카메라
+      return (
+        <G>
+          <Path d="M17,13 L19.5,8.5 H28.5 L31,13 Z" fill="#ffb7c9" {...s} />
+          <Rect x={5} y={13} width={38} height={26} rx={6} fill="#ffd9e3" {...s} />
+          <Circle cx={24} cy={26} r={8.5} fill="#fff" {...s} />
+          <Circle cx={24} cy={26} r={3.6} fill={LINE} />
+          <Circle cx={36} cy={19} r={1.8} fill={LINE} />
+        </G>
+      );
     default:
       return null;
   }

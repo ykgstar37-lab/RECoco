@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { won } from '../lib/format';
 import { PreviewProduct } from '../lib/products';
 import { buy, categoryUnlocked, purchaseErrorMessage, useShop } from '../lib/shop';
-import { FourcutBack, RecordPaper, layoutOf } from '../templates';
+import { RecordBack, RecordPaper, isFlippable, layoutOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { KIND_LABEL } from '../templates';
 
@@ -46,11 +46,19 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
   const sized = (product?.samples ?? []).map((sample) => {
     const l = layoutOf(sample.record);
     const stack = [sample.record, ...(sample.more ?? [])];
+    if (sample.connected) {
+      // 롤처럼 틈 없이 이어 붙인 칸: 장마다 높이가 달라서 모두 더한 높이로 폭을 정한다 (위아래 여백은 겹친다)
+      const ls = stack.map(layoutOf);
+      const units = ls.reduce((n, x, j) => n + (x.height - (j > 0 ? x.inset.top + ls[j - 1].inset.bottom : 0)) / x.width, 0);
+      const w = Math.min(cellW, maxH / units);
+      return { sample, stack, w, h: w * units, total: w * units };
+    }
     const room = (maxH - (stack.length - 1) * 10) / stack.length;
     const w = Math.min(cellW, (room * l.width) / l.height);
-    return { sample, stack, w, h: (w * l.height) / l.width };
+    const h = (w * l.height) / l.width;
+    return { sample, stack, w, h, total: h * stack.length };
   });
-  const rowH = sized.reduce((m, s) => Math.max(m, s.h * s.stack.length), 0);
+  const rowH = sized.reduce((m, s) => Math.max(m, s.total), 0);
 
   return (
     <Modal visible={!!product} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -73,15 +81,23 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.samples}>
               {sized.map(({ sample: s, stack, w, h }, i) => {
                 // 쌓은 칸은 옆 칸만큼 키운다 (남는 자리를 장 사이에 나눠 넣는다)
-                const gap = stack.length > 1 ? Math.max(10, (rowH - h * stack.length) / (stack.length - 1)) : 0;
+                const gap = stack.length > 1 && !s.connected ? Math.max(10, (rowH - h * stack.length) / (stack.length - 1)) : 0;
                 return (
                   <View key={i} style={styles.sample}>
                     <View style={styles.paper}>
-                      {stack.map((record, j) => (
-                        <View key={j} style={j > 0 && { marginTop: gap }}>
-                          {s.side === 'back' && record.kind === 'fourcut' ? <FourcutBack record={record} width={w} /> : <RecordPaper record={record} width={w} />}
-                        </View>
-                      ))}
+                      {stack.map((record, j) => {
+                        // 이어 붙인 칸은 앞 장의 아래 여백 + 이 장의 위 여백만큼 당긴다
+                        const pull = s.connected && j > 0 ? ((layoutOf(stack[j - 1]).inset.bottom + layoutOf(record).inset.top) * w) / layoutOf(record).width : 0;
+                        return (
+                          <View key={j} style={j > 0 && { marginTop: s.connected ? -pull : gap }}>
+                            {s.side === 'back' && isFlippable(record) ? (
+                              <RecordBack record={record} width={w} />
+                            ) : (
+                              <RecordPaper record={record} width={w} connected={s.connected} />
+                            )}
+                          </View>
+                        );
+                      })}
                     </View>
                     <Text style={styles.caption}>{s.caption}</Text>
                   </View>

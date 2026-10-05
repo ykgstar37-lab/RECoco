@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { categoryUnlocked, useShop } from '../lib/shop';
-import { KIND_LABEL, sizeOf } from '../templates';
+import { KIND_LABEL, isFlippable, sizeOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord, RecordKind } from '../types';
 import { tagColorOf } from '../templates/DailyStory';
@@ -204,7 +204,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
                       </Pressable>
                     </View>
                   )}
-                  {record.kind === 'fourcut' ? (
+                  {isFlippable(record) ? (
                     <FlipCard record={record} rollWidth={paperW} connected={connected} onLongPress={open} />
                   ) : (
                     <FoldableReceipt record={record} rollWidth={paperW} connected={connected} onLongPress={open} />

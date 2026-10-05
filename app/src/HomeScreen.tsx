@@ -10,6 +10,7 @@ import { COCO_RATIO, Coco } from './components/Coco';
 import { BagIcon, CalendarIcon, DotsIcon, GearIcon, HatIcon } from './components/MenuIcons';
 import { OUTFIT_TOP } from './components/Outfits';
 import { PrintJob } from './components/Printer';
+import { ProductPreview } from './components/ProductPreview';
 import { RecordForm } from './components/RecordForm';
 import { MonthStamps } from './components/MonthStamps';
 import { RollScreen } from './components/RollScreen';
@@ -17,12 +18,15 @@ import { Settings } from './components/Settings';
 import { Shop } from './components/Shop';
 import { WeekStamps, dateKey } from './components/WeekStamps';
 import { loadHaptics, tick } from './lib/haptics';
-import { OUTFITS, addOwned, initShop, useShop, wearOutfit } from './lib/shop';
+import { OUTFITS, addOwned, categoryUnlocked, initShop, useShop, wearOutfit } from './lib/shop';
+import { categoryProduct } from './lib/products';
+import { getImageSize, persistPhoto } from './lib/photos';
+import { useSharedImage } from './lib/shareIntent';
 import { initDailyTags } from './lib/dailyTags';
 import { markFirstRun } from './lib/since';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
-import { RecoRecord, RecordKind } from './types';
+import { Photo, RecoRecord, RecordKind } from './types';
 
 const LOGO_WHITE = require('../assets/logo/recoco-logo-white.png');
 
@@ -57,11 +61,18 @@ export function HomeScreen() {
   const { owned, outfit } = useShop();
   const [gift, setGift] = useState<string | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
+  // 사진첩 등에서 "공유 → 레코코" 로 받은 사진: 일상 폼에 미리 넣는다
+  const shared = useSharedImage();
+  const [sharedPhoto, setSharedPhoto] = useState<Photo | null>(null);
+  const [shopReady, setShopReady] = useState(false);
+  const [dailyPreview, setDailyPreview] = useState(false);
 
   useEffect(() => {
     loadRecords().then(setRecords);
     loadHaptics().catch(() => {});
-    initShop().catch(() => {});
+    initShop()
+      .catch(() => {})
+      .finally(() => setShopReady(true));
     initDailyTags().catch(() => {});
     // 언제부터 쓴 사람인지 남겨둔다 — 나중에 유료화해도 그 전 사용자는 계속 무료 (lib/since.ts)
     markFirstRun().catch(() => {});
@@ -80,6 +91,29 @@ export function HomeScreen() {
     setSaveFailed(false);
     saveRecords(records).catch(() => setSaveFailed(true));
   }, [records]);
+
+  // 공유로 들어온 사진은 앱 폴더로 옮겨 두고(원본이 지워져도 남게) 비운다
+  useEffect(() => {
+    const img = shared.image;
+    if (!img) return;
+    shared.reset();
+    (async () => {
+      const size = img.width > 0 && img.height > 0 ? { width: img.width, height: img.height } : await getImageSize(img.uri);
+      setSharedPhoto(await persistPhoto(img.uri, size.width, size.height));
+    })().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shared.image]);
+
+  // 산 게 다 불러와진 뒤에 고른다: 일상이 열려 있으면 폼, 아니면 일상 미리보기(사면 폼)
+  useEffect(() => {
+    if (!sharedPhoto || !shopReady) return;
+    setPicking(false);
+    if (categoryUnlocked('daily', owned)) {
+      setFormKind('daily');
+      setFormOpen(true);
+    } else setDailyPreview(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedPhoto, shopReady]);
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -101,6 +135,7 @@ export function HomeScreen() {
 
   const handleSubmit = (record: RecoRecord) => {
     setFormOpen(false);
+    setSharedPhoto(null);
     // 시트가 내려간 뒤 출력 시작
     setTimeout(() => setPrinting(record), Platform.OS === 'ios' ? 450 : 250);
   };
@@ -348,7 +383,29 @@ export function HomeScreen() {
         }}
         onBought={addOwned}
       />
-      <RecordForm visible={formOpen} records={records} initialKind={formKind} onClose={() => setFormOpen(false)} onSubmit={handleSubmit} />
+      <ProductPreview
+        product={dailyPreview ? categoryProduct('daily') : null}
+        onClose={() => {
+          setDailyPreview(false);
+          setSharedPhoto(null);
+        }}
+        onBought={() => {
+          setDailyPreview(false);
+          setFormKind('daily');
+          setTimeout(() => setFormOpen(true), Platform.OS === 'ios' ? 450 : 250);
+        }}
+      />
+      <RecordForm
+        visible={formOpen}
+        records={records}
+        initialKind={formKind}
+        sharedPhoto={formKind === 'daily' ? sharedPhoto : null}
+        onClose={() => {
+          setFormOpen(false);
+          setSharedPhoto(null);
+        }}
+        onSubmit={handleSubmit}
+      />
     </View>
   );
 }

@@ -6,8 +6,8 @@ import { useSyncExternalStore } from 'react';
 
 const KEY = 'recoco.dailyTags.v1';
 
-/** 처음 열었을 때 깔려 있는 소분류 */
-export const DEFAULT_DAILY_TAGS = ['연애', '친구', '가족', '내 강아지', '나'];
+/** 처음 열었을 때 깔려 있는 소분류 (예시 하나만. 나머지는 사용자가 만든다) */
+export const DEFAULT_DAILY_TAGS = ['친구'];
 
 export const MAX_TAG_LENGTH = 10;
 

@@ -192,6 +192,7 @@ export const PAID_CATEGORIES: Partial<Record<RecordKind, { name: string; desc: s
   concert: { name: '콘서트', desc: '밤하늘 티켓 · 흰 무지 티켓', icon: '🎤', productId: 'recoco.category.concert', price: 1500 },
   exercise: { name: '운동', desc: '러닝·헬스·요가·등산·수영 · 기록표와 사진 위 기록', icon: '🏋', productId: 'recoco.category.exercise', price: 1500 },
   music: { name: '음악', desc: '앨범 감상과 플레이리스트 · 앨범 카드와 영수증', icon: '🎧', productId: 'recoco.category.music', price: 1500 },
+  daily: { name: '일상', desc: '사진첩 사진을 줄줄이 모으는 앨범 · 소분류로 골라 보기 · 뒤집으면 그날의 글', icon: '📷', productId: 'recoco.category.daily', price: 1500 },
 };
 
 export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {
