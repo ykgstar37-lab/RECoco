@@ -167,16 +167,34 @@ export interface FourcutDesignItem {
 export const FOURCUT_DESIGNS: FourcutDesignItem[] = [
   { id: 'card', name: '코코몬 카드', desc: '네컷 사진을 수집 카드로 · 등급은 뽑을 때 무작위 (C·B·A·S·SS·R 6등급)', productId: 'recoco.theme.cocomon', price: 1000, kinds: ['fourcut'] },
   { id: 'cocochi', name: '코코치', desc: '사진 한 컷을 작은 열쇠고리 화면에 · 껍데기 색 5가지 · 뒤집으면 그날의 일기', productId: 'recoco.theme.cocochi', price: 1000, kinds: ['fourcut'] },
+  { id: 'house', name: '네컷 하우스', desc: '길쭉한 집 창틀에 네컷 띠를 끼운다 · 지붕 4가지(줄무늬·격자·땡땡이·굴뚝) · 뒤집으면 그날의 일기', productId: 'recoco.theme.fourcut-house', price: 1000, kinds: ['fourcut'] },
 ];
 
 export const fourcutDesignUnlocked = (id: FourcutDesign | undefined, owned: string[]) =>
   !id || FREE_FOURCUT_DESIGNS.some((d) => d.id === id) || owned.includes(FOURCUT_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
-/** 운동·음악의 무료 모양 (유료 테마는 아직 없다) */
+/** 운동·음악의 무료 모양 */
 export const FREE_EXERCISE_DESIGNS: { id: ExerciseDesign; name: string }[] = [
   { id: 'slip', name: '기록표' },
   { id: 'card', name: '기록 카드' },
 ];
+
+export interface ExerciseDesignItem {
+  id: Exclude<ExerciseDesign, 'slip' | 'card'>;
+  name: string;
+  desc: string;
+  productId: string;
+  price: number;
+  kinds: RecordKind[];
+}
+
+/** 운동 유료 모양: 사진을 배경으로 깔고 기록을 띄운다 (러닝 앱 공유 화면처럼) */
+export const EXERCISE_DESIGNS: ExerciseDesignItem[] = [
+  { id: 'photo', name: '사진 위 기록', desc: '내 사진을 배경으로 꽉 깔고 거리·페이스·시간을 그 위에 띄운다', productId: 'recoco.theme.exercise-photo', price: 1000, kinds: ['exercise'] },
+];
+
+export const exerciseDesignUnlocked = (id: ExerciseDesign | undefined, owned: string[]) =>
+  !id || FREE_EXERCISE_DESIGNS.some((d) => d.id === id) || owned.includes(EXERCISE_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 export const FREE_MUSIC_DESIGNS: { id: MusicDesign; name: string }[] = [
   { id: 'album', name: '앨범 카드' },

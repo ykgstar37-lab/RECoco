@@ -4,15 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, categoryProduct, designProduct, foodDesignProduct, fourcutDesignProduct, themeProduct } from '../lib/products';
-import { DESIGN_SHELF, FOOD_DESIGNS, FOURCUT_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, nextOutfit, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { PreviewProduct, categoryProduct, designProduct, exerciseDesignProduct, foodDesignProduct, fourcutDesignProduct, themeProduct } from '../lib/products';
+import { DESIGN_SHELF, EXERCISE_DESIGNS, FOOD_DESIGNS, FOURCUT_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, nextOutfit, purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { ConcertDesign, RecordKind, ShowDesign } from '../types';
 import { CocoArt } from './Coco';
 import { CategoryTags, ProductPreview } from './ProductPreview';
 import { StickerArt } from './Stickers';
-import { ConcertDesignSwatch, FoodDesignSwatch, FourcutDesignSwatch, ShowDesignSwatch, ThemeSwatch } from './ThemePicker';
+import { ConcertDesignSwatch, ExerciseDesignSwatch, FoodDesignSwatch, FourcutDesignSwatch, ShowDesignSwatch, ThemeSwatch } from './ThemePicker';
 
 interface Props {
   visible: boolean;
@@ -39,6 +39,7 @@ const SHELF: ShelfItem[] = [
   ...THEMES.map((t) => ({ ...t, swatch: <ThemeSwatch theme={t.id} base="spending" size={34} />, preview: () => themeProduct(t) })),
   ...FOOD_DESIGNS.map((d) => ({ ...d, swatch: <FoodDesignSwatch design={d.id} size={34} />, preview: () => foodDesignProduct(d) })),
   ...FOURCUT_DESIGNS.map((d) => ({ ...d, swatch: <FourcutDesignSwatch design={d.id} size={34} />, preview: () => fourcutDesignProduct(d) })),
+  ...EXERCISE_DESIGNS.map((d) => ({ ...d, swatch: <ExerciseDesignSwatch design={d.id} size={34} />, preview: () => exerciseDesignProduct(d) })),
   ...DESIGN_SHELF.map((d) => ({
     ...d,
     swatch: d.kinds.includes('concert') ? <ConcertDesignSwatch design={d.id as ConcertDesign} size={34} /> : <ShowDesignSwatch design={d.id as ShowDesign} size={34} />,

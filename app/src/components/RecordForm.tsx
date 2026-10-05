@@ -1087,12 +1087,14 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                 <Label text="뒷면 — 오늘의 하루" />
                 <FourcutDesignPicker
                   value={fourcut.design}
-                  onChange={(design) => setFourcut((f) => ({ ...f, design, cocochiColor: f.cocochiColor ?? 'mint' }))}
+                  onChange={(design) => setFourcut((f) => ({ ...f, design, cocochiColor: f.cocochiColor ?? 'mint', houseColor: f.houseColor ?? 'pink' }))}
                   cocochiColor={fourcut.cocochiColor}
                   onColor={(cocochiColor) => setFourcut((f) => ({ ...f, cocochiColor }))}
+                  houseColor={fourcut.houseColor}
+                  onHouseColor={(houseColor) => setFourcut((f) => ({ ...f, houseColor }))}
                 />
-                {/* 코코몬 카드와 코코치는 뒷면을 제 모양대로 그리므로 뒷면 종이를 고르지 않는다 */}
-                {fourcut.design !== 'card' && fourcut.design !== 'cocochi' && (
+                {/* 코코몬 카드·코코치·네컷 하우스는 뒷면을 제 모양대로 그리므로 뒷면 종이를 고르지 않는다 */}
+                {fourcut.design !== 'card' && fourcut.design !== 'cocochi' && fourcut.design !== 'house' && (
                   <ThemePicker
                     label="뒷면 종이"
                     base="fourcut"
@@ -1604,7 +1606,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                     )}
                     {photoBusy && <PhotoBusy />}
                   </Pressable>
-                  <Text style={styles.coverHelp}>기록표·기록 카드 가운데에 들어가요.</Text>
+                  <Text style={styles.coverHelp}>{exercise.design === 'photo' ? '기록 뒤에 배경으로 꽉 깔려요.\n세로 사진이 잘 어울려요.' : '기록표·기록 카드 가운데에 들어가요.'}</Text>
                 </View>
 
                 <Label text="힘든 정도" />

@@ -2,14 +2,29 @@
 import { KIND_LABEL } from '../templates';
 import { RETRO_COLORS, RETRO_COLOR_IDS } from '../templates/ConcertRetro';
 import { COCOCHI_COLORS, COCOCHI_COLOR_IDS } from '../templates/FourcutCocochi';
+import { FOURCUT_HOUSE_COLORS, FOURCUT_HOUSE_COLOR_IDS } from '../templates/FourcutHouse';
 import { HOUSE_COLORS } from '../templates/FoodHouse';
 import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
 import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
 import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
-import { CocochiColor, ConcertDesign, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
+import { CocochiColor, ConcertDesign, FourcutHouseColor, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
 import { sampleConcert, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
-import { CONCERT_DESIGNS, ConcertDesignItem, FOOD_DESIGNS, FOURCUT_DESIGNS, FoodDesignItem, FourcutDesignItem, PAID_CATEGORIES, SHOW_DESIGNS, ShowDesignItem, THEMES, ThemeItem } from './shop';
+import {
+  CONCERT_DESIGNS,
+  ConcertDesignItem,
+  EXERCISE_DESIGNS,
+  ExerciseDesignItem,
+  FOOD_DESIGNS,
+  FOURCUT_DESIGNS,
+  FoodDesignItem,
+  FourcutDesignItem,
+  PAID_CATEGORIES,
+  SHOW_DESIGNS,
+  ShowDesignItem,
+  THEMES,
+  ThemeItem,
+} from './shop';
 
 export interface PreviewSample {
   record: RecoRecord;
@@ -146,11 +161,39 @@ export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
     return { ...head, samples: [...COCOCHI_COLOR_IDS.map((c) => of(c)), of('mint', 'back')] };
   }
 
+  if (d.id === 'house') {
+    // 지붕마다 한 장씩, 마지막은 뒤집은 모습
+    const of = (color: FourcutHouseColor, side?: 'back') => ({
+      record: { ...sampleFourcut(), id: `preview-fhouse-${color}${side ?? ''}`, design: 'house' as const, houseColor: color },
+      side,
+      caption: side ? `${FOURCUT_HOUSE_COLORS[color].name} · 뒷면` : `${FOURCUT_HOUSE_COLORS[color].name} 지붕`,
+    });
+    return { ...head, samples: [...FOURCUT_HOUSE_COLOR_IDS.map((c) => of(c)), of('pink', 'back')] };
+  }
+
   const of = (id: string, caption: string) => ({ record: { ...sampleFourcut(), id, design: 'card' as const }, caption });
   return { ...head, samples: [of('cm52', 'R · 무지개 (1%)'), of('cm16', 'SS (4%)'), of('cm13', 'S (9%)'), of('cm3', 'A (18%)'), of('cm4', 'B (28%)'), of('cm0', 'C (40%)')] };
 }
 
 export const fourcutDesignProductById = (id: FourcutDesignItem['id']) => fourcutDesignProduct(FOURCUT_DESIGNS.find((d) => d.id === id)!);
+
+/** 운동 사진 위 기록: 러닝·등산·헬스를 한 장씩 */
+export function exerciseDesignProduct(d: ExerciseDesignItem): PreviewProduct {
+  return {
+    title: d.name,
+    desc: d.desc,
+    productId: d.productId,
+    price: d.price,
+    tags: d.kinds.map((k) => KIND_LABEL[k]),
+    requires: d.kinds,
+    samples: [
+      { record: { ...sampleExercise('run'), id: `preview-exercise-${d.id}-run`, design: d.id }, caption: '러닝' },
+      { record: { ...sampleExercise('gym'), id: `preview-exercise-${d.id}-gym`, design: d.id }, caption: '헬스' },
+    ],
+  };
+}
+
+export const exerciseDesignProductById = (id: ExerciseDesignItem['id']) => exerciseDesignProduct(EXERCISE_DESIGNS.find((d) => d.id === id)!);
 
 /** 콘서트·공연전시 영수증 모양 하나의 미리보기 (두 카테고리가 같이 쓰면 양쪽 예시를 다 보여준다) */
 /** 이 모양에서 고를 수 있는 색 (없으면 단색 모양) */

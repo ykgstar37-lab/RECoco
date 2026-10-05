@@ -3,9 +3,18 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Rect } from 'react-native-svg';
 
 import { won } from '../lib/format';
-import { PreviewProduct, concertDesignProductById, foodDesignProductById, fourcutDesignProductById, showDesignProductById, themeProductById } from '../lib/products';
+import {
+  PreviewProduct,
+  concertDesignProductById,
+  exerciseDesignProductById,
+  foodDesignProductById,
+  fourcutDesignProductById,
+  showDesignProductById,
+  themeProductById,
+} from '../lib/products';
 import {
   CONCERT_DESIGNS,
+  EXERCISE_DESIGNS,
   FOOD_DESIGNS,
   FREE_CONCERT_DESIGNS,
   FREE_EXERCISE_DESIGNS,
@@ -18,6 +27,7 @@ import {
   SHOW_DESIGNS,
   THEMES,
   concertDesignUnlocked,
+  exerciseDesignUnlocked,
   foodDesignUnlocked,
   fourcutDesignUnlocked,
   showDesignUnlocked,
@@ -27,6 +37,7 @@ import {
 import { RETRO_COLORS, RETRO_COLOR_IDS } from '../templates/ConcertRetro';
 import { EXERCISE_TYPES } from '../templates/ExerciseSlip';
 import { COCOCHI_COLORS, COCOCHI_COLOR_IDS } from '../templates/FourcutCocochi';
+import { FOURCUT_HOUSE_COLORS, FOURCUT_HOUSE_COLOR_IDS } from '../templates/FourcutHouse';
 import { HOUSE_COLORS, HOUSE_COLOR_IDS } from '../templates/FoodHouse';
 import { PHOTO_COLORS, PHOTO_COLOR_IDS } from '../templates/PhotoTicket';
 import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
@@ -34,7 +45,7 @@ import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { ORDER_COLORS, ORDER_COLOR_IDS } from '../templates/FoodOrder';
 import { COLORS, FONTS } from '../theme';
-import { CocochiColor, ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, TicketColor } from '../types';
+import { CocochiColor, ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, FourcutHouseColor, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, TicketColor } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 모양을 고른 다음 그 모양의 색을 고르는 동그라미 줄 */
@@ -539,6 +550,20 @@ const styles = StyleSheet.create({
 /** 운동 모양 견본 (기록표 / 기록 카드) */
 export function ExerciseDesignSwatch({ design, type = 'run', size = 44 }: { design: ExerciseDesign; type?: ExerciseType; size?: number }) {
   const accent = EXERCISE_TYPES[type]?.accent ?? EXERCISE_TYPES.run.accent;
+  if (design === 'photo')
+    // 사진(어두운 풍경) 위 오른쪽에 큰 숫자와 작은 칸
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={2} y={2} width={36} height={48} rx={5} fill="#3d4a44" />
+        <Path d="M2 34 L14 24 L22 31 L30 22 L38 30 V45 Q38 50 33 50 H7 Q2 50 2 45 Z" fill="#26302b" />
+        <Circle cx={11} cy={13} r={4} fill="#c9b78f" opacity={0.8} />
+        <Rect x={21} y={8} width={12} height={2.4} rx={1.2} fill="#fff" opacity={0.75} />
+        <Rect x={21} y={13} width={14} height={7} rx={1.5} fill="#fff" />
+        {[21, 27, 33].map((x) => (
+          <Rect key={x} x={x} y={24} width={4} height={3} rx={1} fill="#fff" opacity={0.85} />
+        ))}
+      </Svg>
+    );
   if (design === 'card')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -564,23 +589,49 @@ export function ExerciseDesignSwatch({ design, type = 'run', size = 44 }: { desi
   );
 }
 
-/** 운동 폼의 모양 고르기 (둘 다 무료) */
+/** 운동 폼의 모양 고르기: 기록표·기록 카드는 무료, 사진 위 기록은 사면 열린다 */
 export function ExerciseDesignPicker({ value, type, onChange }: { value: ExerciseDesign | undefined; type: ExerciseType; onChange: (design: ExerciseDesign) => void }) {
+  const { owned } = useShop();
+  const [preview, setPreview] = useState<{ id: ExerciseDesign; product: PreviewProduct } | null>(null);
+  const options: { id: ExerciseDesign; name: string; price: number }[] = [...FREE_EXERCISE_DESIGNS.map((d) => ({ ...d, price: 0 })), ...EXERCISE_DESIGNS];
   const design = value ?? 'slip';
+
+  const choose = (id: ExerciseDesign) => {
+    if (exerciseDesignUnlocked(id, owned)) return onChange(id);
+    setPreview({ id, product: exerciseDesignProductById(id as Exclude<ExerciseDesign, 'slip' | 'card'>) });
+  };
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>기록 모양</Text>
       <View style={styles.row}>
-        {FREE_EXERCISE_DESIGNS.map((o) => {
+        {options.map((o) => {
           const on = design === o.id;
+          const locked = !exerciseDesignUnlocked(o.id, owned);
           return (
-            <Pressable key={o.id} onPress={() => onChange(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={o.name}>
-              <ExerciseDesignSwatch design={o.id} type={type} />
-              <Text style={[styles.name, on && { color: COLORS.orange }]}>{o.name}</Text>
+            <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
+              <View style={locked && { opacity: 0.55 }}>
+                <ExerciseDesignSwatch design={o.id} type={type} />
+              </View>
+              <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
+                {locked ? '🔒 ' : ''}
+                {o.name}
+              </Text>
+              {locked && <Text style={styles.price}>{won(o.price)}원</Text>}
             </Pressable>
           );
         })}
       </View>
+      {design === 'photo' && <Text style={styles.hint}>위에서 고른 사진이 배경으로 꽉 깔리고, 기록이 그 위에 떠요</Text>}
+
+      <ProductPreview
+        product={preview?.product ?? null}
+        onClose={() => setPreview(null)}
+        onBought={() => {
+          if (preview) onChange(preview.id);
+          setPreview(null);
+        }}
+      />
     </View>
   );
 }
@@ -636,7 +687,29 @@ export function MusicDesignPicker({ value, onChange }: { value: MusicDesign | un
 }
 
 /** 인생네컷 모양 견본 (네컷 사진 / 코코몬 카드) */
-export function FourcutDesignSwatch({ design, size = 44, color }: { design: FourcutDesign; size?: number; color?: CocochiColor }) {
+export function FourcutDesignSwatch({ design, size = 44, color, houseColor }: { design: FourcutDesign; size?: number; color?: CocochiColor; houseColor?: FourcutHouseColor }) {
+  if (design === 'house') {
+    const c = FOURCUT_HOUSE_COLORS[houseColor ?? 'pink'];
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={9} y={15} width={22} height={36} fill={c.wall} stroke={COLORS.line} strokeWidth={0.8} />
+        {c.roof === 'chimney' ? (
+          <G>
+            <Rect x={24} y={4} width={4} height={8} fill={c.tile} />
+            <Path d="M6 18 L20 4 L34 18" stroke={c.tile} strokeWidth={4} fill="none" />
+          </G>
+        ) : c.roof === 'stripe' ? (
+          <Path d="M8 16 L12 6 H28 L32 16 Z" fill={c.tile} />
+        ) : (
+          <Path d="M8 16 L20 2 L32 16 Z" fill={c.tile} />
+        )}
+        <Rect x={14} y={20} width={12} height={26} fill={c.frame} />
+        {[22, 28, 34, 40].map((y) => (
+          <Rect key={y} x={15.5} y={y - 0.5} width={9} height={5} fill="#cfcbc4" />
+        ))}
+      </Svg>
+    );
+  }
   if (design === 'cocochi') {
     const c = COCOCHI_COLORS[color ?? 'mint'];
     return (
@@ -680,11 +753,15 @@ export function FourcutDesignPicker({
   onChange,
   cocochiColor,
   onColor,
+  houseColor,
+  onHouseColor,
 }: {
   value: FourcutDesign | undefined;
   onChange: (design: FourcutDesign) => void;
   cocochiColor?: CocochiColor;
   onColor?: (color: CocochiColor) => void;
+  houseColor?: FourcutHouseColor;
+  onHouseColor?: (color: FourcutHouseColor) => void;
 }) {
   const { owned } = useShop();
   const [preview, setPreview] = useState<{ id: FourcutDesign; product: PreviewProduct } | null>(null);
@@ -706,7 +783,7 @@ export function FourcutDesignPicker({
           return (
             <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
               <View style={locked && { opacity: 0.55 }}>
-                <FourcutDesignSwatch design={o.id} color={cocochiColor} />
+                <FourcutDesignSwatch design={o.id} color={cocochiColor} houseColor={houseColor} />
               </View>
               <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
                 {locked ? '🔒 ' : ''}
@@ -724,6 +801,14 @@ export function FourcutDesignPicker({
           onPick={(c) => onColor?.(c)}
         />
       )}
+      {design === 'house' && (
+        <ColorDots
+          colors={FOURCUT_HOUSE_COLOR_IDS.map((id) => ({ id, name: FOURCUT_HOUSE_COLORS[id].name, swatch: FOURCUT_HOUSE_COLORS[id].swatch }))}
+          value={houseColor ?? 'pink'}
+          onPick={(c) => onHouseColor?.(c)}
+        />
+      )}
+      {design === 'house' && <Text style={styles.hint}>지붕마다 무늬가 달라요. 넣은 사진 장수만큼 창틀이 나뉘고, 뒤집으면 그날의 일기가 떠요</Text>}
       {design === 'card' && <Text style={styles.hint}>등급은 뽑을 때 무작위로 정해져요 (C · B · A · S · SS · R)</Text>}
       {design === 'cocochi' && <Text style={styles.hint}>네컷 중 첫 사진이 작은 화면에 들어가요. 뒤집으면 그날의 일기가 떠요</Text>}
 

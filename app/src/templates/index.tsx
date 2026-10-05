@@ -15,6 +15,8 @@ import { ShowHolo, layoutShowHolo } from './ShowHolo';
 import { ExerciseCard, layoutExerciseCard } from './ExerciseCard';
 import { FourcutCard, layoutFourcutCard } from './FourcutCard';
 import { FourcutCocochiBack, FourcutCocochiFront, layoutFourcutCocochi } from './FourcutCocochi';
+import { FourcutHouseBack, FourcutHouseFront, layoutFourcutHouse } from './FourcutHouse';
+import { ExercisePhoto, layoutExercisePhoto } from './ExercisePhoto';
 import { ExerciseSlip, layoutExerciseSlip } from './ExerciseSlip';
 import { MusicAlbum, layoutMusicAlbum } from './MusicAlbum';
 import { MusicList, layoutMusicList } from './MusicList';
@@ -41,12 +43,15 @@ interface FourcutFace {
 export function FourcutFront(p: FourcutFace) {
   if (p.record.design === 'card') return <FourcutCard {...p} />;
   if (p.record.design === 'cocochi') return <FourcutCocochiFront {...p} />;
+  if (p.record.design === 'house') return <FourcutHouseFront {...p} />;
   return <FourcutStrip {...p} />;
 }
 
 export function FourcutBack(p: FourcutFace) {
   // 코코치는 열쇠고리를 뒤집은 모습 (크림색 줄노트로 바뀌면 흐름이 끊긴다)
   if (p.record.design === 'cocochi') return <FourcutCocochiBack {...p} />;
+  // 네컷 하우스는 같은 집을 뒤집어 창틀 안에 일기를 쓴다
+  if (p.record.design === 'house') return <FourcutHouseBack {...p} />;
   return <FourcutNoteBack {...p} />;
 }
 
@@ -61,7 +66,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'travel':
       return layoutTravel(record);
     case 'fourcut':
-      return record.design === 'card' ? layoutFourcutCard(record) : record.design === 'cocochi' ? layoutFourcutCocochi(record) : layoutFourcut(record);
+      return record.design === 'card' ? layoutFourcutCard(record) : record.design === 'cocochi' ? layoutFourcutCocochi(record) : record.design === 'house' ? layoutFourcutHouse(record) : layoutFourcut(record);
     case 'gift':
       return layoutGift(record);
     case 'food':
@@ -89,7 +94,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
               ? layoutPlainTicket(record)
               : layoutConcert(record);
     case 'exercise':
-      return record.design === 'card' ? layoutExerciseCard(record) : layoutExerciseSlip(record);
+      return record.design === 'card' ? layoutExerciseCard(record) : record.design === 'photo' ? layoutExercisePhoto(record) : layoutExerciseSlip(record);
     case 'music':
       return record.design === 'list' ? layoutMusicList(record) : layoutMusicAlbum(record);
   }
@@ -161,7 +166,13 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
         <ConcertTicket record={record} width={width} connected={connected} />
       );
     case 'exercise':
-      return record.design === 'card' ? <ExerciseCard record={record} width={width} connected={connected} /> : <ExerciseSlip record={record} width={width} connected={connected} />;
+      return record.design === 'card' ? (
+        <ExerciseCard record={record} width={width} connected={connected} />
+      ) : record.design === 'photo' ? (
+        <ExercisePhoto record={record} width={width} connected={connected} />
+      ) : (
+        <ExerciseSlip record={record} width={width} connected={connected} />
+      );
     case 'music':
       return record.design === 'list' ? <MusicList record={record} width={width} connected={connected} /> : <MusicAlbum record={record} width={width} connected={connected} />;
   }

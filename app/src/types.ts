@@ -107,8 +107,11 @@ export type FourcutFrame = 'white' | 'black' | 'pink' | 'sky';
  */
 export type FourcutLayout = 'strip' | 'grid' | 'wide';
 
-/** strip: 네컷 사진 그대로(무료) / card: 코코몬 카드(유료) */
-export type FourcutDesign = 'strip' | 'card' | 'cocochi';
+/** strip: 네컷 사진 그대로(무료) / card: 코코몬 카드 · cocochi: 코코치 · house: 네컷 하우스 (유료) */
+export type FourcutDesign = 'strip' | 'card' | 'cocochi' | 'house';
+
+/** 네컷 하우스 지붕 (색마다 지붕 무늬가 다르다) */
+export type FourcutHouseColor = 'pink' | 'blue' | 'red' | 'green';
 
 /** 코코치(열쇠고리) 껍데기 색 */
 export type CocochiColor = 'mint' | 'silver' | 'purple' | 'pink' | 'white';
@@ -137,6 +140,7 @@ export interface FourcutRecord extends BaseRecord {
   themeColor?: GridColor; // 모눈종이 격자 색
   design?: FourcutDesign; // 없으면 네컷 사진 그대로
   cocochiColor?: CocochiColor; // 코코치 껍데기 색
+  houseColor?: FourcutHouseColor; // 네컷 하우스 지붕
 }
 
 export type GiftCard = 'yellow' | 'pink' | 'mint' | 'sky' | 'plain';
@@ -257,8 +261,8 @@ export interface ConcertRecord extends BaseRecord {
 
 export type ExerciseType = 'run' | 'gym' | 'yoga' | 'hike' | 'swim';
 
-/** slip: 운동 기록표(흰 영수증), card: 기록 카드(진한 색) — 둘 다 무료 */
-export type ExerciseDesign = 'slip' | 'card';
+/** slip: 운동 기록표(흰 영수증), card: 기록 카드(진한 색) — 둘 다 무료 / photo: 사진 위 기록(유료, 사진을 배경으로 깔고 숫자를 띄운다) */
+export type ExerciseDesign = 'slip' | 'card' | 'photo';
 
 /** 헬스일 때 종목마다 적는 줄 */
 export interface ExerciseSet {
