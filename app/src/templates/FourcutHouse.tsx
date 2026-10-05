@@ -42,7 +42,7 @@ export const houseColorOf = (r: FourcutRecord): FourcutHouseColor => (r.houseCol
 
 /** 지붕마다 머리 위 여백(코코·뾰족한 꼭대기·연기)과 지붕 높이가 다르다 */
 const ROOF_SIZE: Record<Roof, { top: number; h: number }> = {
-  stripe: { top: 138, h: 170 },
+  stripe: { top: 116, h: 170 },
   grid: { top: 20, h: 280 },
   dots: { top: 20, h: 210 },
   chimney: { top: 100, h: 200 },
@@ -220,7 +220,7 @@ function Shell({ g, id, connected }: { g: Geo; id: string; connected: boolean })
       {!connected && <PaperShadow d={outline(g)} strength={1.2} />}
       <Rect x={X0} y={wallTop - 1} width={X1 - X0} height={wallBot - wallTop + 1} fill={color.wall} />
       <RoofArt g={g} id={id} />
-      {color.roof === 'stripe' && <CocoSitting x={X1 - 120} y={top + 8} w={150} />}
+      {color.roof === 'stripe' && <CocoSitting x={X1 - 116} y={top + 8} w={124} />}
       {/* 명패 */}
       <Rect x={CX - 46} y={wallBot - 66} width={92} height={30} rx={15} fill="#fff" stroke={color.frame} strokeWidth={2.4} />
       <T f="sansBold" x={CX} y={wallBot - 46} fontSize={14} fill={INK} textAnchor="middle" children={BRAND.en} />
