@@ -3,6 +3,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -36,7 +37,7 @@ function tallLayout(r: PlainTicketRecord) {
   const artist = r.artist.trim() ? fitLine(r.artist.trim(), PW - M * 2, 22, 16, 'sansBold') : null;
   // 아티스트 줄이 없으면 그만큼 위로 당긴다
   const titleBot = (artist ? 162 : 124) + title.lines.length * TITLE_LINE;
-  const photoH = r.photo ? Math.round(Math.min(360, Math.max(240, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 0;
+  const photoH = r.photo ? Math.round(Math.min(360, Math.max(240, ((PW - M * 2) * photoRatio(r.photo))))) : 0;
   const photoTop = titleBot + 22;
   const infoTop = photoTop + (photoH ? photoH + 40 : 26);
   const rows: [string, string][] = [
@@ -98,7 +99,7 @@ function TallTicket({ record: r, width, connected }: { record: PlainTicketRecord
         {/* 사진 (있을 때만, 테두리만 두른 담백한 칸) */}
         {!!photoH && (
           <G>
-            <Image href={{ uri: r.photo!.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-photo)`} />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: M, y: photoTop, width: PW - M * 2, height: photoH })} preserveAspectRatio="none" clipPath={`url(#${id}-photo)`} />
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={2} fill="none" stroke={LINE} strokeWidth={2} />
           </G>
         )}
@@ -250,3 +251,6 @@ export function layoutPlainTicket(r: PlainTicketRecord): TemplateLayout {
 export function PlainTicket({ record: r, width, connected = false }: { record: PlainTicketRecord; width: number; connected?: boolean }) {
   return r.kind === 'concert' ? <WideTicket record={r} width={width} connected={connected} /> : <TallTicket record={r} width={width} connected={connected} />;
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW - M * 2, min: 240, max: 360 };

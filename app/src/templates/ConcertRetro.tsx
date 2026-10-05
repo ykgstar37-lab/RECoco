@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom, won } from '../lib/format';
 import { fitLine } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
@@ -128,7 +129,7 @@ export function ConcertRetro({ record: r, width, connected = false }: { record: 
         {/* 사진은 왼쪽에 아주 연하게 (있을 때만) */}
         {r.photo && (
           <G clipPath={`url(#${id}-photo)`}>
-            <Image href={{ uri: r.photo.uri }} x={0} y={0} width={MAIN_W} height={PH} preserveAspectRatio="xMidYMid slice" opacity={0.18} />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: 0, y: 0, width: MAIN_W, height: PH })} preserveAspectRatio="none" opacity={0.18} />
           </G>
         )}
 
@@ -225,3 +226,6 @@ export function ConcertRetro({ record: r, width, connected = false }: { record: 
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: MAIN_W, min: PH, max: PH };

@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -32,7 +33,7 @@ const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f
 
 function computeLayout(r: ShowRecord) {
   const t = SHOW_TYPES[r.type] ?? SHOW_TYPES.play;
-  const posterH = r.photo ? Math.round(Math.min(420, Math.max(260, (POSTER_W * r.photo.height) / Math.max(1, r.photo.width)))) : 300;
+  const posterH = r.photo ? Math.round(Math.min(420, Math.max(260, (POSTER_W * photoRatio(r.photo))))) : 300;
   const posterTop = HEAD_H + 34;
   const posterBot = posterTop + posterH;
   const title = fitLines(r.title.trim() || '제목 없음', PW - M * 2, 46, 30, 2, 'sansHeavy');
@@ -148,7 +149,7 @@ export function ShowTicket({ record: r, width, connected = false }: { record: Sh
         {/* 포스터 */}
         <Rect x={posterX - 8} y={posterTop - 8} width={POSTER_W + 16} height={posterH + 16} rx={10} fill="#fff" stroke={LINE} strokeWidth={2} />
         {r.photo ? (
-          <Image href={{ uri: r.photo.uri }} x={posterX} y={posterTop} width={POSTER_W} height={posterH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-poster)`} />
+          <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: posterX, y: posterTop, width: POSTER_W, height: posterH })} preserveAspectRatio="none" clipPath={`url(#${id}-poster)`} />
         ) : (
           <G>
             <Rect x={posterX} y={posterTop} width={POSTER_W} height={posterH} rx={6} fill={t.head} opacity={0.08} />
@@ -209,3 +210,6 @@ export function ShowTicket({ record: r, width, connected = false }: { record: Sh
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: POSTER_W, min: 260, max: 420 };

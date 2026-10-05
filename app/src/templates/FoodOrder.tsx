@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom, won } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -54,7 +55,7 @@ function computeLayout(r: FoodRecord) {
   ].filter(([k, v]) => v || k === '가게');
   const infoBot = HEAD_BOT + 18 + info.length * INFO_ROW;
   const photoTop = infoBot + 26;
-  const photoH = r.photo ? Math.round(Math.min(420, Math.max(300, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 0;
+  const photoH = r.photo ? Math.round(Math.min(420, Math.max(300, ((PW - M * 2) * photoRatio(r.photo))))) : 0;
   const photoBot = r.photo ? photoTop + photoH : infoBot;
   const menuTop = photoBot + 34;
   const rows = Math.max(MIN_ROWS, r.menus.length);
@@ -145,7 +146,7 @@ export function FoodOrder({ record: r, width, connected = false }: { record: Foo
         {r.photo && (
           <G>
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={12} fill={SOFT_C} />
-            <Image href={{ uri: r.photo.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipId}-photo)`} />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: M, y: photoTop, width: PW - M * 2, height: photoH })} preserveAspectRatio="none" clipPath={`url(#${clipId}-photo)`} />
             <Rect x={PW / 2 - 60} y={photoTop - 16} width={120} height={34} fill="#f4dba8" opacity={0.85} transform={`rotate(${tilt - 2} ${PW / 2} ${photoTop})`} />
           </G>
         )}
@@ -216,3 +217,6 @@ export function FoodOrder({ record: r, width, connected = false }: { record: Foo
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW - M * 2, min: 300, max: 420 };

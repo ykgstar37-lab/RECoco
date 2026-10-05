@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -39,7 +40,7 @@ function computeLayout(r: ShowRecord) {
   const titleTop = 128;
   const titleBoxH = TITLE_HEAD + title.lines.length * TITLE_LINE;
   const photoTop = titleTop + titleBoxH + 14;
-  const photoH = r.photo ? Math.round(Math.min(380, Math.max(240, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 0;
+  const photoH = r.photo ? Math.round(Math.min(380, Math.max(240, ((PW - M * 2) * photoRatio(r.photo))))) : 0;
   const rowsTop = photoTop + (r.photo ? photoH + 14 : 0);
   const rows: [string, string, string][] = [
     ['Date.', '날짜', `${dotDateWithDay(r.date)}${r.time ? `  ${r.time}` : ''}`],
@@ -145,7 +146,7 @@ export function ShowHolo({ record: r, width, connected = false }: { record: Show
         {r.photo && (
           <G>
             {box(M, photoTop, PW - M * 2, photoH, 'photo')}
-            <Image href={{ uri: r.photo.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-photo)`} opacity={0.92} />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: M, y: photoTop, width: PW - M * 2, height: photoH })} preserveAspectRatio="none" clipPath={`url(#${id}-photo)`} opacity={0.92} />
           </G>
         )}
 
@@ -191,3 +192,6 @@ export function ShowHolo({ record: r, width, connected = false }: { record: Show
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW - M * 2, min: 240, max: 380 };

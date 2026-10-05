@@ -4,6 +4,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, LinearGradient, Path, Rect, Stop, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines, measure } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -29,7 +30,7 @@ const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f
 
 /** 사진 높이: 폭에 맞추고 비율은 그대로. 너무 납작하거나 긴 것만 살짝 잡는다 (뒷면 글이 들어갈 자리) */
 function heightOf(r: DailyRecord) {
-  const ratio = r.photo && r.photo.width > 0 ? r.photo.height / r.photo.width : 1.25;
+  const ratio = r.photo && r.photo.width > 0 ? photoRatio(r.photo) : 1.25;
   return Math.round(PW * Math.min(2.2, Math.max(0.56, ratio)));
 }
 
@@ -60,7 +61,7 @@ function Photo({ r, h, id, shape, opacity = 1 }: { r: DailyRecord; h: number; id
       </Defs>
       <G clipPath={`url(#${id}-clip)`}>
         {r.photo ? (
-          <Image href={{ uri: r.photo.uri }} x={0} y={0} width={PW} height={h} preserveAspectRatio="xMidYMid slice" opacity={opacity} />
+          <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: 0, y: 0, width: PW, height: h })} preserveAspectRatio="none" opacity={opacity} />
         ) : (
           <G>
             <Rect x={0} y={0} width={PW} height={h} fill={`url(#${id}-empty)`} />
@@ -153,3 +154,6 @@ export function DailyBack({ record: r, width, connected = false }: Props) {
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW, min: Math.round(PW * 0.56), max: Math.round(PW * 2.2) };

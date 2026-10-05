@@ -3,6 +3,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { Barcode, PaperOverlay, PaperShadow, TemplateLayout } from './shared';
@@ -37,7 +38,7 @@ type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fontFamily={FONTS[f]} {...p} />;
 
 function computeLayout(r: PhotoTicketRecord) {
-  const photoH = r.photo ? Math.round(Math.min(420, Math.max(280, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 300;
+  const photoH = r.photo ? Math.round(Math.min(420, Math.max(280, ((PW - M * 2) * photoRatio(r.photo))))) : 300;
   const headBot = 236;
   const artistTop = headBot + 56;
   const artist = fitLines(r.artist.trim() || r.title.trim() || 'ARTIST', PW - M * 2, 46, 28, 2, 'sansHeavy');
@@ -131,7 +132,7 @@ export function PhotoTicket({ record: r, width, connected = false }: { record: P
 
         {/* 사진 */}
         {r.photo ? (
-          <Image href={{ uri: r.photo.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-photo)`} />
+          <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: M, y: photoTop, width: PW - M * 2, height: photoH })} preserveAspectRatio="none" clipPath={`url(#${id}-photo)`} />
         ) : (
           <G>
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} fill={PINK} opacity={0.5} />
@@ -176,3 +177,6 @@ export function PhotoTicket({ record: r, width, connected = false }: { record: P
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW - M * 2, min: 280, max: 420 };

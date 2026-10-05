@@ -4,6 +4,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, LinearGradient, Path, Rect, Stop, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { pad2, parseDate } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -40,7 +41,7 @@ function clock(time: string) {
 const duration = (min: number) => (min >= 60 ? `${Math.floor(min / 60)}:${pad2(min % 60)}:00` : `${min}:00`);
 
 function computeLayout(r: ExerciseRecord) {
-  const ratio = r.photo ? r.photo.height / Math.max(1, r.photo.width) : 1.25;
+  const ratio = r.photo ? photoRatio(r.photo) : 1.25;
   const height = Math.round(PW * Math.min(1.45, Math.max(1.12, ratio)));
   return { height };
 }
@@ -117,7 +118,7 @@ export function ExercisePhoto({ record: r, width, connected = false }: { record:
 
         <G clipPath={`url(#${id}-card)`}>
           {r.photo ? (
-            <Image href={{ uri: r.photo.uri }} x={0} y={0} width={PW} height={height} preserveAspectRatio="xMidYMid slice" />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: 0, y: 0, width: PW, height: height })} preserveAspectRatio="none" />
           ) : (
             <G>
               {/* 사진이 없으면 종류 색 그러데이션 + 큰 그림 */}
@@ -185,3 +186,6 @@ export function ExercisePhoto({ record: r, width, connected = false }: { record:
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW, min: Math.round(PW * 1.12), max: Math.round(PW * 1.45) };

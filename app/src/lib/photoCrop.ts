@@ -83,3 +83,30 @@ export function fillRect(photo: Photo, box: { x: number; y: number; width: numbe
     height: photo.height * scale,
   };
 }
+
+// ── 사용자가 직접 자른 사진 (PhotoCropper) ──
+// 원본은 그대로 두고 photo.crop 에 "쓸 자리"만 적는다. 양식은 그 자리를 칸에 꽉 채워 그린다.
+
+/** 칸 높이를 정할 때 쓰는 세로/가로 비율 (잘랐으면 자른 자리 비율) */
+export function photoRatio(photo: Photo) {
+  const w = photo.crop?.width ?? photo.width;
+  const h = photo.crop?.height ?? photo.height;
+  return h / Math.max(1, w);
+}
+
+/**
+ * 사진을 칸(box)에 꽉 채워 놓을 자리. 자른 자리가 있으면 그 부분이 칸을 채운다.
+ * preserveAspectRatio="none" 과 함께, 칸 밖은 clipPath 로 잘라야 한다.
+ * (자른 자리 없이 부르면 예전 xMidYMid slice 와 똑같이 가운데를 채운다)
+ */
+export function coverRect(photo: Photo, box: { x: number; y: number; width: number; height: number }) {
+  const c = photo.crop ?? { x: 0, y: 0, width: photo.width, height: photo.height };
+  if (!photo.width || !photo.height || !c.width || !c.height) return box;
+  const scale = Math.max(box.width / c.width, box.height / c.height);
+  return {
+    x: box.x + box.width / 2 - (c.x + c.width / 2) * scale,
+    y: box.y + box.height / 2 - (c.y + c.height / 2) * scale,
+    width: photo.width * scale,
+    height: photo.height * scale,
+  };
+}

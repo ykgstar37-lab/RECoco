@@ -19,6 +19,7 @@ import { newId, nowTime, today, won } from '../lib/format';
 import { cropIfCoupon } from '../lib/giftPhoto';
 import { fillRect } from '../lib/photoCrop';
 import { downloadPhoto, pickPhotos } from '../lib/photos';
+import { isFreeSlot, slotAspect, slotOf } from '../lib/photoSlots';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { EXERCISE_TYPES, USES_DISTANCE } from '../templates/ExerciseSlip';
@@ -63,6 +64,7 @@ import { BoardingPassScan } from './BoardingPassScan';
 import { CouponPaste } from './CouponPaste';
 import { CardSmsPaste } from './CardSmsPaste';
 import { DailyTagPicker } from './DailyTagPicker';
+import { PhotoCropper } from './PhotoCropper';
 import { DateField } from './DateField';
 import { IsbnScan } from './IsbnScan';
 import { DISMISS_ON_DRAG, KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
@@ -376,6 +378,14 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
   const [couponShotOpen, setCouponShotOpen] = useState(false);
   // 교환권 캡처에서 찾아낸 상품 그림 자리 (원본 전체로 돌렸다가 다시 돌아올 수 있게 들고 있는다)
   const [giftCrop, setGiftCrop] = useState<PhotoCrop | null>(null);
+  // 사진 자르기 화면 (사진 한 장 칸): 고른 직후 자동으로 뜨고, '칸에 맞게 자르기'로 다시 연다
+  const [cropping, setCropping] = useState<{ photo: Photo; aspect: number; free: boolean; apply: (p: Photo) => void } | null>(null);
+  /** 이 기록(모양)의 사진 칸 비율로 자르기 화면을 연다. 사진 칸이 없는 모양이면 그대로 둔다 */
+  const askCrop = (draft: { kind: RecordKind; design?: string }, photo: Photo, apply: (p: Photo) => void) => {
+    const slot = slotOf(draft);
+    if (!slot) return;
+    setCropping({ photo, aspect: slotAspect(slot, photo), free: isFreeSlot(slot), apply });
+  };
   // 앨범에서 고른 사진을 앱 폴더로 옮기는 데 시간이 걸려서, 그동안 칸 위에 도는 표시를 띄운다
   const [photoBusy, setPhotoBusy] = useState(false);
   const withPhotoBusy = async (job: () => Promise<void>) => {
@@ -1352,7 +1362,10 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     onPress={async () => {
                       await withPhotoBusy(async () => {
                         const [p] = await pickPhotos(1);
-                        if (p) setFood((f) => ({ ...f, photo: p }));
+                        if (p) {
+                          setFood((x) => ({ ...x, photo: p }));
+                          askCrop(food, p, (q) => setFood((x) => ({ ...x, photo: q })));
+                        }
                       });
                     }}
                     style={styles.giftPhoto}
@@ -1373,6 +1386,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     {food.design === 'house' ? '집 창문에 사진이 들어가요.\n없으면 창문에 가게 그림이 그려져요.' : '주문서 가운데에 테이프로 붙여져요.'}
                   </Text>
                 </View>
+                {!!food.photo && (
+                  <Pressable onPress={() => askCrop(food, food.photo!, (q) => setFood((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                    <Text style={styles.cropLinkText}>{food.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
+                  </Pressable>
+                )}
                 <Label text="또 갈래요?" />
                 <View style={styles.segment}>
                   {REVISIT.map(([key, text]) => (
@@ -1431,7 +1449,10 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     onPress={async () => {
                       await withPhotoBusy(async () => {
                         const [p] = await pickPhotos(1);
-                        if (p) setShow((x) => ({ ...x, photo: p }));
+                        if (p) {
+                          setShow((x) => ({ ...x, photo: p }));
+                          askCrop(show, p, (q) => setShow((x) => ({ ...x, photo: q })));
+                        }
                       });
                     }}
                     style={styles.giftPhoto}
@@ -1450,6 +1471,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </Pressable>
                   <Text style={styles.coverHelp}>입장권 가운데에 들어가요.{'\n'}없으면 종류에 맞는 그림이 그려져요.</Text>
                 </View>
+                {!!show.photo && (
+                  <Pressable onPress={() => askCrop(show, show.photo!, (q) => setShow((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                    <Text style={styles.cropLinkText}>{show.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
+                  </Pressable>
+                )}
                 <Label text="관람평" />
                 <View style={styles.stars}>
                   {[1, 2, 3, 4, 5].map((n) => (
@@ -1497,7 +1523,10 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     onPress={async () => {
                       await withPhotoBusy(async () => {
                         const [p] = await pickPhotos(1);
-                        if (p) setConcert((x) => ({ ...x, photo: p }));
+                        if (p) {
+                          setConcert((x) => ({ ...x, photo: p }));
+                          askCrop(concert, p, (q) => setConcert((x) => ({ ...x, photo: q })));
+                        }
                       });
                     }}
                     style={styles.giftPhoto}
@@ -1516,6 +1545,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </Pressable>
                   <Text style={styles.coverHelp}>티켓 가운데에 들어가요.{'\n'}팔찌 모양에는 사진이 들어가지 않아요.</Text>
                 </View>
+                {!!concert.photo && (
+                  <Pressable onPress={() => askCrop(concert, concert.photo!, (q) => setConcert((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                    <Text style={styles.cropLinkText}>{concert.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
+                  </Pressable>
+                )}
                 <Label text="관람평" />
                 <View style={styles.stars}>
                   {[1, 2, 3, 4, 5].map((n) => (
@@ -1537,7 +1571,10 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     onPress={async () => {
                       await withPhotoBusy(async () => {
                         const [pic] = await pickPhotos(1);
-                        if (pic) setDaily((d) => ({ ...d, photo: pic }));
+                        if (pic) {
+                          setDaily((x) => ({ ...x, photo: pic }));
+                          askCrop(daily, pic, (q) => setDaily((x) => ({ ...x, photo: q })));
+                        }
                       });
                     }}
                     style={styles.dailyPhoto}
@@ -1558,6 +1595,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     사진첩에서 아무 사진이나 한 장.{'\n'}폭에 맞춰 그대로 붙고,{'\n'}모으면 줄줄이 이어져요.{'\n'}사진첩에서 공유 → 레코코로도 돼요.
                   </Text>
                 </View>
+                {!!daily.photo && (
+                  <Pressable onPress={() => askCrop(daily, daily.photo!, (q) => setDaily((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                    <Text style={styles.cropLinkText}>{daily.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
+                  </Pressable>
+                )}
                 <Label text="소분류" />
                 <DailyTagPicker value={daily.tag} onChange={(tag) => setDaily((d) => ({ ...d, tag }))} />
                 <Label text="뒷면 — 탭하면 사진이 옅어지고 이 글이 떠요" />
@@ -1654,7 +1696,10 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     onPress={async () => {
                       await withPhotoBusy(async () => {
                         const [pic] = await pickPhotos(1);
-                        if (pic) setExercise((x) => ({ ...x, photo: pic }));
+                        if (pic) {
+                          setExercise((x) => ({ ...x, photo: pic }));
+                          askCrop(exercise, pic, (q) => setExercise((x) => ({ ...x, photo: q })));
+                        }
                       });
                     }}
                     style={styles.giftPhoto}
@@ -1673,6 +1718,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </Pressable>
                   <Text style={styles.coverHelp}>{exercise.design === 'card' ? '기록 뒤에 배경으로 꽉 깔려요.\n세로 사진이 잘 어울려요.' : '기록표 가운데에 들어가요.'}</Text>
                 </View>
+                {!!exercise.photo && (
+                  <Pressable onPress={() => askCrop(exercise, exercise.photo!, (q) => setExercise((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                    <Text style={styles.cropLinkText}>{exercise.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
+                  </Pressable>
+                )}
 
                 <Label text="힘든 정도" />
                 <View style={styles.stars}>
@@ -1743,7 +1793,10 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     onPress={async () => {
                       await withPhotoBusy(async () => {
                         const [pic] = await pickPhotos(1);
-                        if (pic) setMusic((x) => ({ ...x, photo: pic }));
+                        if (pic) {
+                          setMusic((x) => ({ ...x, photo: pic }));
+                          askCrop(music, pic, (q) => setMusic((x) => ({ ...x, photo: q })));
+                        }
                       });
                     }}
                     style={styles.giftPhoto}
@@ -1762,6 +1815,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </Pressable>
                   <Text style={styles.coverHelp}>앨범 카드에 크게 들어가요.</Text>
                 </View>
+                {!!music.photo && (
+                  <Pressable onPress={() => askCrop(music, music.photo!, (q) => setMusic((x) => ({ ...x, photo: q })))} hitSlop={6} style={styles.cropLink}>
+                    <Text style={styles.cropLinkText}>{music.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
+                  </Pressable>
+                )}
 
                 <Label text="별점" />
                 <View style={styles.stars}>
@@ -1784,6 +1842,16 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
           </Pressable>
         </KeyboardAvoidingView>
         <KeyboardDone />
+        <PhotoCropper
+          photo={cropping?.photo ?? null}
+          aspect={cropping?.aspect ?? 1}
+          free={cropping?.free}
+          onCancel={() => setCropping(null)}
+          onDone={(p) => {
+            cropping?.apply(p);
+            setCropping(null);
+          }}
+        />
       </SafeAreaView>
     </Modal>
   );
@@ -2030,6 +2098,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   giftPhotoImage: { position: 'absolute' },
+  cropLink: { alignSelf: 'flex-start', marginTop: -4, paddingVertical: 4 },
+  cropLinkText: { color: COLORS.orange, fontSize: 13, fontFamily: FONTS.sansBold },
   // 일상 사진 칸은 스토리처럼 세로로 길게 (9:16)
   dailyPhoto: {
     width: 108,

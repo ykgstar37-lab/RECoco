@@ -94,7 +94,7 @@ export function sampleShow(type: ShowType = 'play'): ShowRecord {
   if (type === 'exhibition')
     return { ...base, photo: SAMPLE_SHOTS.exhibit(), time: '14:30', title: '빛과 그림자', artist: '김하늘', place: '서울시립미술관', seat: '', memo: '마지막 방 영상이 제일 좋았다. 도록도 샀다.' };
   if (type === 'play')
-    return { ...base, title: '레미제라블', artist: '조승우, 정성화', place: '블루스퀘어 신한카드홀', seat: '1층 7열 12번', memo: '커튼콜에서 눈물 날 뻔했다.' };
+    return { ...base, photo: SAMPLE_SHOTS.poster(), title: '레미제라블', artist: '조승우, 정성화', place: '블루스퀘어 신한카드홀', seat: '1층 7열 12번', memo: '커튼콜에서 눈물 날 뻔했다.' };
   return { ...base, title: '한여름밤의 콘서트', artist: '새벽밴드', place: '올림픽공원 올림픽홀', seat: '스탠딩 A구역 132번', memo: '앙코르 세 곡. 목이 다 쉬었다.' };
 }
 

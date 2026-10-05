@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -107,7 +108,7 @@ export function ExerciseIcon({ type, x, y, size, color }: { type: ExerciseType; 
 function computeLayout(r: ExerciseRecord) {
   const t = EXERCISE_TYPES[r.type] ?? EXERCISE_TYPES.run;
   const far = USES_DISTANCE.includes(r.type) && r.distance > 0;
-  const photoH = r.photo ? Math.round(Math.min(340, Math.max(220, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 0;
+  const photoH = r.photo ? Math.round(Math.min(340, Math.max(220, ((PW - M * 2) * photoRatio(r.photo))))) : 0;
   const bigTop = 176; // 큰 숫자 줄
   const photoTop = bigTop + 132;
   const rowsTop = photoTop + (photoH ? photoH + 30 : 0);
@@ -179,7 +180,7 @@ export function ExerciseSlip({ record: r, width, connected = false }: { record: 
         {/* 사진 */}
         {!!photoH && (
           <G>
-            <Image href={{ uri: r.photo!.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-photo)`} />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: M, y: photoTop, width: PW - M * 2, height: photoH })} preserveAspectRatio="none" clipPath={`url(#${id}-photo)`} />
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={8} fill="none" stroke={LINE} strokeWidth={2} />
           </G>
         )}
@@ -236,3 +237,6 @@ export function ExerciseSlip({ record: r, width, connected = false }: { record: 
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW - M * 2, min: 220, max: 340 };

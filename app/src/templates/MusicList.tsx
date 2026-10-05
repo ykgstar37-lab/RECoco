@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -25,7 +26,7 @@ const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f
 function computeLayout(r: MusicRecord) {
   const title = fitLines(r.title.trim() || '오늘의 플레이리스트', PW - M * 2, 32, 22, 2, 'sansHeavy');
   const headBot = 128 + title.lines.length * TITLE_LINE;
-  const photoH = r.photo ? Math.round(Math.min(280, Math.max(180, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 0;
+  const photoH = r.photo ? Math.round(Math.min(280, Math.max(180, ((PW - M * 2) * photoRatio(r.photo))))) : 0;
   const photoTop = headBot + 16;
   const infoTop = photoTop + (photoH ? photoH + 26 : 0);
   const info: [string, string][] = [
@@ -90,7 +91,7 @@ export function MusicList({ record: r, width, connected = false }: { record: Mus
         {/* 사진 */}
         {!!photoH && (
           <G>
-            <Image href={{ uri: r.photo!.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-photo)`} />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: M, y: photoTop, width: PW - M * 2, height: photoH })} preserveAspectRatio="none" clipPath={`url(#${id}-photo)`} />
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={4} fill="none" stroke={LINE} strokeWidth={1.5} />
           </G>
         )}
@@ -149,3 +150,6 @@ export function MusicList({ record: r, width, connected = false }: { record: Mus
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW - M * 2, min: 180, max: 280 };

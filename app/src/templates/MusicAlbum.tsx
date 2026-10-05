@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
@@ -90,7 +91,7 @@ export function MusicAlbum({ record: r, width, connected = false }: { record: Mu
         {/* 커버 */}
         {r.photo ? (
           <G>
-            <Image href={{ uri: r.photo.uri }} x={M} y={coverTop} width={COVER} height={COVER} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-cover)`} />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: M, y: coverTop, width: COVER, height: COVER })} preserveAspectRatio="none" clipPath={`url(#${id}-cover)`} />
             <Rect x={M} y={coverTop} width={COVER} height={COVER} rx={4} fill="none" stroke={LINE} strokeWidth={2} />
           </G>
         ) : (
@@ -141,3 +142,6 @@ export function MusicAlbum({ record: r, width, connected = false }: { record: Mu
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: COVER, min: COVER, max: COVER };

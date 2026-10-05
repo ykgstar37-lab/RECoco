@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { dotDateWithDay, seededRandom } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
@@ -31,7 +32,7 @@ function computeLayout(r: ShowRecord) {
   const titleTop = 214;
   const artistTop = titleTop + (title.lines.length - 1) * TITLE_LINE + 54;
   const photoTop = artistTop + (r.artist.trim() ? 30 : 0) + 24;
-  const photoH = r.photo ? Math.round(Math.min(360, Math.max(240, ((PW - M * 2) * r.photo.height) / Math.max(1, r.photo.width)))) : 0;
+  const photoH = r.photo ? Math.round(Math.min(360, Math.max(240, ((PW - M * 2) * photoRatio(r.photo))))) : 0;
   const infoTop = photoTop + (r.photo ? photoH + 30 : 6);
   const infoBot = infoTop + 128;
   const memo = r.memo.trim() ? fitLines(r.memo.trim(), PW - M * 2 - 30, 30, 24, 3, 'hand') : null;
@@ -156,7 +157,7 @@ export function ShowRetro({ record: r, width, connected = false }: { record: Sho
         {r.photo && (
           <G>
             <Rect x={M} y={photoTop} width={PW - M * 2} height={photoH} rx={8} fill={LINE} />
-            <Image href={{ uri: r.photo.uri }} x={M} y={photoTop} width={PW - M * 2} height={photoH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-photo)`} />
+            <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: M, y: photoTop, width: PW - M * 2, height: photoH })} preserveAspectRatio="none" clipPath={`url(#${id}-photo)`} />
           </G>
         )}
 
@@ -223,3 +224,6 @@ export function ShowRetro({ record: r, width, connected = false }: { record: Sho
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: PW - M * 2, min: 240, max: 360 };

@@ -2,6 +2,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Line, Path, Rect, Text } from 'react-native-svg';
 
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { StickerArt } from '../components/Stickers';
 import { dotDateWithDay, seededRandom, won } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
@@ -66,7 +67,7 @@ type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
 
 function computeLayout(r: FoodRecord) {
-  const winH = r.photo ? Math.round(Math.min(380, Math.max(260, (WIN_W * r.photo.height) / Math.max(1, r.photo.width)))) : 260;
+  const winH = r.photo ? Math.round(Math.min(380, Math.max(260, (WIN_W * photoRatio(r.photo))))) : 260;
   const winBot = WIN_TOP + winH;
   const boardTop = winBot + 70;
   const rows = Math.max(2, r.menus.length);
@@ -171,7 +172,7 @@ export function FoodHouse({ record: r, width, connected = false }: { record: Foo
         {/* 창문 (사진) */}
         <Rect x={WIN_X - 14} y={WIN_TOP - 14} width={WIN_W + 28} height={winH + 28} rx={12} fill={TRIM} />
         {r.photo ? (
-          <Image href={{ uri: r.photo.uri }} x={WIN_X} y={WIN_TOP} width={WIN_W} height={winH} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id}-win)`} />
+          <Image href={{ uri: r.photo!.uri }} {...coverRect(r.photo!, { x: WIN_X, y: WIN_TOP, width: WIN_W, height: winH })} preserveAspectRatio="none" clipPath={`url(#${id}-win)`} />
         ) : (
           <G>
             <Rect x={WIN_X} y={WIN_TOP} width={WIN_W} height={winH} rx={6} fill="#dcecf2" />
@@ -255,3 +256,6 @@ export function FoodHouse({ record: r, width, connected = false }: { record: Foo
     </Svg>
   );
 }
+
+/** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+export const PHOTO_SLOT = { w: WIN_W, min: 260, max: 380 };

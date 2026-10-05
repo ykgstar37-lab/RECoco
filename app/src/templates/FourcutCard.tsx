@@ -117,7 +117,7 @@ const SPOT: Record<MonsterRank, Spot> = {
   },
   a: {
     crop: { x: 52, y: 0, w: 1027, h: 1448 },
-    win: { x0: 120, x1: 985, topL: 172, notchFrom: 610, notchTo: 700, topR: 258, bottom: 888 },
+    win: { x0: 100, x1: 1034, topL: 172, notchFrom: 610, notchTo: 700, topR: 258, bottom: 888 }, // 처음엔 좁게 재서 양옆에 흰 틈이 보였다 (2026-10-05 다시 잼)
     bar: { y: 1003, left: 390, right: 740 },
     descPanel: false,
     foot: { x0: 426, x1: 713, y0: 1380, y1: 1420 },

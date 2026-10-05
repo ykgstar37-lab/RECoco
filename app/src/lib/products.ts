@@ -51,6 +51,18 @@ export interface PreviewProduct {
   samples: PreviewSample[];
 }
 
+/**
+ * 테마 미리보기: 한 칸 걸러 사진 없이 — 사진을 넣었을 때와 안 넣었을 때를 같이 보여준다.
+ * 뒷면 칸·사진 칸이 없는 모양(팔찌)은 건드리지 않는다
+ */
+function alternatePhotos(samples: PreviewSample[]): PreviewSample[] {
+  const bare = (r: RecoRecord): RecoRecord => (r.kind === 'fourcut' ? { ...r, photos: [], frameImage: null } : 'photo' in r ? ({ ...r, photo: null } as RecoRecord) : r);
+  return samples.map((s, i) => {
+    if (i % 2 === 0 || s.side === 'back') return s;
+    return { ...s, record: bare(s.record), more: s.more?.map(bare), caption: `${s.caption} · 사진 없이` };
+  });
+}
+
 export function themeProduct(t: ThemeItem): PreviewProduct {
   // 모눈종이는 색마다 한 장씩, 소비 영수증과 인생네컷 뒷면을 번갈아 보여준다
   const samples: PreviewSample[] =
@@ -78,7 +90,7 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
     tags: d.kinds.map((k) => KIND_LABEL[k]),
     requires: d.kinds,
     // 지붕 색이 여러 가지라는 걸 보여준다 (색은 가게 종류와 상관없이 고른다)
-    samples: HOUSE_SAMPLES.map(({ color, type, place, menus, total, revisit, memo }) => ({
+    samples: alternatePhotos(HOUSE_SAMPLES.map(({ color, type, place, menus, total, revisit, memo }) => ({
       record: {
         ...sampleFood(),
         id: `preview-food-${d.id}-${color}`,
@@ -93,7 +105,7 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
         photo: type === 'meal' || type === 'bar' ? SAMPLE_SHOTS.meal() : SAMPLE_SHOTS.cafe(),
       },
       caption: `${HOUSE_COLORS[color].name} 지붕`,
-    })),
+    }))),
   };
 }
 
@@ -182,7 +194,7 @@ export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
       badge: '예시',
       caption: side ? `${COCOCHI_COLORS[color].name} · 뒷면` : COCOCHI_COLORS[color].name,
     });
-    return { ...head, samples: [...COCOCHI_COLOR_IDS.map((c) => of(c)), of('mint', 'back')] };
+    return { ...head, samples: alternatePhotos([...COCOCHI_COLOR_IDS.map((c) => of(c)), of('mint', 'back')]) };
   }
 
   if (d.id === 'house') {
@@ -193,11 +205,11 @@ export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
       badge: '예시',
       caption: side ? `${FOURCUT_HOUSE_COLORS[color].name} · 뒷면` : `${FOURCUT_HOUSE_COLORS[color].name} 지붕`,
     });
-    return { ...head, samples: [...FOURCUT_HOUSE_COLOR_IDS.map((c) => of(c)), of('pink', 'back')] };
+    return { ...head, samples: alternatePhotos([...FOURCUT_HOUSE_COLOR_IDS.map((c) => of(c)), of('pink', 'back')]) };
   }
 
   const of = (id: string, caption: string) => ({ record: { ...sampleFourcut(), id, design: 'card' as const, photos: FOURCUT_SAMPLE_PHOTOS.cocomon() }, badge: '예시', caption });
-  return { ...head, samples: [of('cm52', 'R · 무지개 (1%)'), of('cm16', 'SS (4%)'), of('cm13', 'S (9%)'), of('cm3', 'A (18%)'), of('cm4', 'B (28%)'), of('cm0', 'C (40%)')] };
+  return { ...head, samples: alternatePhotos([of('cm52', 'R · 무지개 (1%)'), of('cm16', 'SS (4%)'), of('cm13', 'S (9%)'), of('cm3', 'A (18%)'), of('cm4', 'B (28%)'), of('cm0', 'C (40%)')]) };
 }
 
 export const fourcutDesignProductById = (id: FourcutDesignItem['id']) => fourcutDesignProduct(FOURCUT_DESIGNS.find((d) => d.id === id)!);
@@ -243,7 +255,7 @@ export function designProduct(d: ConcertDesignItem | ShowDesignItem): PreviewPro
       samples.push({ record: { ...sampleShow('exhibition'), id: `preview-${d.id}-ex`, design: d.id as ShowDesign }, caption: '전시' });
     }
   }
-  return { title: d.name, desc: d.desc, productId: d.productId, price: d.price, tags: d.kinds.map((k) => KIND_LABEL[k]), requires: d.kinds, samples };
+  return { title: d.name, desc: d.desc, productId: d.productId, price: d.price, tags: d.kinds.map((k) => KIND_LABEL[k]), requires: d.kinds, samples: d.id === 'band' ? samples : alternatePhotos(samples) };
 }
 
 export const concertDesignProduct = designProduct;
@@ -272,7 +284,7 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
               record: {
                 ...sampleFood(),
                 id: 'preview-food-meal',
-                photo: null,
+                photo: SAMPLE_SHOTS.meal(),
                 place: '골목 칼국수',
                 area: '망원동',
                 type: 'meal',
@@ -286,7 +298,7 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                 revisit: 'maybe',
                 memo: '',
               },
-              caption: '식당 · 사진 없이',
+              caption: '식당 · 사진',
             },
           ]
         : kind === 'show'
