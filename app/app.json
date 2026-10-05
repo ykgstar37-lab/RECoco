@@ -80,6 +80,12 @@
         "projectId": "d97644ea-a8cf-4442-b118-91e26e69d038"
       }
     },
-    "owner": "yoongyeongeun"
+    "owner": "yoongyeongeun",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d97644ea-a8cf-4442-b118-91e26e69d038"
+    }
   }
 }

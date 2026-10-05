@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BadBackup, canBackup, exportBackup, pickBackup } from '../lib/backup';
 import { loadHaptics, setHaptics } from '../lib/haptics';
+import { FREE_FOR_ALL } from '../lib/launch';
 import { purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { APP_VERSION } from '../lib/support';
 import { COLORS, FONTS } from '../theme';
@@ -19,7 +20,7 @@ interface Props {
   onBought: (productId: string) => void;
 }
 
-/** 환경설정: 진동, 내 기록·백업, 구매 복원, 버그 신고, 정보 */
+/** 환경설정: 진동, 내 기록·백업, 구매 복원(유료화 뒤에만), 버그 신고, 정보 */
 export function Settings({ visible, records, onClose, onImport, onBought }: Props) {
   const [haptics, setHapticsOn] = useState(true);
   const [notice, setNotice] = useState('');
@@ -129,13 +130,16 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
             </Text>
           </Group>
 
-          <Group title="구매">
-            <Pressable onPress={restore} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}>
-              <Text style={styles.rowLabel}>구매 복원</Text>
-              <Text style={styles.rowValue}>›</Text>
-            </Pressable>
-            {!!notice && <Text style={styles.help}>{notice}</Text>}
-          </Group>
+          {/* 전부 무료인 판(v1.0)에는 팔 게 없어서 구매 복원을 숨긴다 — 심사에서 헷갈리지 않게 (lib/launch.ts) */}
+          {!FREE_FOR_ALL && (
+            <Group title="구매">
+              <Pressable onPress={restore} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}>
+                <Text style={styles.rowLabel}>구매 복원</Text>
+                <Text style={styles.rowValue}>›</Text>
+              </Pressable>
+              {!!notice && <Text style={styles.help}>{notice}</Text>}
+            </Group>
+          )}
 
           <Group title="도움">
             <Pressable onPress={() => setBugOpen(true)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}>
