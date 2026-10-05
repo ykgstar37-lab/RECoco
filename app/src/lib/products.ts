@@ -272,14 +272,15 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
     kind === 'gift'
       ? [
           { record: sampleGift('yellow'), caption: '받은 선물 · 사진' },
-          { record: { ...sampleGift('pink'), direction: 'given', person: '엄마', item: '수박 한 통', brand: '', price: 0, message: '여름엔 역시 수박! 시원하게 드세요.', photo: null }, caption: '보낸 선물 · 사진 없이' },
+          { record: { ...sampleGift('pink'), direction: 'given', person: '엄마', item: '수박 한 통', brand: '', price: 0, message: '여름엔 역시 수박! 시원하게 드세요.', photo: SAMPLE_SHOTS.melon() }, caption: '보낸 선물 · 사진' },
+          {
+            record: { ...sampleGift('mint'), id: 'preview-gift-mint', direction: 'received', person: '수아', item: '편의점 모바일 상품권', brand: '', price: 10000, message: '생일 축하해! 맛있는 거 사 먹어', photo: null },
+            caption: '받은 선물 · 연두 · 사진 없이',
+          },
         ]
       : kind === 'food'
         ? [
             { record: sampleFood(), caption: '주문서 · 초록 · 사진' },
-            { record: { ...sampleFood(), id: 'preview-food-ink', color: 'ink', photo: null }, caption: '주문서 · 먹색 · 사진 없이' },
-            { record: { ...sampleFood(), id: 'preview-food-navy', color: 'navy', photo: null }, caption: '주문서 · 남색 · 사진 없이' },
-            { record: { ...sampleFood(), id: 'preview-food-wine', color: 'wine', photo: null }, caption: '주문서 · 팥색 · 사진 없이' },
             {
               record: {
                 ...sampleFood(),
@@ -300,6 +301,9 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
               },
               caption: '식당 · 사진',
             },
+            { record: { ...sampleFood(), id: 'preview-food-ink', color: 'ink', photo: null }, caption: '주문서 · 먹색 · 사진 없이' },
+            { record: { ...sampleFood(), id: 'preview-food-navy', color: 'navy', photo: null }, caption: '주문서 · 남색 · 사진 없이' },
+            { record: { ...sampleFood(), id: 'preview-food-wine', color: 'wine', photo: null }, caption: '주문서 · 팥색 · 사진 없이' },
           ]
         : kind === 'show'
           ? [
@@ -309,8 +313,8 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
             ]
           : kind === 'concert'
             ? [
-                { record: { ...sampleConcert(), id: 'preview-concert-plain', design: 'plain', photo: null }, caption: '흰 무지 · 사진 없이' },
-                { record: sampleConcert(), caption: '밤하늘 티켓 · 사진' },
+                // 가로로 납작한 티켓이라 옆으로 넘기지 않고 한 칸에 위아래로 크게 쌓는다
+                { record: sampleConcert(), more: [{ ...sampleConcert(), id: 'preview-concert-plain', design: 'plain', photo: null }], caption: '위 · 밤하늘 티켓(사진) / 아래 · 흰 무지(사진 없이)' },
               ]
             : kind === 'exercise'
               ? [
