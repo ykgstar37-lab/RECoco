@@ -1,4 +1,4 @@
-// 인생네컷 유료 테마 "네컷 하우스": 길쭉한 집 벽 가운데 창틀에 네컷 띠를 끼운다.
+// 인생네컷 유료 테마 "하우스네컷": 길쭉한 집 벽 가운데 창틀에 네컷 띠를 끼운다.
 // 지붕은 색마다 무늬가 다르다 — 분홍 줄무늬(지붕 위에 코코) · 파란 격자(둥근 다락창) · 빨간 땡땡이 · 초록 굴뚝(연기).
 // 창틀은 둥근 모서리에 창턱이 달리고, 처마 끝엔 물결 장식이 붙는다 (레퍼런스를 그대로 따르지 않고 조금 바꿨다).
 // 뒤집으면 같은 집 벽에 그날의 일기를 바로 적는다 (창틀·흰 종이 없이).
@@ -31,7 +31,7 @@ type Roof = 'stripe' | 'grid' | 'dots' | 'chimney';
 /** 지붕 무늬·벽·창틀 색 */
 export const FOURCUT_HOUSE_COLORS: Record<FourcutHouseColor, { name: string; roof: Roof; tile: string; pattern: string; wall: string; frame: string; swatch: string }> = {
   pink: { name: '분홍', roof: 'stripe', tile: '#eaa7b6', pattern: '#f8dbe2', wall: '#fbf1ee', frame: '#8a6448', swatch: '#eaa7b6' },
-  blue: { name: '파랑', roof: 'grid', tile: '#4a6cc0', pattern: '#dfe7fb', wall: '#eef0f3', frame: '#8a6448', swatch: '#4a6cc0' },
+  blue: { name: '파랑', roof: 'grid', tile: '#4a6cc0', pattern: '#dfe7fb', wall: '#ebebeb', frame: '#8a6448', swatch: '#4a6cc0' },
   red: { name: '빨강', roof: 'dots', tile: '#d2525e', pattern: '#fff5f2', wall: '#e9f2fa', frame: '#4f8a5b', swatch: '#d2525e' },
   green: { name: '초록', roof: 'chimney', tile: '#4c8c57', pattern: '#4c8c57', wall: '#faf6ea', frame: '#d24c5a', swatch: '#4c8c57' },
 };
@@ -96,6 +96,27 @@ function CocoSitting({ x, y, w }: { x: number; y: number; w: number }) {
       <Circle cx={242} cy={190} r={14.5} fill="#3a2a22" />
       <Path d="M158,224 Q200,217 242,224 Q247,227 240,236 C228,272 172,272 160,236 Q153,227 158,224 Z" fill="#3a2a22" />
       <Ellipse cx={200} cy={258} rx={22} ry={11} fill="#f06470" />
+    </G>
+  );
+}
+
+/** 창틀 위에 올려 둔 작은 화분 (파란 지붕 집). x: 가운데, y: 화분 밑바닥 */
+function FlowerPot({ x, y }: { x: number; y: number }) {
+  const leaf = '#5f9463';
+  return (
+    <G>
+      {/* 줄기 + 잎 */}
+      <Path d={`M${x},${y - 30} Q${x - 2},${y - 38} ${x + 1},${y - 44}`} stroke={leaf} strokeWidth={2.4} fill="none" strokeLinecap="round" />
+      <Ellipse cx={x - 11} cy={y - 34} rx={9} ry={4.5} fill={leaf} transform={`rotate(-28 ${x - 11} ${y - 34})`} />
+      <Ellipse cx={x + 11} cy={y - 37} rx={9} ry={4.5} fill={leaf} transform={`rotate(24 ${x + 11} ${y - 37})`} />
+      {/* 꽃 한 송이 */}
+      {[0, 72, 144, 216, 288].map((a) => (
+        <Circle key={a} cx={x + 1 + Math.cos((a * Math.PI) / 180) * 5.5} cy={y - 46 + Math.sin((a * Math.PI) / 180) * 5.5} r={4.2} fill="#f4a6b8" />
+      ))}
+      <Circle cx={x + 1} cy={y - 46} r={3} fill="#ffd166" />
+      {/* 토분 */}
+      <Path d={`M${x - 15},${y - 26} H${x + 15} L${x + 11},${y} H${x - 11} Z`} fill="#d0805a" />
+      <Rect x={x - 18} y={y - 32} width={36} height={8} rx={2.5} fill="#b9683f" />
     </G>
   );
 }
@@ -249,6 +270,7 @@ export function FourcutHouseFront({ record: r, width, connected = false }: Props
         <Rect x={FX} y={g.frameTop} width={FW} height={g.frameBot - g.frameTop} rx={FR} fill={g.color.frame} />
         <Rect x={FX - 18} y={g.frameBot - 8} width={FW + 36} height={18} rx={6} fill={g.color.frame} />
         <Rect x={FX - 18} y={g.frameBot + 6} width={FW + 36} height={4} rx={2} fill="#000" opacity={0.1} />
+        {g.color.roof === 'grid' && <FlowerPot x={FX + FW - 48} y={g.frameTop} />}
         <G clipPath={`url(#${id}-strip)`}>
           <Rect x={sx} y={sy} width={sw} height={STRIP} fill="#1b1a1c" />
           {qr ? (

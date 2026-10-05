@@ -107,10 +107,10 @@ export type FourcutFrame = 'white' | 'black' | 'pink' | 'sky';
  */
 export type FourcutLayout = 'strip' | 'grid' | 'wide';
 
-/** strip: 네컷 사진 그대로(무료) / card: 코코몬 카드 · cocochi: 코코치 · house: 네컷 하우스 (유료) */
+/** strip: 네컷 사진 그대로(무료) / card: 코코몬 카드 · cocochi: 코코치 · house: 하우스네컷 (유료) */
 export type FourcutDesign = 'strip' | 'card' | 'cocochi' | 'house';
 
-/** 네컷 하우스 지붕 (색마다 지붕 무늬가 다르다) */
+/** 하우스네컷 지붕 (색마다 지붕 무늬가 다르다) */
 export type FourcutHouseColor = 'pink' | 'blue' | 'red' | 'green';
 
 /** 코코치(열쇠고리) 껍데기 색 */
@@ -140,7 +140,7 @@ export interface FourcutRecord extends BaseRecord {
   themeColor?: GridColor; // 모눈종이 격자 색
   design?: FourcutDesign; // 없으면 네컷 사진 그대로
   cocochiColor?: CocochiColor; // 코코치 껍데기 색
-  houseColor?: FourcutHouseColor; // 네컷 하우스 지붕
+  houseColor?: FourcutHouseColor; // 하우스네컷 지붕
 }
 
 export type GiftCard = 'yellow' | 'pink' | 'mint' | 'sky' | 'plain';

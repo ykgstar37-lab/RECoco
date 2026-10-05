@@ -49,7 +49,7 @@ export function FourcutFront(p: FourcutFace) {
 export function FourcutBack(p: FourcutFace) {
   // 코코치는 열쇠고리를 뒤집은 모습 (크림색 줄노트로 바뀌면 흐름이 끊긴다)
   if (p.record.design === 'cocochi') return <FourcutCocochiBack {...p} />;
-  // 네컷 하우스는 같은 집을 뒤집어 창틀 안에 일기를 쓴다
+  // 하우스네컷는 같은 집을 뒤집어 창틀 안에 일기를 쓴다
   if (p.record.design === 'house') return <FourcutHouseBack {...p} />;
   return <FourcutNoteBack {...p} />;
 }

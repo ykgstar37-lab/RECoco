@@ -1093,7 +1093,7 @@ export function RecordForm({ visible, records = [], initialKind, editing, onClos
                   houseColor={fourcut.houseColor}
                   onHouseColor={(houseColor) => setFourcut((f) => ({ ...f, houseColor }))}
                 />
-                {/* 코코몬 카드·코코치·네컷 하우스는 뒷면을 제 모양대로 그리므로 뒷면 종이를 고르지 않는다 */}
+                {/* 코코몬 카드·코코치·하우스네컷는 뒷면을 제 모양대로 그리므로 뒷면 종이를 고르지 않는다 */}
                 {fourcut.design !== 'card' && fourcut.design !== 'cocochi' && fourcut.design !== 'house' && (
                   <ThemePicker
                     label="뒷면 종이"
