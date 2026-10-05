@@ -1,7 +1,7 @@
 // 상점 미리보기용 예시 기록 (저장되지 않음)
 import { Image } from 'react-native';
 
-import { ConcertRecord, DailyRecord, ExerciseRecord, FoodRecord, FourcutRecord, GiftCard, GiftRecord, MusicRecord, PaperTheme, ShowRecord, ShowType, SpendingRecord } from '../types';
+import { ConcertRecord, DailyRecord, Photo, ExerciseRecord, FoodRecord, FourcutRecord, GiftCard, GiftRecord, MusicRecord, PaperTheme, ShowRecord, ShowType, SpendingRecord } from '../types';
 
 export function sampleSpending(theme?: PaperTheme): SpendingRecord {
   return {
@@ -49,11 +49,11 @@ export function sampleGift(card: GiftCard = 'yellow'): GiftRecord {
     date: '2026-09-14',
     direction: 'received',
     person: '지민',
-    item: '아이스 아메리카노 2잔',
-    brand: '달밤커피',
-    price: 9000,
-    message: '시험 끝난 거 축하해! 커피 마시면서 푹 쉬어',
-    photo: null,
+    item: '딸기 생크림 케이크',
+    brand: '달밤베이커리',
+    price: 28000,
+    message: '시험 끝난 거 축하해! 달달한 거 먹고 푹 쉬어',
+    photo: SAMPLE_SHOTS.cake(),
     card,
   };
 }
@@ -75,7 +75,7 @@ export function sampleFood(): FoodRecord {
     total: 12500,
     revisit: 'yes',
     memo: '치즈케이크 꾸덕해서 또 먹고 싶다. 창가 자리 명당!',
-    photo: null,
+    photo: SAMPLE_SHOTS.cafe(),
   };
 }
 
@@ -89,7 +89,7 @@ export function sampleShow(type: ShowType = 'play'): ShowRecord {
     type,
     stars: 5,
     people: 2,
-    photo: null,
+    photo: SAMPLE_SHOTS.stage(),
   };
   if (type === 'exhibition')
     return { ...base, time: '14:30', title: '빛과 그림자', artist: '김하늘', place: '서울시립미술관', seat: '', memo: '마지막 방 영상이 제일 좋았다. 도록도 샀다.' };
@@ -113,7 +113,7 @@ export function sampleConcert(): ConcertRecord {
     price: 99000,
     stars: 5,
     memo: '앙코르 세 곡. 목이 다 쉬었다.',
-    photo: null,
+    photo: SAMPLE_SHOTS.stage(),
     design: 'ticket',
   };
 }
@@ -141,6 +141,34 @@ const SAMPLE_TEXT: Pick<DailyRecord, 'tag' | 'title' | 'memo' | 'place'>[] = [
   { tag: '내 강아지', title: '꽃밭 산책', memo: '분홍 꽃밭에서 한참 놀았다. 집에 와서 바로 기절.', place: '동네 공원' },
 ];
 
+/** 카테고리 미리보기 사진 (사용자가 준 것, 양식 사진 칸 비율로 잘라 둠) — ⚠️ 마인크래프트 캡처라 출시 전에 바꿀 것 */
+export const SAMPLE_SHOTS = {
+  cafe: () => shot(require('../../assets/samples/food-cafe.jpg'), 480, 434),
+  meal: () => shot(require('../../assets/samples/food-meal.jpg'), 480, 434),
+  stage: () => shot(require('../../assets/samples/concert.jpg'), 480, 464),
+  exercise: () => shot(require('../../assets/samples/exercise.jpg'), 480, 640),
+  cake: () => shot(require('../../assets/samples/gift-cake.jpg'), 400, 400),
+  melon: () => shot(require('../../assets/samples/gift-melon.jpg'), 400, 400),
+  music: () => shot(require('../../assets/samples/music.jpg'), 480, 480),
+};
+
+/** 인생네컷 테마 미리보기 사진 (사용자가 준 것, 사진 칸 비율에 맞춰 잘라 둠) — ⚠️ 이것도 마인크래프트 캡처라 출시 전에 바꿀 것 */
+const shot = (mod: unknown, width: number, height: number): Photo => ({ uri: uriOf(mod), width, height });
+
+export const FOURCUT_SAMPLE_PHOTOS = {
+  /** 하우스네컷 네 칸 (칸 비율 232:177 로 잘랐다) */
+  house: () => [
+    shot(require('../../assets/samples/house-1.jpg'), 464, 354),
+    shot(require('../../assets/samples/house-2.jpg'), 464, 354),
+    shot(require('../../assets/samples/house-3.jpg'), 464, 354),
+    shot(require('../../assets/samples/house-4.jpg'), 464, 354),
+  ],
+  /** 코코치 화면 (정사각) */
+  cocochi: () => [shot(require('../../assets/samples/cocochi.jpg'), 480, 480)],
+  /** 코코몬 카드 창 (가로로 조금 넓다) */
+  cocomon: () => [shot(require('../../assets/samples/cocomon.jpg'), 480, 364)],
+};
+
 export function sampleDaily(i = 0, extra: Partial<DailyRecord> = {}): DailyRecord {
   const p = SAMPLE_PHOTOS[i % SAMPLE_PHOTOS.length];
   return {
@@ -155,7 +183,7 @@ export function sampleDaily(i = 0, extra: Partial<DailyRecord> = {}): DailyRecor
 }
 
 export function sampleExercise(type: ExerciseRecord['type'] = 'run'): ExerciseRecord {
-  const base = { id: `preview-exercise-${type}`, createdAt: '2026-09-19T08:00:00.000Z', kind: 'exercise' as const, date: '2026-09-19', time: '07:10', type, photo: null, design: 'slip' as const };
+  const base = { id: `preview-exercise-${type}`, createdAt: '2026-09-19T08:00:00.000Z', kind: 'exercise' as const, date: '2026-09-19', time: '07:10', type, photo: SAMPLE_SHOTS.exercise(), design: 'slip' as const };
   if (type === 'gym')
     return {
       ...base,
@@ -175,7 +203,7 @@ export function sampleExercise(type: ExerciseRecord['type'] = 'run'): ExerciseRe
 }
 
 export function sampleMusic(design: MusicRecord['design'] = 'album'): MusicRecord {
-  const base = { id: `preview-music-${design}`, createdAt: '2026-09-17T23:00:00.000Z', kind: 'music' as const, date: '2026-09-17', photo: null, design };
+  const base = { id: `preview-music-${design}`, createdAt: '2026-09-17T23:00:00.000Z', kind: 'music' as const, date: '2026-09-17', photo: SAMPLE_SHOTS.music(), design };
   if (design === 'list')
     return {
       ...base,

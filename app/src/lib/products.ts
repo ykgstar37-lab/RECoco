@@ -9,7 +9,7 @@ import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
 import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { CocochiColor, ConcertDesign, FourcutHouseColor, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
-import { sampleConcert, sampleDaily, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
+import { FOURCUT_SAMPLE_PHOTOS, SAMPLE_SHOTS, sampleConcert, sampleDaily, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
 import {
   CONCERT_DESIGNS,
   ConcertDesignItem,
@@ -32,7 +32,7 @@ export interface PreviewSample {
   side?: 'back';
   /** more 까지 롤처럼 틈 없이 이어 붙여 보여줄 때 (일상) */
   connected?: boolean;
-  /** 종이 왼쪽 위에 얹는 작은 표시 (예: '예시') */
+  /** 종이 위 가장자리에 걸치는 작은 표시. 없으면 '예시', '' 이면 안 붙인다 */
   badge?: string;
   caption: string;
 }
@@ -79,7 +79,19 @@ export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
     requires: d.kinds,
     // 지붕 색이 여러 가지라는 걸 보여준다 (색은 가게 종류와 상관없이 고른다)
     samples: HOUSE_SAMPLES.map(({ color, type, place, menus, total, revisit, memo }) => ({
-      record: { ...sampleFood(), id: `preview-food-${d.id}-${color}`, design: d.id, color, type, place, menus, total, revisit, memo },
+      record: {
+        ...sampleFood(),
+        id: `preview-food-${d.id}-${color}`,
+        design: d.id,
+        color,
+        type,
+        place,
+        menus,
+        total,
+        revisit,
+        memo,
+        photo: type === 'meal' || type === 'bar' ? SAMPLE_SHOTS.meal() : SAMPLE_SHOTS.cafe(),
+      },
       caption: `${HOUSE_COLORS[color].name} 지붕`,
     })),
   };
@@ -153,13 +165,21 @@ export const foodDesignProductById = (id: FoodDesignItem['id']) => foodDesignPro
 
 /** 코코몬 카드: 등급이 뽑기라서 여러 등급을 나란히 보여준다 */
 export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
-  const head = { title: d.name, desc: d.desc, productId: d.productId, price: d.price, tags: d.kinds.map((k) => KIND_LABEL[k]) };
+  const head = {
+    title: d.name,
+    desc: d.desc,
+    productId: d.productId,
+    price: d.price,
+    tags: d.kinds.map((k) => KIND_LABEL[k]),
+    help: '사진과 글은 예시예요. 내 네컷 사진으로 채워져요.',
+  };
 
   if (d.id === 'cocochi') {
     // 껍데기 색마다 한 장씩, 마지막은 뒤집은 모습
     const of = (color: CocochiColor, side?: 'back') => ({
-      record: { ...sampleFourcut(), id: `preview-cocochi-${color}${side ?? ''}`, design: 'cocochi' as const, cocochiColor: color },
+      record: { ...sampleFourcut(), id: `preview-cocochi-${color}${side ?? ''}`, design: 'cocochi' as const, cocochiColor: color, photos: FOURCUT_SAMPLE_PHOTOS.cocochi() },
       side,
+      badge: '예시',
       caption: side ? `${COCOCHI_COLORS[color].name} · 뒷면` : COCOCHI_COLORS[color].name,
     });
     return { ...head, samples: [...COCOCHI_COLOR_IDS.map((c) => of(c)), of('mint', 'back')] };
@@ -168,14 +188,15 @@ export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
   if (d.id === 'house') {
     // 지붕마다 한 장씩, 마지막은 뒤집은 모습
     const of = (color: FourcutHouseColor, side?: 'back') => ({
-      record: { ...sampleFourcut(), id: `preview-fhouse-${color}${side ?? ''}`, design: 'house' as const, houseColor: color },
+      record: { ...sampleFourcut(), id: `preview-fhouse-${color}${side ?? ''}`, design: 'house' as const, houseColor: color, photos: FOURCUT_SAMPLE_PHOTOS.house() },
       side,
+      badge: '예시',
       caption: side ? `${FOURCUT_HOUSE_COLORS[color].name} · 뒷면` : `${FOURCUT_HOUSE_COLORS[color].name} 지붕`,
     });
     return { ...head, samples: [...FOURCUT_HOUSE_COLOR_IDS.map((c) => of(c)), of('pink', 'back')] };
   }
 
-  const of = (id: string, caption: string) => ({ record: { ...sampleFourcut(), id, design: 'card' as const }, caption });
+  const of = (id: string, caption: string) => ({ record: { ...sampleFourcut(), id, design: 'card' as const, photos: FOURCUT_SAMPLE_PHOTOS.cocomon() }, badge: '예시', caption });
   return { ...head, samples: [of('cm52', 'R · 무지개 (1%)'), of('cm16', 'SS (4%)'), of('cm13', 'S (9%)'), of('cm3', 'A (18%)'), of('cm4', 'B (28%)'), of('cm0', 'C (40%)')] };
 }
 
@@ -238,7 +259,7 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
     kind === 'gift'
       ? [
           { record: sampleGift('yellow'), caption: '받은 선물' },
-          { record: { ...sampleGift('pink'), direction: 'given', person: '엄마', item: '꽃다발', brand: '', price: 0, message: '생일 축하해요 엄마, 늘 고마워요.' }, caption: '보낸 선물' },
+          { record: { ...sampleGift('pink'), direction: 'given', person: '엄마', item: '수박 한 통', brand: '', price: 0, message: '여름엔 역시 수박! 시원하게 드세요.', photo: SAMPLE_SHOTS.melon() }, caption: '보낸 선물' },
         ]
       : kind === 'food'
         ? [
@@ -250,6 +271,7 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
               record: {
                 ...sampleFood(),
                 id: 'preview-food-meal',
+                photo: SAMPLE_SHOTS.meal(),
                 place: '골목 칼국수',
                 area: '망원동',
                 type: 'meal',

@@ -85,11 +85,11 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
                 return (
                   <View key={i} style={styles.sample}>
                     <View style={styles.paper}>
-                      {!!s.badge && (
+                      {s.badge !== '' && (
                         // 종이 위 가장자리에 걸쳐 둔다 (안에 두면 소분류 알약·날짜를 가린다)
                         <View style={styles.badgeRow} pointerEvents="none">
                           <View style={styles.badge}>
-                            <Text style={styles.badgeText}>{s.badge}</Text>
+                            <Text style={styles.badgeText}>{s.badge ?? '예시'}</Text>
                           </View>
                         </View>
                       )}
@@ -112,7 +112,7 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
                 );
               })}
             </ScrollView>
-            <Text style={styles.help}>{product.help ?? '글자는 예시예요. 내 기록 내용으로 채워져요.'}</Text>
+            <Text style={styles.help}>{product.help ?? '사진과 글은 예시예요. 내 기록 내용으로 채워져요.'}</Text>
             {!!notice && <Text style={styles.notice}>{notice}</Text>}
           </ScrollView>
         )}
