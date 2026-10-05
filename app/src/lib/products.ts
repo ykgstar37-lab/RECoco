@@ -32,6 +32,8 @@ export interface PreviewSample {
   side?: 'back';
   /** more 까지 롤처럼 틈 없이 이어 붙여 보여줄 때 (일상) */
   connected?: boolean;
+  /** 종이 왼쪽 위에 얹는 작은 표시 (예: '예시') */
+  badge?: string;
   caption: string;
 }
 
@@ -44,6 +46,8 @@ export interface PreviewProduct {
   tags: string[];
   /** 이 중 하나라도 사야 쓸 수 있는 카테고리 (영수증 모양 테마) */
   requires?: RecordKind[];
+  /** 미리보기 아래 안내 (없으면 '글자는 예시예요…') */
+  help?: string;
   samples: PreviewSample[];
 }
 
@@ -281,10 +285,10 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                 ]
               : kind === 'daily'
                 ? [
-                    { record: sampleDaily(0), more: [sampleDaily(1), sampleDaily(2)], connected: true, caption: '사진이 줄줄이 이어져요' },
-                    { record: sampleDaily(0), side: 'back' as const, caption: '탭하면 뒷면에 그날의 글' },
-                    { record: sampleDaily(1), side: 'back' as const, caption: '소분류마다 색이 달라요' },
-                    { record: sampleDaily(2), side: 'back' as const, caption: '가로 사진 뒷면' },
+                    { record: sampleDaily(0), more: [sampleDaily(1), sampleDaily(2)], connected: true, badge: '예시', caption: '예시 · 사진이 줄줄이 이어져요' },
+                    { record: sampleDaily(0), side: 'back' as const, badge: '예시', caption: '탭하면 뒷면에 그날의 글' },
+                    { record: sampleDaily(1), side: 'back' as const, badge: '예시', caption: '소분류마다 색이 달라요' },
+                    { record: sampleDaily(2), side: 'back' as const, badge: '예시', caption: '가로 사진 뒷면' },
                   ]
               : kind === 'music'
                 ? [
@@ -292,5 +296,6 @@ export function categoryProduct(kind: RecordKind): PreviewProduct | null {
                     { record: sampleMusic('list'), caption: '플레이리스트 영수증' },
                   ]
                 : [];
-  return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples };
+  const help = kind === 'daily' ? '사진과 글은 예시예요. 내 사진첩 사진으로 채워져요.' : undefined;
+  return { title: c.name, desc: c.desc, productId: c.productId, price: c.price, tags: [], samples, help };
 }

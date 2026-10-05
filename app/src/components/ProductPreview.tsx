@@ -85,6 +85,14 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
                 return (
                   <View key={i} style={styles.sample}>
                     <View style={styles.paper}>
+                      {!!s.badge && (
+                        // 종이 위 가장자리에 걸쳐 둔다 (안에 두면 소분류 알약·날짜를 가린다)
+                        <View style={styles.badgeRow} pointerEvents="none">
+                          <View style={styles.badge}>
+                            <Text style={styles.badgeText}>{s.badge}</Text>
+                          </View>
+                        </View>
+                      )}
                       {stack.map((record, j) => {
                         // 이어 붙인 칸은 앞 장의 아래 여백 + 이 장의 위 여백만큼 당긴다
                         const pull = s.connected && j > 0 ? ((layoutOf(stack[j - 1]).inset.bottom + layoutOf(record).inset.top) * w) / layoutOf(record).width : 0;
@@ -104,7 +112,7 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
                 );
               })}
             </ScrollView>
-            <Text style={styles.help}>글자는 예시예요. 내 기록 내용으로 채워져요.</Text>
+            <Text style={styles.help}>{product.help ?? '글자는 예시예요. 내 기록 내용으로 채워져요.'}</Text>
             {!!notice && <Text style={styles.notice}>{notice}</Text>}
           </ScrollView>
         )}
@@ -161,6 +169,9 @@ const styles = StyleSheet.create({
   sample: { alignItems: 'center', gap: 8 },
   paper: { backgroundColor: COLORS.surface, borderRadius: 18, padding: 8 },
   caption: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold },
+  badgeRow: { position: 'absolute', top: -11, left: 0, right: 0, alignItems: 'center', zIndex: 2 },
+  badge: { backgroundColor: COLORS.ink, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
+  badgeText: { color: '#fff', fontSize: 11, fontFamily: FONTS.sansBold },
   help: { color: COLORS.placeholder, fontSize: 12, fontFamily: FONTS.sans, textAlign: 'center' },
   notice: { color: COLORS.danger, fontSize: 13, fontFamily: FONTS.sansBold, textAlign: 'center' },
   tags: { flexDirection: 'row', gap: 4 },
