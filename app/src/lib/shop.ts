@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
 import { PurchaseCancelled, buyProduct, canBuy, ownedProductIds, startBilling } from './billing';
+import { firstBuildIOS } from './appTransaction';
 import { FREE_FOR_ALL, opensAll } from './launch';
 import { markFirstRun } from './since';
 
@@ -232,9 +233,15 @@ const withAccess = (purchased: string[], allOpen: boolean, outfit: OutfitId | nu
 });
 
 export async function loadShop(): Promise<ShopState> {
-  // 첫 실행 날짜를 먼저 심고(처음이면 오늘) 그걸로 전부 열지 정한다
-  const [owned, outfit, since] = await Promise.all([AsyncStorage.getItem(OWNED_KEY), AsyncStorage.getItem(OUTFIT_KEY), markFirstRun().catch(() => null)]);
-  return withAccess(owned ? (JSON.parse(owned) as string[]) : [], opensAll(since), (outfit as OutfitId | null) || null);
+  // 첫 실행 날짜를 먼저 심고(처음이면 오늘), iOS 는 애플 계정이 처음 받은 빌드도 본다 → 그걸로 전부 열지 정한다.
+  // 전부 무료인 판에서는 애플에 묻지 않는다 (볼 필요가 없다)
+  const [owned, outfit, since, firstBuild] = await Promise.all([
+    AsyncStorage.getItem(OWNED_KEY),
+    AsyncStorage.getItem(OUTFIT_KEY),
+    markFirstRun().catch(() => null),
+    FREE_FOR_ALL ? Promise.resolve(null) : firstBuildIOS(),
+  ]);
+  return withAccess(owned ? (JSON.parse(owned) as string[]) : [], opensAll(since, firstBuild), (outfit as OutfitId | null) || null);
 }
 
 export const saveOwned = (owned: string[]) => AsyncStorage.setItem(OWNED_KEY, JSON.stringify(owned));
