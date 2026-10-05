@@ -5,7 +5,7 @@ import Svg from 'react-native-svg';
 
 import { won } from '../lib/format';
 import { PreviewProduct, categoryProduct, designProduct, foodDesignProduct, fourcutDesignProduct, themeProduct } from '../lib/products';
-import { DESIGN_SHELF, FOOD_DESIGNS, FOURCUT_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, nextOutfit, purchaseErrorMessage, restorePurchases } from '../lib/shop';
+import { DESIGN_SHELF, FOOD_DESIGNS, FOURCUT_DESIGNS, OUTFITS, PAID_CATEGORIES, THEMES, buy, categoryUnlocked, isUnlocked, nextOutfit, purchaseErrorMessage, restorePurchases, useShop } from '../lib/shop';
 import { KIND_LABEL } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { ConcertDesign, RecordKind, ShowDesign } from '../types';
@@ -51,6 +51,9 @@ const SHELF_KINDS = (Object.keys(KIND_LABEL) as RecordKind[]).filter((k) => SHEL
 
 /** 상점: 코코 모자(영수증을 모으면 하나씩 받는다), 영수증 테마, 새 카테고리 */
 export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenCloset }: Props) {
+  const { allOpen, purchased } = useShop();
+  /** 버튼 글자: 산 것은 '보유', 무료로 열린 것은 '무료' */
+  const ownLabel = (productId: string) => (purchased.includes(productId) || !allOpen ? '보유' : '무료');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [preview, setPreview] = useState<PreviewProduct | null>(null);
@@ -111,7 +114,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
             </Pressable>
           </Section>
 
-          <Section title="새 카테고리" sub="독서·영화·소비·여행·인생네컷은 계속 무료예요">
+          <Section title="새 카테고리" sub={allOpen ? '지금은 카테고리·테마가 전부 무료로 열려 있어요' : '독서·영화·소비·여행·인생네컷은 계속 무료예요'}>
             {(Object.entries(PAID_CATEGORIES) as [RecordKind, (typeof PAID_CATEGORIES)[RecordKind]][]).map(([kind, c]) => {
               const have = owned.includes(c!.productId);
               return (
@@ -133,7 +136,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
                     disabled={have || busy}
                     onPress={() => run(() => buy(c!.productId))}
                     style={({ pressed }) => [styles.buyBtn, have && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? '보유' : `${won(c!.price)}원`}</Text>
+                    <Text style={[styles.buyText, have && styles.buyTextOff]}>{have ? ownLabel(c!.productId) : `${won(c!.price)}원`}</Text>
                   </Pressable>
                 </Pressable>
               );
@@ -174,7 +177,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
                     disabled={have || busy || !!need}
                     onPress={() => run(() => buy(item.productId))}
                     style={({ pressed }) => [styles.buyBtn, (have || !!need) && styles.buyBtnOff, pressed && { opacity: 0.8 }]}>
-                    <Text style={[styles.buyText, (have || !!need) && styles.buyTextOff]}>{have ? '보유' : need ? '잠김' : `${won(item.price)}원`}</Text>
+                    <Text style={[styles.buyText, (have || !!need) && styles.buyTextOff]}>{have ? ownLabel(item.productId) : need ? '잠김' : `${won(item.price)}원`}</Text>
                   </Pressable>
                 </Pressable>
               );

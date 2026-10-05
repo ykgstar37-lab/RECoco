@@ -4,6 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
 import { PurchaseCancelled, buyProduct, canBuy, ownedProductIds, startBilling } from './billing';
+import { FREE_FOR_ALL, opensAll } from './launch';
+import { markFirstRun } from './since';
 
 import type { OutfitId } from '../components/Outfits';
 import type { ConcertDesign, ExerciseDesign, FoodDesign, FourcutDesign, MusicDesign, PaperTheme, RecordKind, ShowDesign } from '../types';
@@ -201,13 +203,38 @@ export const categoryUnlocked = (kind: RecordKind, owned: string[]) => {
 };
 
 export interface ShopState {
-  owned: string[]; // 구매한 productId
+  /** 쓸 수 있는 productId. 전부 열린 사람(v1.0·유료화 전 사용자)은 모든 상품이 들어 있다 */
+  owned: string[];
+  /** 실제로 산 productId (저장·복원은 이것만) */
+  purchased: string[];
+  /** 산 것과 상관없이 전부 열려 있는지 (lib/launch.ts) */
+  allOpen: boolean;
   outfit: OutfitId | null; // 입고 있는 옷
 }
 
+/** 파는 상품 전부 (카테고리 + 영수증 모양). 코코 옷은 미션이라 빠진다 */
+export const ALL_PRODUCT_IDS = [
+  ...new Set([
+    ...Object.values(PAID_CATEGORIES).map((c) => c!.productId),
+    ...THEMES.map((t) => t.productId),
+    ...FOOD_DESIGNS.map((d) => d.productId),
+    ...FOURCUT_DESIGNS.map((d) => d.productId),
+    ...CONCERT_DESIGNS.map((d) => d.productId),
+    ...SHOW_DESIGNS.map((d) => d.productId),
+  ]),
+];
+
+const withAccess = (purchased: string[], allOpen: boolean, outfit: OutfitId | null): ShopState => ({
+  purchased,
+  allOpen,
+  outfit,
+  owned: allOpen ? [...new Set([...ALL_PRODUCT_IDS, ...purchased])] : purchased,
+});
+
 export async function loadShop(): Promise<ShopState> {
-  const [owned, outfit] = await Promise.all([AsyncStorage.getItem(OWNED_KEY), AsyncStorage.getItem(OUTFIT_KEY)]);
-  return { owned: owned ? (JSON.parse(owned) as string[]) : [], outfit: (outfit as OutfitId | null) || null };
+  // 첫 실행 날짜를 먼저 심고(처음이면 오늘) 그걸로 전부 열지 정한다
+  const [owned, outfit, since] = await Promise.all([AsyncStorage.getItem(OWNED_KEY), AsyncStorage.getItem(OUTFIT_KEY), markFirstRun().catch(() => null)]);
+  return withAccess(owned ? (JSON.parse(owned) as string[]) : [], opensAll(since), (outfit as OutfitId | null) || null);
 }
 
 export const saveOwned = (owned: string[]) => AsyncStorage.setItem(OWNED_KEY, JSON.stringify(owned));
@@ -216,15 +243,17 @@ export const saveOutfit = (outfit: OutfitId | null) => (outfit ? AsyncStorage.se
 export const isUnlocked = (item: OutfitItem, recordCount: number) => recordCount >= item.records;
 
 // ── 앱 전체가 같이 보는 구매·옷 상태 ──
-let state: ShopState = { owned: [], outfit: null };
+// 무료판이면 불러오기 전부터 열어 둔다 (잠깐 잠겼다 풀리는 깜빡임 없이)
+let state: ShopState = withAccess([], FREE_FOR_ALL, null);
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
 export async function initShop() {
   state = await loadShop();
   emit();
-  // 스토어에 연결해 두면 끝나지 않은 거래·다른 기기에서 산 것이 알아서 들어온다
-  if (canBuy) await startBilling(addOwned);
+  // 스토어에 연결해 두면 끝나지 않은 거래·다른 기기에서 산 것이 알아서 들어온다.
+  // 전부 무료인 판은 팔 게 없으니 스토어에 붙지 않는다 (등록된 상품이 없어 괜히 오류만 난다)
+  if (canBuy && !FREE_FOR_ALL) await startBilling(addOwned);
 }
 
 export function useShop() {
@@ -238,9 +267,9 @@ export function useShop() {
 }
 
 export function addOwned(productId: string) {
-  if (state.owned.includes(productId)) return;
-  state = { ...state, owned: [...state.owned, productId] };
-  saveOwned(state.owned).catch(() => {});
+  if (state.purchased.includes(productId)) return;
+  state = withAccess([...state.purchased, productId], state.allOpen, state.outfit);
+  saveOwned(state.purchased).catch(() => {});
   emit();
 }
 

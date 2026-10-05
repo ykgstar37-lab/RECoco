@@ -11,7 +11,7 @@ import { KIND_LABEL } from '../templates';
 
 /** 상품을 사기 전에 실제 양식으로 그린 예시를 보여주고, 여기서 바로 산다 */
 export function ProductPreview({ product, onClose, onBought }: { product: PreviewProduct | null; onClose: () => void; onBought?: () => void }) {
-  const { owned } = useShop();
+  const { owned, allOpen, purchased } = useShop();
   const { width: screenW, height: screenH } = useWindowDimensions();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -127,7 +127,9 @@ export function ProductPreview({ product, onClose, onBought }: { product: Previe
             ) : (
               <Text style={[styles.buyText, (have || !!needKinds) && styles.buyTextOff]}>
                 {have
-                  ? '이미 가지고 있어요'
+                  ? allOpen && !purchased.includes(product.productId)
+                    ? '지금은 무료로 쓸 수 있어요'
+                    : '이미 가지고 있어요'
                   : needKinds
                     ? `${needKinds.map((k) => KIND_LABEL[k]).join(' 또는 ')}을(를) 먼저 사야 써요`
                     : `${won(product.price)}원에 사기`}

@@ -23,7 +23,6 @@ import { categoryProduct } from './lib/products';
 import { getImageSize, persistPhoto } from './lib/photos';
 import { useSharedImage } from './lib/shareIntent';
 import { initDailyTags } from './lib/dailyTags';
-import { markFirstRun } from './lib/since';
 import { loadRecords, saveRecords } from './lib/storage';
 import { BRAND, COLORS, FONTS } from './theme';
 import { Photo, RecoRecord, RecordKind } from './types';
@@ -74,8 +73,7 @@ export function HomeScreen() {
       .catch(() => {})
       .finally(() => setShopReady(true));
     initDailyTags().catch(() => {});
-    // 언제부터 쓴 사람인지 남겨둔다 — 나중에 유료화해도 그 전 사용자는 계속 무료 (lib/since.ts)
-    markFirstRun().catch(() => {});
+    // 첫 실행 날짜는 initShop 이 먼저 심고 그걸로 전부 열지 정한다 (lib/launch.ts · lib/since.ts)
   }, []);
 
   // 저장이 실패하면 조용히 넘기지 않는다 — 기록은 폰 안이 유일한 원본이라 잃으면 끝이다
