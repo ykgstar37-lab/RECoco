@@ -223,6 +223,8 @@ module.exports = () => {
     { name: '독서_영수증_표지', record: { ...reading, id: 'sample-reading-cover', cover: { uri: url('p2.jpg'), width: 800, height: 600 } } },
     { name: '독서_영수증_긴글', record: readingLong },
     { name: '영화_티켓', record: movie },
+    // 홍보 이미지용: 실제 극장 이름(상표) 없이
+    { name: '영화_티켓_홍보', record: { ...movie, id: 'sample-movie-promo', theater: '동네 작은 극장' } },
     { name: '영화_티켓_흰색', record: { ...movie, id: 'sample-movie-white', paper: 'white' } },
     { name: '소비_영수증', record: spending },
     { name: '소비_여러곳', record: { ...spending, id: 'sample-spending-multi', store: '9월 셋째 주 소비', listBy: 'date', date: '2026-09-16', memo: '', items: [
