@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BadBackup, canBackup, exportBackup, pickBackup } from '../lib/backup';
+import { resetEverything } from '../lib/devReset';
 import { loadHaptics, setHaptics } from '../lib/haptics';
 import { FREE_FOR_ALL } from '../lib/launch';
 import { purchaseErrorMessage, restorePurchases } from '../lib/shop';
@@ -138,6 +139,29 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
                 <Text style={styles.rowValue}>›</Text>
               </Pressable>
               {!!notice && <Text style={styles.help}>{notice}</Text>}
+            </Group>
+          )}
+
+          {/* 개발 빌드에서만: 스토어 스크린샷 찍기 전에 처음 상태로 */}
+          {__DEV__ && (
+            <Group title="개발용">
+              <Pressable
+                onPress={() => {
+                  const go = () => resetEverything().catch(() => {});
+                  if (Platform.OS === 'web') {
+                    if (window.confirm('기록·받은 상품·옷·사진을 전부 지우고 처음 상태로 돌릴까요? 되돌릴 수 없어요.')) go();
+                    return;
+                  }
+                  Alert.alert('처음 상태로 돌릴까요?', '기록·받은 상품·옷·소분류·사진을 전부 지워요. 되돌릴 수 없어요.', [
+                    { text: '취소', style: 'cancel' },
+                    { text: '전부 지우기', style: 'destructive', onPress: go },
+                  ]);
+                }}
+                style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}>
+                <Text style={[styles.rowLabel, { color: COLORS.danger }]}>처음 상태로 (전부 지우기)</Text>
+                <Text style={styles.rowValue}>›</Text>
+              </Pressable>
+              <Text style={styles.help}>개발 빌드에만 보여요. 예시 기록도 안 넣고 빈 상태로 다시 켜져요.</Text>
             </Group>
           )}
 

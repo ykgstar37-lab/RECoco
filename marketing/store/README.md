@@ -33,6 +33,18 @@ SubFlow 는 화면까지 SVG 로 그려서 한 장에 100~170KB 였다.
 
 문구를 고치려면 `make-svg.mjs` 의 `SHOTS` 표만 손대면 된다.
 
+## 피그마에서 고치기
+
+```
+node marketing/store/make-svg.mjs      # ios/*.svg (1290×2796 그림 원본)
+node marketing/store/export-figma.mjs  # figma/6.5 · figma/6.9 · figma/play
+```
+
+- ⚠️ **`ios/*.svg` 는 그림 원본(1290×2796)이라 어느 스토어 칸에도 딱 맞지 않는다.** 올리는 크기는 `figma/` 나 `png-*/` 것을 쓸 것
+- `figma/<규격>/*.svg` 는 판 크기가 스토어 픽셀 그대로다 → 피그마로 끌어다 놓고 고친 뒤 **프레임을 PNG 1x 로 내보내면** 그대로 올릴 수 있다
+- 폰 캡처(`ios/screens/*.png`)가 있으면 SVG 안에 넣어 준다 (피그마는 옆 폴더 그림을 못 읽는다). 없으면 자리표시 글자가 남는다
+- 글자는 글자로 남는다. 글꼴이 다르게 보이면 PC 에 Pretendard 설치 (`app/assets/fonts/*.otf`) 후 피그마 다시 켜기
+
 ## 규격
 
 ```
