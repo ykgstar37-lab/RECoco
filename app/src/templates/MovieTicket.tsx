@@ -78,6 +78,8 @@ export function MovieTicket({ record: r, width, connected = false }: { record: M
   const header = fitLine(`${BRAND.ko} 영화입장권`, PW - M * 2, 54, 36, 'sans');
   const head = fitLine(`${r.date} / ${r.theater.trim() || '극장'}`, PW - M * 2 - 150, 25, 18, 'mono');
   const original = fitLine(r.originalTitle.trim(), PW - M * 2, 26, 18, 'sans');
+  // 여러 명이면 좌석이 "I7, I8, I9"처럼 길어진다
+  const seatLine = fitLine(`${r.screen.trim() || '1관'} ${r.seat.trim()}`.trim(), PW - M * 2, 40, 24, 'sansHeavy');
   const theater = fitLine(r.theater.trim() || '-', PW - 180 - M, 23, 16, 'mono');
   const dateBar = `${dotDateWithDay(r.date)} ${r.time}`;
   const dateBarW = measure(dateBar, 34, 'sans') + 22;
@@ -108,7 +110,7 @@ export function MovieTicket({ record: r, width, connected = false }: { record: M
           {!!original.text && <T f="sans" x={M} y={390} fontSize={original.size} children={original.text} />}
           <Rect x={M - 2} y={408} width={dateBarW} height={52} fill={INK} />
           <T f="sansBold" x={M + 9} y={446} fontSize={34} fill={PAPER} children={dateBar} />
-          <T f="sansHeavy" x={M} y={516} fontSize={40} children={`${r.screen.trim() || '1관'} ${r.seat.trim()}`.trim()} />
+          <T f="sansHeavy" x={M} y={516} fontSize={seatLine.size} children={seatLine.text} />
           <DoubleRule y={546} />
 
           <T f="sansBold" x={M} y={602} fontSize={30} children={`총 인원 ${people}명`} />

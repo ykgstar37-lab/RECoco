@@ -764,9 +764,12 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                 </Row>
                 <Row>
                   <Field label="상영관" value={movie.screen} onChange={(v) => setMovie({ ...movie, screen: v })} placeholder="4관" />
-                  <Field label="좌석" value={movie.seat} onChange={(v) => setMovie({ ...movie, seat: v })} placeholder="H11" />
-                  <Field label="인원" value={String(movie.people)} onChange={(v) => setMovie({ ...movie, people: parseInt(v, 10) || 1 })} keyboardType="number-pad" />
+                  <PeopleStepper
+                    value={movie.people}
+                    onChange={(n) => setMovie({ ...movie, people: n, seat: splitSeats(movie.seat).slice(0, n).join(', ') })}
+                  />
                 </Row>
+                <SeatFields value={movie.seat} count={movie.people} onChange={(v) => setMovie((m) => ({ ...m, seat: v }))} />
                 <Row>
                   <Field label="포맷" value={movie.format} onChange={(v) => setMovie({ ...movie, format: v })} placeholder="2D / IMAX" />
                   <Field label="관람등급" value={movie.ageRating} onChange={(v) => setMovie({ ...movie, ageRating: v })} placeholder="12세이상관람가" />
@@ -1464,13 +1467,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   {show.type !== 'exhibition' && (
                     <Field label="좌석" value={show.seat} onChange={(v) => setShow({ ...show, seat: v })} placeholder="1층 7열 12번" />
                   )}
-                  <Field
-                    label="인원"
-                    value={String(show.people)}
-                    onChange={(v) => setShow({ ...show, people: Math.max(1, parseInt(v.replace(/[^0-9]/g, ''), 10) || 1) })}
-                    keyboardType="number-pad"
-                    placeholder="1"
-                  />
+                  <PeopleStepper value={show.people} onChange={(n) => setShow({ ...show, people: n })} />
                 </Row>
                 <Label text="포스터·현장 사진 (선택)" />
                 <View style={styles.coverRow}>
@@ -1531,13 +1528,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                 </Row>
                 <Field label="좌석" value={concert.seat} onChange={(v) => setConcert({ ...concert, seat: v })} placeholder="스탠딩 A구역 132번" />
                 <Row>
-                  <Field
-                    label="인원"
-                    value={String(concert.people)}
-                    onChange={(v) => setConcert({ ...concert, people: Math.max(1, parseInt(v.replace(/[^0-9]/g, ''), 10) || 1) })}
-                    keyboardType="number-pad"
-                    placeholder="1"
-                  />
+                  <PeopleStepper value={concert.people} onChange={(n) => setConcert({ ...concert, people: n })} />
                   <Field
                     label="티켓값 (선택)"
                     value={concert.price ? String(concert.price) : ''}
@@ -1966,6 +1957,68 @@ function Row({ children }: { children: ReactNode }) {
   return <View style={styles.row}>{children}</View>;
 }
 
+// 인원: 칸을 비우면 1로 되돌아가 고칠 수 없어서 − / + 로만 바꾼다
+function PeopleStepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  const n = Math.max(1, value || 1);
+  return (
+    <View style={styles.field}>
+      <Label text="인원" />
+      <View style={styles.stepper}>
+        <Pressable onPress={() => onChange(Math.max(1, n - 1))} disabled={n <= 1} hitSlop={6} style={styles.stepBtn}>
+          <Text style={[styles.stepSign, n <= 1 && styles.stepSignOff]}>−</Text>
+        </Pressable>
+        <Text style={styles.stepValue}>{n}명</Text>
+        <Pressable onPress={() => onChange(Math.min(MAX_PEOPLE, n + 1))} disabled={n >= MAX_PEOPLE} hitSlop={6} style={styles.stepBtn}>
+          <Text style={[styles.stepSign, n >= MAX_PEOPLE && styles.stepSignOff]}>+</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const MAX_PEOPLE = 10;
+
+// "I7, I8" ↔ ["I7", "I8"]
+function splitSeats(seat: string) {
+  return seat.split(/[,\s]+/).filter(Boolean);
+}
+
+// 인원 수만큼 좌석 칸. 저장은 "I7, I8" 한 줄로 (양식은 그대로 seat 를 찍는다)
+function SeatFields({ value, count, onChange }: { value: string; count: number; onChange: (v: string) => void }) {
+  const [seats, setSeats] = useState(() => splitSeats(value));
+  // 문자 붙여넣기처럼 밖에서 좌석이 바뀌면 칸을 다시 채운다 (비워 둔 칸 자리는 지킨다)
+  useEffect(() => {
+    if (splitSeats(value).join(', ') !== seats.filter((x) => x.trim()).join(', ')) setSeats(splitSeats(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  const n = Math.max(1, count || 1);
+  const edit = (i: number, v: string) => {
+    const next = Array.from({ length: n }, (_, k) => (k === i ? v.replace(/[,\s]/g, '').toUpperCase() : seats[k] ?? ''));
+    setSeats(next);
+    onChange(next.filter(Boolean).join(', '));
+  };
+  return (
+    <View style={styles.field}>
+      <Label text={n > 1 ? `좌석 (${n}명)` : '좌석'} />
+      <View style={styles.seatGrid}>
+        {Array.from({ length: n }, (_, i) => (
+          <TextInput
+            key={i}
+            inputAccessoryViewID={KEYBOARD_DONE_ID}
+            style={[styles.input, styles.seatInput]}
+            value={seats[i] ?? ''}
+            onChangeText={(v) => edit(i, v)}
+            placeholder={i === 0 ? 'H11' : `H${11 + i}`}
+            placeholderTextColor={COLORS.placeholder}
+            autoCapitalize="characters"
+            autoCorrect={false}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function Field({
   label,
   value,
@@ -2025,6 +2078,13 @@ const styles = StyleSheet.create({
   body: { paddingHorizontal: 18, paddingBottom: 30, gap: 12 },
   row: { flexDirection: 'row', gap: 10 },
   field: { flex: 1, gap: 6 },
+  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 4, paddingVertical: Platform.OS === 'ios' ? 4 : 2 },
+  stepBtn: { width: 36, height: 34, alignItems: 'center', justifyContent: 'center' },
+  stepSign: { color: COLORS.orange, fontSize: 22, fontFamily: FONTS.sansBold },
+  stepSignOff: { color: COLORS.line },
+  stepValue: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
+  seatGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  seatInput: { width: '22%', minWidth: 64, textAlign: 'center' },
   label: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold },
   input: {
     backgroundColor: COLORS.surface,
