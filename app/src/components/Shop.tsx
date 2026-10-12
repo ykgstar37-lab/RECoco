@@ -116,7 +116,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
             </Pressable>
           </Section>
 
-          <Section title="새 카테고리" sub={allOpen ? '지금은 전부 무료예요. 쓰고 싶은 것만 눌러서 받아요' : '독서·영화·소비·여행·인생네컷은 계속 무료예요'}>
+          <Section title="새 카테고리" sub={allOpen ? '지금은 전부 무료예요' : '기본 5개는 계속 무료'}>
             {(Object.entries(PAID_CATEGORIES) as [RecordKind, (typeof PAID_CATEGORIES)[RecordKind]][]).map(([kind, c]) => {
               const have = owned.includes(c!.productId);
               return (
@@ -131,7 +131,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.themeName}>{c!.name}</Text>
-                    <Text style={styles.themeDesc}>{c!.desc}</Text>
+                    <Text style={styles.themeDesc} numberOfLines={2}>{shortDesc(c!.desc)}</Text>
                     <Text style={styles.peek}>미리보기 ›</Text>
                   </View>
                   <Pressable
@@ -171,7 +171,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
                       </Text>
                       <CategoryTags tags={item.kinds.map((k) => KIND_LABEL[k])} tight />
                     </View>
-                    <Text style={styles.themeDesc}>{item.desc}</Text>
+                    <Text style={styles.themeDesc} numberOfLines={2}>{shortDesc(item.desc)}</Text>
                     {need && <Text style={styles.needText}>{need.join(' 또는 ')}을(를) 먼저 사야 써요</Text>}
                     <Text style={styles.peek}>미리보기 ›</Text>
                   </View>
@@ -198,12 +198,19 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
   );
 }
 
+/** 목록엔 설명 첫 토막만 (색 몇 가지 같은 나머지는 미리보기에서 다 보인다) */
+function shortDesc(desc: string) {
+  return desc.split(' · ')[0];
+}
+
 function Section({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHead}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        <Text style={styles.sectionSub}>{sub}</Text>
+        <Text style={styles.sectionSub} numberOfLines={1}>
+          {sub}
+        </Text>
       </View>
       {children}
     </View>
@@ -253,7 +260,7 @@ const styles = StyleSheet.create({
   needText: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sansBold, marginTop: 3 },
   themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   themeName: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold, flexShrink: 1 },
-  themeDesc: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, marginTop: 1 },
+  themeDesc: { color: COLORS.sub, fontSize: 11, lineHeight: 15, fontFamily: FONTS.sans, marginTop: 1 },
   buyBtn: { backgroundColor: COLORS.orange, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
   buyBtnOff: { backgroundColor: COLORS.line },
   buyText: { color: '#fff', fontSize: 13, fontFamily: FONTS.sansBold },
