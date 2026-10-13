@@ -22,6 +22,7 @@ import { downloadPhoto, pickPhotos } from '../lib/photos';
 import { MultiDraft, fitsAspect, isFreeSlot, multiAspect, slotAspect, slotOf } from '../lib/photoSlots';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
 import { categoryUnlocked, useShop } from '../lib/shop';
+import { STATUSES, STATUS_COLORS } from '../lib/subgroups';
 import { EXERCISE_TYPES, USES_DISTANCE } from '../templates/ExerciseSlip';
 import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
 import { ConcertDesignPicker, ExerciseDesignPicker, FoodDesignPicker, FourcutDesignPicker, MusicDesignPicker, ShowDesignPicker, ThemePicker } from './ThemePicker';
@@ -243,14 +244,6 @@ const emptyMusic = (): Omit<MusicRecord, 'id' | 'createdAt'> => ({
   photo: null,
   design: 'album',
 });
-
-const STATUSES: ReadingStatus[] = ['완독', '읽는 중', '잠시 멈춤'];
-// 상태마다 색: 다 읽음 초록 · 읽는 중 주황 · 멈춤 회색
-const STATUS_COLORS: Record<ReadingStatus, { main: string; soft: string }> = {
-  완독: { main: '#2e9e6a', soft: '#e2f4ea' },
-  '읽는 중': { main: COLORS.orange, soft: COLORS.orangeSoft },
-  '잠시 멈춤': { main: '#7b8190', soft: '#e9ebf0' },
-};
 
 const emptyReading = (): Omit<ReadingRecord, 'id' | 'createdAt'> => ({
   kind: 'reading',

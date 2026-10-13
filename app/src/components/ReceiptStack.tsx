@@ -3,12 +3,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 import Animated, { FadeIn, FadeInRight, FadeOut } from 'react-native-reanimated';
 
 import { seededRandom } from '../lib/format';
+import { subgroupColor, subgroupOf } from '../lib/subgroups';
 import { shortLabel } from '../lib/summary';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 
-const SHADES = ['#ff7a2f', '#ff9a5c', '#ffb98a', '#ffd9bf'];
-const DARK_TEXT = new Set(['#ffb98a', '#ffd9bf']);
+// 묶음 색(소분류·읽은 상태)을 흰색과 섞는 비율. 탭마다 무작위로 골라 진하고 옅은 탭이 섞이게
+const MIXES = [0, 0.22, 0.42, 0.62];
 
 interface Props {
   /** 한 카테고리로 걸러진 목록 (최신이 앞) */
@@ -18,7 +19,17 @@ interface Props {
   onOpen: (record: RecoRecord) => void;
 }
 
-const shadeOf = (r: RecoRecord) => SHADES[Math.floor(seededRandom(r.id)() * SHADES.length)];
+function mixWhite(hex: string, t: number) {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = (v: number) => Math.round(v + (255 - v) * t).toString(16).padStart(2, '0');
+  return `#${ch(n >> 16)}${ch((n >> 8) & 255)}${ch(n & 255)}`;
+}
+
+/** 탭 색: 묶음 색에서 무작위로 옅게. 많이 옅어진 탭은 글씨를 진하게 */
+function shadeOf(r: RecoRecord) {
+  const mix = MIXES[Math.floor(seededRandom(r.id)() * MIXES.length)];
+  return { color: mixWhite(subgroupColor(r.kind, subgroupOf(r)), mix), dark: mix >= 0.42 };
+}
 
 /** 시트 오른쪽 끝에 붙은 인덱스 스티커. 누르면 탭이 빠져나오며 제목이 보인다 */
 export function ReceiptStack({ records, bottom, onOpen }: Props) {
@@ -34,7 +45,7 @@ export function ReceiptStack({ records, bottom, onOpen }: Props) {
         <Pressable onPress={() => setOpen(true)} hitSlop={10} style={styles.peek} accessibilityLabel="쌓아보기">
           {records.slice(0, 5).map((r) => {
             const rnd = seededRandom(r.id);
-            return <View key={r.id} style={[styles.peekTab, { width: 20 + rnd() * 12, backgroundColor: shadeOf(r) }]} />;
+            return <View key={r.id} style={[styles.peekTab, { width: 20 + rnd() * 12, backgroundColor: shadeOf(r).color }]} />;
           })}
         </Pressable>
       </Animated.View>
@@ -49,7 +60,7 @@ export function ReceiptStack({ records, bottom, onOpen }: Props) {
         </Pressable>
         {/* 위가 가장 최근 */}
         {records.map((r, i) => {
-          const color = shadeOf(r);
+          const { color, dark } = shadeOf(r);
           const extra = seededRandom(r.id + 'tab')() * 14;
           return (
             <Animated.View key={r.id} entering={FadeInRight.delay(Math.min(i, 10) * 30).springify().damping(16)}>
@@ -60,7 +71,7 @@ export function ReceiptStack({ records, bottom, onOpen }: Props) {
                   { maxWidth: tabMax, paddingRight: 14 + extra, backgroundColor: color },
                   pressed && { transform: [{ translateX: -4 }] },
                 ]}>
-                <Text numberOfLines={1} style={[styles.tabText, DARK_TEXT.has(color) && styles.tabTextDark]}>
+                <Text numberOfLines={1} style={[styles.tabText, dark && styles.tabTextDark]}>
                   {shortLabel(r)}
                 </Text>
               </Pressable>

@@ -9,7 +9,7 @@ import { categoryUnlocked, useShop } from '../lib/shop';
 import { KIND_LABEL, isFlippable, sizeOf } from '../templates';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord, RecordKind } from '../types';
-import { tagColorOf } from '../templates/DailyStory';
+import { subgroupColor, subgroupOf, subgroupsIn } from '../lib/subgroups';
 import { CATEGORIES } from './CategoryPicker';
 import { FlipCard } from './FlipCard';
 import { FoldableReceipt } from './FoldableReceipt';
@@ -89,13 +89,13 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   // 날짜 → 카테고리 순서로 거른다 (둘 다 걸 수 있음)
   const byDate = date ? records.filter((r) => r.date === date) : records;
   const ofKind = kind ? byDate.filter((r) => r.kind === kind) : byDate;
-  // 일상은 소분류로 한 번 더 거른다 (기록에 붙은 소분류만 알약으로 세운다)
-  const dailyTags = kind === 'daily' ? [...new Set(ofKind.map((r) => (r.kind === 'daily' ? r.tag.trim() : '')).filter(Boolean))] : [];
-  const list = kind === 'daily' && tag ? ofKind.filter((r) => r.kind === 'daily' && r.tag.trim() === tag) : ofKind;
+  // 일상은 소분류, 독서는 읽은 상태로 한 번 더 거른다 (기록에 붙은 것만 알약으로 세운다)
+  const groups = subgroupsIn(kind, ofKind);
+  const list = groups.length && tag ? ofKind.filter((r) => subgroupOf(r) === tag) : ofKind;
   const kindLabel = kind ? CATEGORIES.find((c) => c.kind === kind)?.label : null;
   // 제목은 짧게 (＋·닫기 버튼과 한 줄에 들어가야 해서). 카테고리는 아래 장수 줄에 붙인다
   const title = date ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일` : kindLabel ? `${kindLabel} 영수증` : '나의 영수증';
-  const countLabel = `${date && kindLabel ? `${kindLabel} ` : ''}${kind === 'daily' && tag ? `${tag} ` : ''}${list.length}장`;
+  const countLabel = `${date && kindLabel ? `${kindLabel} ` : ''}${groups.length && tag ? `${tag} ` : ''}${list.length}장`;
 
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={() => close()}>
@@ -152,12 +152,12 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
             })}
           </ScrollView>
 
-          {dailyTags.length > 0 && (
+          {kind && groups.length > 0 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagsScroll} contentContainerStyle={styles.tags}>
-              {[null, ...dailyTags].map((t) => {
+              {[null, ...groups].map((t) => {
                 const on = tag === t;
-                const color = t ? tagColorOf(t) : COLORS.ink;
-                const n = t ? ofKind.filter((r) => r.kind === 'daily' && r.tag.trim() === t).length : ofKind.length;
+                const color = t ? subgroupColor(kind, t) : COLORS.ink;
+                const n = t ? ofKind.filter((r) => subgroupOf(r) === t).length : ofKind.length;
                 return (
                   <Pressable key={t ?? 'all'} onPress={() => setTag(t)} style={[styles.tag, on && { backgroundColor: color, borderColor: color }]}>
                     {t && <View style={[styles.tagDot, { backgroundColor: on ? '#fff' : color }]} />}
