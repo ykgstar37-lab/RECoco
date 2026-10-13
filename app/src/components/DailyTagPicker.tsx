@@ -1,14 +1,15 @@
 // 일상 폼의 소분류 고르기: 칩을 누르면 고르고(다시 누르면 풀림), ＋로 새로 만들고, 길게 누르면 목록에서 지운다.
+// 고른 소분류는 아래 색 줄에서 색을 바꾼다.
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { MAX_TAG_LENGTH, addDailyTag, removeDailyTag, useDailyTags } from '../lib/dailyTags';
-import { tagColorOf } from '../templates/DailyStory';
+import { MAX_TAG_LENGTH, TAG_COLORS, addDailyTag, removeDailyTag, setDailyTagColor, tagColorOf, useDailyTagColors, useDailyTags } from '../lib/dailyTags';
 import { COLORS, FONTS } from '../theme';
 import { KEYBOARD_DONE_ID } from './KeyboardDone';
 
 export function DailyTagPicker({ value, onChange }: { value: string; onChange: (tag: string) => void }) {
   const tags = useDailyTags();
+  useDailyTagColors();
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
   // 고친 기록의 소분류가 목록에서 지워졌어도 칩은 보여준다
@@ -74,6 +75,24 @@ export function DailyTagPicker({ value, onChange }: { value: string; onChange: (
           </Pressable>
         )}
       </View>
+      {!!value && (
+        <View style={styles.colors}>
+          <Text style={styles.colorsLabel}>색</Text>
+          {TAG_COLORS.map((c) => {
+            const on = tagColorOf(value) === c;
+            return (
+              <Pressable
+                key={c}
+                onPress={() => setDailyTagColor(value, c)}
+                hitSlop={4}
+                style={[styles.swatchRing, on && { borderColor: c }]}
+                accessibilityLabel={`색 ${c}${on ? ' (골랐음)' : ''}`}>
+                <View style={[styles.swatch, { backgroundColor: c }]} />
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
       <Text style={styles.hint}>길게 누르면 목록에서 지울 수 있어요</Text>
     </View>
   );
@@ -100,5 +119,9 @@ const styles = StyleSheet.create({
   addText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
   inputChip: { borderColor: COLORS.orange, paddingVertical: 4 },
   input: { minWidth: 90, fontSize: 14, color: COLORS.ink, fontFamily: FONTS.sans, paddingVertical: 4 },
+  colors: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginTop: 2 },
+  colorsLabel: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold, marginRight: 4 },
+  swatchRing: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
+  swatch: { width: 20, height: 20, borderRadius: 10 },
   hint: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans },
 });

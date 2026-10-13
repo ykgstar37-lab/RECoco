@@ -8,7 +8,6 @@ import { COLORS, FONTS } from '../theme';
 const toKey = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 const WEEK = ['일', '월', '화', '수', '목', '금', '토'];
 const CAL_W = 320;
-const CAL_H = 368; // 6주짜리 달 기준 대략 높이
 
 /** 올해면 "9월 17일 (목)", 아니면 "2025.9.17 (수)" — 좁은 칸에도 들어가게 */
 function shortDate(value: string) {
@@ -24,6 +23,8 @@ export function DateField({ label, value, onChange }: { label: string; value: st
   const { width: screenW, height: screenH } = useWindowDimensions();
   const boxRef = useRef<View>(null);
   const [anchor, setAnchor] = useState<{ x: number; y: number; h: number } | null>(null);
+  // 달력 실제 높이 (5주·6주 달마다 다르다). 재기 전엔 숨겨 두고 재면 칸에 바짝 붙인다
+  const [popH, setPopH] = useState(0);
   const [month, setMonth] = useState(() => {
     const d = parseDate(value);
     return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -34,7 +35,10 @@ export function DateField({ label, value, onChange }: { label: string; value: st
     setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
     boxRef.current?.measureInWindow((x, y, _w, h) => setAnchor({ x, y, h }));
   };
-  const close = () => setAnchor(null);
+  const close = () => {
+    setAnchor(null);
+    setPopH(0);
+  };
   const choose = (d: Date) => {
     tick();
     onChange(toKey(d));
@@ -48,7 +52,7 @@ export function DateField({ label, value, onChange }: { label: string; value: st
   if (anchor) {
     left = Math.max(12, Math.min(anchor.x, screenW - calW - 12));
     const below = anchor.y + anchor.h + 6;
-    top = below + CAL_H > screenH - 12 ? Math.max(12, anchor.y - CAL_H - 6) : below;
+    top = below + popH > screenH - 12 ? Math.max(12, anchor.y - popH - 6) : below;
   }
 
   return (
@@ -63,7 +67,9 @@ export function DateField({ label, value, onChange }: { label: string; value: st
 
       <Modal visible={!!anchor} transparent animationType="fade" onRequestClose={close}>
         <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="달력 닫기" />
-        <View style={[styles.pop, { left, top, width: calW }]}>
+        <View
+          onLayout={(e) => setPopH(e.nativeEvent.layout.height)}
+          style={[styles.pop, { left, top, width: calW, opacity: popH ? 1 : 0 }]}>
           <Calendar month={month} selected={value} onMonth={setMonth} onPick={choose} />
         </View>
       </Modal>

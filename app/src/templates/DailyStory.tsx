@@ -5,7 +5,8 @@ import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, LinearGradient, Path, Rect, Stop, Text } from 'react-native-svg';
 
 import { coverRect, photoRatio } from '../lib/photoCrop';
-import { dotDateWithDay, seededRandom } from '../lib/format';
+import { TAG_COLORS, tagColorOf } from '../lib/dailyTags';
+import { dotDateWithDay } from '../lib/format';
 import { fitLine, fitLines, measure } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { DailyRecord } from '../types';
@@ -17,13 +18,8 @@ const M = 36; // 뒷면 글 여백
 const INK = '#2b2622';
 const SUB = '#6f665b';
 
-/** 소분류 색: 이름으로 정해져서 같은 소분류는 늘 같은 색 */
-export const TAG_COLORS = ['#f08fac', '#f5a25d', '#6fbf8e', '#6fa3e0', '#b48ce0', '#e9b93c', '#5fb8b8', '#e07a6f'];
-
-export function tagColorOf(tag: string) {
-  if (!tag.trim()) return '#b9b2a6';
-  return TAG_COLORS[Math.floor(seededRandom(`tag-${tag.trim()}`)() * TAG_COLORS.length)];
-}
+/** 소분류 색: 사용자가 고른 색, 없으면 이름으로 정해진다 */
+export { TAG_COLORS, tagColorOf };
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
