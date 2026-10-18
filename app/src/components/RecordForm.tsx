@@ -285,6 +285,7 @@ const emptySpending = (): {
   themeColor?: GridColor;
   design?: SpendingDesign;
   photo?: Photo | null;
+  printFilter?: boolean;
 } => ({
   date: today(),
   store: '',
@@ -472,6 +473,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
           themeColor: rest.themeColor,
           design: rest.design,
           photo: rest.photo ?? null,
+          printFilter: rest.printFilter,
         });
         // 품목 이름 없이 금액만 있는 기록은 "총액만" 모드로 연다
         const onlyOne = rest.items.length === 1 && !rest.items[0].name.trim() && !rest.items[0].store;
@@ -1076,6 +1078,26 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                         style={styles.cropLink}>
                         <Text style={styles.cropLinkText}>{spending.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                       </Pressable>
+                    )}
+                    {!!spending.photo && (
+                      <>
+                        <Label text="사진 느낌" />
+                        <View style={styles.segment}>
+                          {(
+                            [
+                              [false, '원본 그대로'],
+                              [true, '흑백 프린트'],
+                            ] as const
+                          ).map(([v, name]) => (
+                            <Pressable
+                              key={name}
+                              onPress={() => setSpending((x) => ({ ...x, printFilter: v }))}
+                              style={[styles.seg, !!spending.printFilter === v && styles.segOn]}>
+                              <Text style={[styles.segText, !!spending.printFilter === v && styles.segTextOn]}>{name}</Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </>
                     )}
                   </>
                 ) : (

@@ -56,4 +56,6 @@ module.exports = {
   RadialGradient: make('radialGradient'),
   Stop: make('stop'),
   Mask: make('mask'),
+  Filter: make('filter'),
+  FeColorMatrix: make('feColorMatrix'),
 };

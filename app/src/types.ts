@@ -61,6 +61,8 @@ export interface SpendingRecord extends BaseRecord {
   /** 없으면 종이 영수증, photo 면 사진 위에 흰 글씨 (무료) */
   design?: SpendingDesign;
   photo?: Photo | null;
+  /** 사진을 흑백·자글자글한 프린트 느낌으로 (사진 영수증) */
+  printFilter?: boolean;
   themeColor?: GridColor; // 모눈종이 격자 색
   /** 여러 가게를 한 장에 적을 때 표 첫 칸 (없으면 날짜가 다 같으면 시간, 다르면 날짜) */
   listBy?: 'date' | 'time';
