@@ -25,7 +25,7 @@ import { categoryUnlocked, useShop } from '../lib/shop';
 import { STATUSES, STATUS_COLORS } from '../lib/subgroups';
 import { EXERCISE_TYPES, USES_DISTANCE } from '../templates/ExerciseSlip';
 import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
-import { ConcertDesignPicker, ExerciseDesignPicker, FoodDesignPicker, FourcutDesignPicker, MusicDesignPicker, ShowDesignPicker, ThemePicker } from './ThemePicker';
+import { ConcertDesignPicker, ExerciseDesignPicker, FoodDesignPicker, FourcutDesignPicker, MusicDesignPicker, ShowDesignPicker, SpendingDesignPicker, ThemePicker } from './ThemePicker';
 import { SHOW_TYPES } from '../templates/ShowTicket';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
@@ -55,6 +55,7 @@ import {
   RecordKind,
   ShowRecord,
   ShowType,
+  SpendingDesign,
   SpendingItem,
   SpendingRecord,
   TravelRecord,
@@ -274,7 +275,17 @@ const emptyMovie = (): Omit<MovieRecord, 'id' | 'createdAt'> => ({
   paper: 'pink' as MoviePaper,
 });
 
-const emptySpending = (): { date: string; store: string; category: string; address: string; memo: string; theme?: PaperTheme; themeColor?: GridColor } => ({
+const emptySpending = (): {
+  date: string;
+  store: string;
+  category: string;
+  address: string;
+  memo: string;
+  theme?: PaperTheme;
+  themeColor?: GridColor;
+  design?: SpendingDesign;
+  photo?: Photo | null;
+} => ({
   date: today(),
   store: '',
   category: '',
@@ -451,7 +462,17 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
         setMovie(rest);
         break;
       case 'spending': {
-        setSpending({ date: rest.date, store: rest.store, category: rest.category, address: rest.address, memo: rest.memo, theme: rest.theme });
+        setSpending({
+          date: rest.date,
+          store: rest.store,
+          category: rest.category,
+          address: rest.address,
+          memo: rest.memo,
+          theme: rest.theme,
+          themeColor: rest.themeColor,
+          design: rest.design,
+          photo: rest.photo ?? null,
+        });
         // 품목 이름 없이 금액만 있는 기록은 "총액만" 모드로 연다
         const onlyOne = rest.items.length === 1 && !rest.items[0].name.trim() && !rest.items[0].store;
         setMode(rest.items.some((it) => it.store?.trim()) ? 'day' : onlyOne ? 'total' : 'items');
@@ -862,6 +883,16 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   <DateField label="날짜" value={spending.date} onChange={(v) => setSpending({ ...spending, date: v })} />
                   <Field label="위치 (선택)" value={spending.address} onChange={(v) => setSpending({ ...spending, address: v })} placeholder="연남동" />
                 </Row>
+                {spending.design === 'photo' ? (
+                  <Field
+                    label="코멘트 (사진 위 맨 위에 적혀요)"
+                    value={stickerOf(spending.memo) ? '' : spending.memo}
+                    onChange={(v) => setSpending({ ...spending, memo: v })}
+                    placeholder="부산 놀러왔는데 친구 생일이에요"
+                    multiline
+                  />
+                ) : (
+                  <>
                 <Label text="비고 스티커 (다시 누르면 빼기)" />
                 <View style={styles.stickers}>
                   {STICKERS.map((st) => {
@@ -883,6 +914,8 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   <Row>
                     <Field label="또는 짧게 적기" value={spending.memo} onChange={(v) => setSpending({ ...spending, memo: v })} placeholder="선물용" />
                   </Row>
+                )}
+                  </>
                 )}
                 <Label text="어떻게 적을까요?" />
                 <View style={styles.segment}>
@@ -998,13 +1031,62 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </Text>
                 )}
                 <Text style={styles.total}>합계 ₩ {won(mode === 'total' ? onlyTotalValue : total)}</Text>
-                <ThemePicker
-                  label="영수증 종이"
-                  base="spending"
-                  value={spending.theme}
-                  color={spending.themeColor}
-                  onChange={(theme, themeColor) => setSpending((sp) => ({ ...sp, theme, themeColor }))}
+                <SpendingDesignPicker
+                  value={spending.design}
+                  onChange={(design) => {
+                    setSpending((sp) => ({ ...sp, design }));
+                    // 사진을 먼저 골라 뒀으면 영수증 크기에 맞게 자르기를 띄운다
+                    if (design === 'photo' && spending.photo) askCrop({ kind: 'spending', design }, spending.photo, (q) => setSpending((x) => ({ ...x, photo: q })));
+                  }}
                 />
+                {spending.design === 'photo' ? (
+                  <>
+                    <Label text="사진" />
+                    <View style={styles.coverRow}>
+                      <Pressable
+                        onPress={async () => {
+                          await withPhotoBusy(async () => {
+                            const [pic] = await pickPhotos(1);
+                            if (pic) {
+                              setSpending((x) => ({ ...x, photo: pic }));
+                              askCrop({ kind: 'spending', design: 'photo' }, pic, (q) => setSpending((x) => ({ ...x, photo: q })));
+                            }
+                          });
+                        }}
+                        style={styles.giftPhoto}
+                        accessibilityLabel="사진 고르기">
+                        {spending.photo ? (
+                          <>
+                            <Image source={{ uri: spending.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                            <Pressable hitSlop={8} style={styles.slotRemove} onPress={() => setSpending((x) => ({ ...x, photo: null }))}>
+                              <Text style={styles.slotRemoveText}>×</Text>
+                            </Pressable>
+                          </>
+                        ) : (
+                          <Text style={styles.slotText}>+</Text>
+                        )}
+                        {photoBusy && <PhotoBusy />}
+                      </Pressable>
+                      <Text style={styles.coverHelp}>{'영수증 크기로 꽉 깔리고,\n그 위에 흰 글씨로 적혀요.'}</Text>
+                    </View>
+                    {!!spending.photo && (
+                      <Pressable
+                        onPress={() => askCrop({ kind: 'spending', design: 'photo' }, spending.photo!, (q) => setSpending((x) => ({ ...x, photo: q })), true)}
+                        hitSlop={6}
+                        style={styles.cropLink}>
+                        <Text style={styles.cropLinkText}>{spending.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
+                      </Pressable>
+                    )}
+                  </>
+                ) : (
+                  <ThemePicker
+                    label="영수증 종이"
+                    base="spending"
+                    value={spending.theme}
+                    color={spending.themeColor}
+                    onChange={(theme, themeColor) => setSpending((sp) => ({ ...sp, theme, themeColor }))}
+                  />
+                )}
               </>
             )}
 

@@ -14,6 +14,7 @@ import { PHOTO_SLOT as PLAIN_TICKET } from '../templates/PlainTicket';
 import { PHOTO_SLOT as SHOW_HOLO } from '../templates/ShowHolo';
 import { PHOTO_SLOT as SHOW_RETRO } from '../templates/ShowRetro';
 import { PHOTO_SLOT as SHOW_TICKET } from '../templates/ShowTicket';
+import { PHOTO_SLOT as SPENDING_PHOTO } from '../templates/SpendingPhoto';
 import { FOURCUT_LAYOUTS } from '../templates/Fourcut';
 import { cocomonArtAspect } from '../templates/FourcutCard';
 import { cocochiScreenAspect } from '../templates/FourcutCocochi';
@@ -55,6 +56,8 @@ export function slotOf(r: Draft): PhotoSlot | null {
       return r.design === 'list' ? MUSIC_LIST : MUSIC_ALBUM;
     case 'daily':
       return DAILY;
+    case 'spending':
+      return r.design === 'photo' ? SPENDING_PHOTO : null;
     default:
       return null;
   }

@@ -21,6 +21,7 @@ import {
   FREE_FOURCUT_DESIGNS,
   FREE_MUSIC_DESIGNS,
   FREE_SHOW_DESIGNS,
+  FREE_SPENDING_DESIGNS,
   FREE_THEMES,
   SHOW_DESIGNS,
   THEMES,
@@ -42,7 +43,7 @@ import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { ORDER_COLORS, ORDER_COLOR_IDS } from '../templates/FoodOrder';
 import { COLORS, FONTS } from '../theme';
-import { CocochiColor, ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, FourcutHouseColor, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, TicketColor } from '../types';
+import { CocochiColor, ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, FourcutHouseColor, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, SpendingDesign, TicketColor } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 모양을 고른 다음 그 모양의 색을 고르는 동그라미 줄 */
@@ -543,6 +544,50 @@ const styles = StyleSheet.create({
   dotOn: { borderColor: COLORS.orange },
   dotFill: { width: 22, height: 22, borderRadius: 11, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
 });
+
+/** 소비 모양 견본 (종이 영수증 / 사진 영수증) */
+export function SpendingDesignSwatch({ design, size = 44 }: { design: SpendingDesign; size?: number }) {
+  if (design === 'photo')
+    // 사진 위 가운데에 흰 글씨 줄과 점선
+    return (
+      <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
+        <Rect x={4} y={1} width={32} height={50} rx={2} fill="#8a7b6c" />
+        <Path d="M4 36 L14 28 L22 34 L30 27 L36 31 V49 Q36 51 34 51 H6 Q4 51 4 49 Z" fill="#5c5048" />
+        <Rect x={10} y={17} width={20} height={2.6} rx={1.3} fill="#fff" />
+        <Line x1={10} y1={23} x2={30} y2={23} stroke="#fff" strokeWidth={0.9} strokeDasharray="2 1.5" />
+        <Rect x={10} y={25.5} width={11} height={1.8} rx={0.9} fill="#fff" opacity={0.9} />
+        <Line x1={10} y1={30} x2={30} y2={30} stroke="#fff" strokeWidth={0.9} strokeDasharray="2 1.5" />
+        {[33, 37].map((y) => (
+          <G key={y}>
+            <Rect x={10} y={y} width={9} height={1.8} rx={0.9} fill="#fff" opacity={0.9} />
+            <Rect x={24} y={y} width={6} height={1.8} rx={0.9} fill="#fff" opacity={0.9} />
+          </G>
+        ))}
+      </Svg>
+    );
+  return <ThemeSwatch theme={undefined} base="spending" size={size} />;
+}
+
+/** 소비 폼의 모양 고르기 (둘 다 무료). 사진 영수증이면 종이 고르기 대신 사진을 넣는다 */
+export function SpendingDesignPicker({ value, onChange }: { value: SpendingDesign | undefined; onChange: (design: SpendingDesign) => void }) {
+  const design = value ?? 'paper';
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.label}>영수증 모양</Text>
+      <View style={styles.row}>
+        {FREE_SPENDING_DESIGNS.map((o) => {
+          const on = design === o.id;
+          return (
+            <Pressable key={o.id} onPress={() => onChange(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={o.name}>
+              <SpendingDesignSwatch design={o.id} />
+              <Text style={[styles.name, on && { color: COLORS.orange }]}>{o.name}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
 
 /** 운동 모양 견본 (기록표 / 사진 위 기록) */
 export function ExerciseDesignSwatch({ design, type = 'run', size = 44 }: { design: ExerciseDesign; type?: ExerciseType; size?: number }) {

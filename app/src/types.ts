@@ -57,11 +57,16 @@ export interface SpendingRecord extends BaseRecord {
   address: string;
   items: SpendingItem[];
   memo: string;
-  theme?: PaperTheme; // 없으면 기본 간이영수증
+  theme?: PaperTheme; // 없으면 기본 간이영수증 (종이 영수증일 때만)
+  /** 없으면 종이 영수증, photo 면 사진 위에 흰 글씨 (무료) */
+  design?: SpendingDesign;
+  photo?: Photo | null;
   themeColor?: GridColor; // 모눈종이 격자 색
   /** 여러 가게를 한 장에 적을 때 표 첫 칸 (없으면 날짜가 다 같으면 시간, 다르면 날짜) */
   listBy?: 'date' | 'time';
 }
+
+export type SpendingDesign = 'paper' | 'photo';
 
 /** 영수증 종이 테마 (종이·무늬만 바뀜). plain(흰 무지)은 무료, grid(모눈종이)는 유료 */
 export type PaperTheme = 'plain' | 'grid';

@@ -9,7 +9,7 @@ import { FREE_FOR_ALL, opensAll } from './launch';
 import { markFirstRun } from './since';
 
 import type { OutfitId } from '../components/Outfits';
-import type { ConcertDesign, ExerciseDesign, FoodDesign, FourcutDesign, MusicDesign, PaperTheme, RecordKind, ShowDesign } from '../types';
+import type { ConcertDesign, ExerciseDesign, FoodDesign, FourcutDesign, MusicDesign, PaperTheme, RecordKind, ShowDesign, SpendingDesign } from '../types';
 
 const OWNED_KEY = 'recoco.owned.v1';
 const OUTFIT_KEY = 'recoco.outfit.v1';
@@ -179,6 +179,11 @@ export const fourcutDesignUnlocked = (id: FourcutDesign | undefined, owned: stri
   !id || FREE_FOURCUT_DESIGNS.some((d) => d.id === id) || owned.includes(FOURCUT_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
 /** 운동·음악의 무료 모양 */
+export const FREE_SPENDING_DESIGNS: { id: SpendingDesign; name: string }[] = [
+  { id: 'paper', name: '종이 영수증' },
+  { id: 'photo', name: '사진 영수증' },
+];
+
 export const FREE_EXERCISE_DESIGNS: { id: ExerciseDesign; name: string }[] = [
   { id: 'slip', name: '기록표' },
   { id: 'card', name: '사진 위 기록' },
