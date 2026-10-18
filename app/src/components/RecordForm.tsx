@@ -1038,7 +1038,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   onChange={(design) => {
                     setSpending((sp) => ({ ...sp, design }));
                     // 사진을 먼저 골라 뒀으면 영수증 크기에 맞게 자르기를 띄운다
-                    if (design === 'photo' && spending.photo) askCrop({ kind: 'spending', design }, spending.photo, (q) => setSpending((x) => ({ ...x, photo: q })));
+                    if (design === 'photo' && spending.photo) askCrop({ kind: 'spending', design: spending.printFilter ? 'print' : 'photo' }, spending.photo, (q) => setSpending((x) => ({ ...x, photo: q })));
                   }}
                 />
                 {spending.design === 'photo' ? (
@@ -1051,7 +1051,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                             const [pic] = await pickPhotos(1);
                             if (pic) {
                               setSpending((x) => ({ ...x, photo: pic }));
-                              askCrop({ kind: 'spending', design: 'photo' }, pic, (q) => setSpending((x) => ({ ...x, photo: q })));
+                              askCrop({ kind: 'spending', design: spending.printFilter ? 'print' : 'photo' }, pic, (q) => setSpending((x) => ({ ...x, photo: q })));
                             }
                           });
                         }}
@@ -1069,11 +1069,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                         )}
                         {photoBusy && <PhotoBusy />}
                       </Pressable>
-                      <Text style={styles.coverHelp}>{'영수증 크기로 꽉 깔리고,\n그 위에 흰 글씨로 적혀요.'}</Text>
+                      <Text style={styles.coverHelp}>{spending.printFilter ? '흰 종이 글 아래에\n흑백 프린트로 붙어요.' : '영수증 크기로 꽉 깔리고,\n그 위에 흰 글씨로 적혀요.'}</Text>
                     </View>
                     {!!spending.photo && (
                       <Pressable
-                        onPress={() => askCrop({ kind: 'spending', design: 'photo' }, spending.photo!, (q) => setSpending((x) => ({ ...x, photo: q })), true)}
+                        onPress={() => askCrop({ kind: 'spending', design: spending.printFilter ? 'print' : 'photo' }, spending.photo!, (q) => setSpending((x) => ({ ...x, photo: q })), true)}
                         hitSlop={6}
                         style={styles.cropLink}>
                         <Text style={styles.cropLinkText}>{spending.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
@@ -1086,12 +1086,17 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                           {(
                             [
                               [false, '원본 그대로'],
-                              [true, '흑백 프린트'],
+                              [true, '흑백 프린트 (글 아래 사진)'],
                             ] as const
                           ).map(([v, name]) => (
                             <Pressable
                               key={name}
-                              onPress={() => setSpending((x) => ({ ...x, printFilter: v }))}
+                              onPress={() => {
+                                setSpending((x) => ({ ...x, printFilter: v }));
+                                // 배경 ↔ 글자 아래 사진은 칸 모양이 달라서, 안 맞으면 다시 자르기를 띄운다
+                                if (v !== !!spending.printFilter && spending.photo)
+                                  askCrop({ kind: 'spending', design: v ? 'print' : 'photo' }, spending.photo, (q) => setSpending((x) => ({ ...x, photo: q })));
+                              }}
                               style={[styles.seg, !!spending.printFilter === v && styles.segOn]}>
                               <Text style={[styles.segText, !!spending.printFilter === v && styles.segTextOn]}>{name}</Text>
                             </Pressable>

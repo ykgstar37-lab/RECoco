@@ -14,7 +14,7 @@ import { PHOTO_SLOT as PLAIN_TICKET } from '../templates/PlainTicket';
 import { PHOTO_SLOT as SHOW_HOLO } from '../templates/ShowHolo';
 import { PHOTO_SLOT as SHOW_RETRO } from '../templates/ShowRetro';
 import { PHOTO_SLOT as SHOW_TICKET } from '../templates/ShowTicket';
-import { PHOTO_SLOT as SPENDING_PHOTO } from '../templates/SpendingPhoto';
+import { PHOTO_SLOT as SPENDING_PHOTO, PRINT_SLOT as SPENDING_PRINT } from '../templates/SpendingPhoto';
 import { FOURCUT_LAYOUTS } from '../templates/Fourcut';
 import { cocomonArtAspect } from '../templates/FourcutCard';
 import { cocochiScreenAspect } from '../templates/FourcutCocochi';
@@ -57,7 +57,8 @@ export function slotOf(r: Draft): PhotoSlot | null {
     case 'daily':
       return DAILY;
     case 'spending':
-      return r.design === 'photo' ? SPENDING_PHOTO : null;
+      // 사진 영수증: 배경(photo) / 흑백 프린트(print, 글자 아래 사진)
+      return r.design === 'print' ? SPENDING_PRINT : r.design === 'photo' ? SPENDING_PHOTO : null;
     default:
       return null;
   }

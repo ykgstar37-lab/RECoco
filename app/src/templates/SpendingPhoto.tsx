@@ -2,11 +2,12 @@
 // 위에서부터 코멘트 → 점선 → 구매일자 → 점선 → 품목·개수·가격. 배달 주문 요청사항을 사진에 얹은 느낌.
 // 글자가 밝은 사진에 묻히지 않게 글자 덩어리 뒤에만 옅은 그늘을 깔고, 글자마다 살짝 그림자를 준다.
 // 사진이 없으면 흰 종이에 검은 글씨로, 길이는 글자 덩어리에 맞춘다.
-// printFilter: 사진을 흑백·강한 대비로 바꾸고 복사기로 뽑은 듯한 자글자글한 점을 얹는다.
+// printFilter(흑백 프린트): 사진을 배경에 깔지 않고, 흰 종이 글자 덩어리 아래에 같은 폭으로 붙인다.
+//   사진은 흑백·강한 대비로 바꾸고 복사기로 뽑은 듯한 자글자글한 점을 얹는다.
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, FeColorMatrix, Filter, G, Image, Line, LinearGradient, Path, Pattern, Rect, Stop, Text } from 'react-native-svg';
 
-import { coverRect } from '../lib/photoCrop';
+import { coverRect, photoRatio } from '../lib/photoCrop';
 import { won } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
@@ -25,6 +26,11 @@ const BR = PW - BL;
 const MAX_ROWS = 8;
 const ROW = 32;
 const PLAIN_PAD = 78; // 사진 없는 흰 종이의 위아래 여백
+const PRINT_GAP = 30; // 흑백 프린트: 품목과 사진 사이
+// 흑백 프린트 사진 칸: 글자 덩어리와 같은 폭, 높이는 사진 비율을 따르되 너무 납작하거나 길지 않게
+const PRINT_W = BR - BL;
+const PRINT_MIN = Math.round(PRINT_W * 0.8);
+const PRINT_MAX = Math.round(PRINT_W * 1.35);
 
 // 흑백 + 대비 세게 (밝은 데는 하얗게 날리고 어두운 데는 진하게)
 const C = 1.55;
@@ -78,8 +84,12 @@ function measure(r: SpendingRecord) {
   const commentH = sticker ? 70 : comment ? comment.lines.length * comment.size * 1.42 : 0;
   const gap = commentH ? 22 : 0;
   const blockH = commentH + gap + 64 + 24 + rows.length * ROW;
-  const height = r.photo ? PH : Math.round(blockH + PLAIN_PAD * 2);
-  return { rows, sticker, comment, commentH, gap, blockH, height };
+  // cover: 사진이 배경 / print: 흰 종이 글자 아래 사진 / plain: 사진 없는 흰 종이
+  const mode = r.photo ? (r.printFilter ? 'print' : 'cover') : 'plain';
+  const printH = r.photo && mode === 'print' ? Math.round(Math.min(PRINT_MAX, Math.max(PRINT_MIN, PRINT_W * photoRatio(r.photo)))) : 0;
+  const height =
+    mode === 'cover' ? PH : mode === 'print' ? Math.round(PLAIN_PAD + blockH + PRINT_GAP + printH + PLAIN_PAD * 0.8) : Math.round(blockH + PLAIN_PAD * 2);
+  return { rows, sticker, comment, commentH, gap, blockH, height, mode, printH };
 }
 
 export function layoutSpendingPhoto(r: SpendingRecord): TemplateLayout {
@@ -89,17 +99,18 @@ export function layoutSpendingPhoto(r: SpendingRecord): TemplateLayout {
 
 export function SpendingPhoto({ record: r, width }: { record: SpendingRecord; width: number }) {
   const L = layoutSpendingPhoto(r);
-  const { rows, sticker, comment, commentH, gap, blockH, height } = measure(r);
+  const { rows, sticker, comment, commentH, gap, blockH, height, mode, printH } = measure(r);
   const id = `spphoto-${r.id}`;
   const photo = r.photo ?? null;
   const shape = `M0,0 H${PW} V${height} H0 Z`;
   // 사진 위에는 흰 글씨, 흰 종이에는 먹색 글씨
-  const ink = photo ? '#fff' : '#26262b';
-  const shadow = !!photo;
+  const ink = mode === 'cover' ? '#fff' : '#26262b';
+  const shadow = mode === 'cover';
   const t = { ink, shadow };
 
   // 사진 위에서는 세로 가운데보다 조금 아래에 놓는다 (사진 속 얼굴·물건이 위쪽에 오는 경우가 많아서)
-  const top = photo ? Math.round(height * 0.56 - blockH / 2) : PLAIN_PAD;
+  const top = mode === 'cover' ? Math.round(height * 0.56 - blockH / 2) : PLAIN_PAD;
+  const printBox = { x: BL, y: PLAIN_PAD + blockH + PRINT_GAP, width: PRINT_W, height: printH };
   const dash1 = top + commentH + gap;
   const dash2 = dash1 + 64;
   const rowsTop = dash2 + 24;
@@ -107,7 +118,7 @@ export function SpendingPhoto({ record: r, width }: { record: SpendingRecord; wi
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
       <G transform={`translate(${PAD} ${PAD})`}>
-        <PaperShadow d={shape} strength={photo ? 1.2 : 1} />
+        <PaperShadow d={shape} strength={mode === 'cover' ? 1.2 : 1} />
         <Defs>
           <ClipPath id={`${id}-card`}>
             <Path d={shape} />
@@ -118,12 +129,17 @@ export function SpendingPhoto({ record: r, width }: { record: SpendingRecord; wi
             <Stop offset="0.65" stopColor="#000" stopOpacity={0.22} />
             <Stop offset="1" stopColor="#000" stopOpacity={0} />
           </LinearGradient>
-          {r.printFilter && (
+          {mode === 'print' && (
+            <ClipPath id={`${id}-print-box`}>
+              <Rect {...printBox} />
+            </ClipPath>
+          )}
+          {mode === 'print' && (
             <Filter id={`${id}-print`} x="0" y="0" width="1" height="1">
               <FeColorMatrix type="matrix" values={PRINT_VALUES} />
             </Filter>
           )}
-          {r.printFilter && (
+          {mode === 'print' && (
             <Pattern id={`${id}-grain`} patternUnits="userSpaceOnUse" width={256} height={256}>
               <Image href={PRINT_GRAIN} x={0} y={0} width={256} height={256} />
             </Pattern>
@@ -131,20 +147,20 @@ export function SpendingPhoto({ record: r, width }: { record: SpendingRecord; wi
         </Defs>
 
         <G clipPath={`url(#${id}-card)`}>
-          {photo ? (
+          {photo && mode === 'cover' ? (
             <G>
-              <Image
-                href={{ uri: photo.uri }}
-                {...coverRect(photo, { x: 0, y: 0, width: PW, height })}
-                preserveAspectRatio="none"
-                filter={r.printFilter ? `url(#${id}-print)` : undefined}
-              />
-              {r.printFilter && <Rect x={0} y={0} width={PW} height={height} fill={`url(#${id}-grain)`} />}
+              <Image href={{ uri: photo.uri }} {...coverRect(photo, { x: 0, y: 0, width: PW, height })} preserveAspectRatio="none" />
               {/* 글자 덩어리 뒤 옅은 그늘 */}
               <Rect x={0} y={top - 160} width={PW} height={blockH + 320} fill={`url(#${id}-shade)`} />
             </G>
           ) : (
             <Rect x={0} y={0} width={PW} height={height} fill="#ffffff" />
+          )}
+          {photo && mode === 'print' && (
+            <G clipPath={`url(#${id}-print-box)`}>
+              <Image href={{ uri: photo.uri }} {...coverRect(photo, printBox)} preserveAspectRatio="none" filter={`url(#${id}-print)`} />
+              <Rect {...printBox} fill={`url(#${id}-grain)`} />
+            </G>
           )}
         </G>
 
@@ -172,5 +188,7 @@ export function SpendingPhoto({ record: r, width }: { record: SpendingRecord; wi
   );
 }
 
-/** 사진 칸 크기 (영수증 크기 고정) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
+/** 사진 칸 크기 — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots). 배경은 영수증 크기 고정 */
 export const PHOTO_SLOT = { w: PW, min: PH, max: PH };
+/** 흑백 프린트: 글자 아래 사진 칸 */
+export const PRINT_SLOT = { w: PRINT_W, min: PRINT_MIN, max: PRINT_MAX };
