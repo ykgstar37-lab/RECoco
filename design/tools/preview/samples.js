@@ -237,17 +237,24 @@ module.exports = () => {
     { name: '소비_총액만', record: { ...spending, id: 'sample-spending-total', items: [{ name: '', qty: 1, price: 27400 }] } },
     { name: '소비_영수증_테마_흰무지', record: { ...spending, id: 'sample-spending-plain', theme: 'plain' } },
     { name: '소비_영수증_테마_모눈', record: { ...spending, id: 'sample-spending-grid', theme: 'grid' } },
-    { name: '소비_사진', record: { ...spending, id: 'sample-spending-photo', design: 'photo', date: '2026-07-29', photo: { uri: url('p-story.jpg'), width: 540, height: 960 },
-      memo: '부산 놀러왔는데 친구생일이에요\n잘 부탁드려요!!', items: [{ name: '물밀면', qty: 2, price: 11000 }, { name: '사이다', qty: 1, price: 2000 }] } },
-    { name: '소비_사진_가로', record: { ...spending, id: 'sample-spending-photo2', design: 'photo', date: '2025-08-02', photo: photo(2),
-      memo: '터덜터덜 야근 후 나를 위한 보상', items: [{ name: '숯불치킨', qty: 1, price: 22500 }, { name: '감자튀김', qty: 1, price: 5000 }, { name: '마요 소스', qty: 2, price: 1500 }, { name: '콜라', qty: 1, price: 3000 }] } },
-    { name: '소비_사진_없음', record: { ...spending, id: 'sample-spending-photo3', design: 'photo', photo: null } },
-    { name: '소비_사진_없음_글', record: { ...spending, id: 'sample-spending-photo4', design: 'photo', photo: null, date: '2026-05-05',
-      memo: '와사비 빼주세요\n아이의 인생 첫 초밥 도전입니다', items: [{ name: '오늘의초밥(10pcs)', qty: 1, price: 14900 }, { name: '연어뱃살초밥(8pcs)', qty: 1, price: 15000 }] } },
-    { name: '소비_사진_프린트', record: { ...spending, id: 'sample-spending-photo5', design: 'photo', printFilter: true, date: '2026-07-29', photo: { uri: url('p-story.jpg'), width: 540, height: 960 },
-      memo: '부산 놀러왔는데 친구생일이에요\n잘 부탁드려요!!', items: [{ name: '물밀면', qty: 2, price: 11000 }, { name: '사이다', qty: 1, price: 2000 }] } },
-    { name: '소비_사진_프린트_가로', record: { ...spending, id: 'sample-spending-photo6', design: 'photo', printFilter: true, date: '2026-05-05', photo: photo(1),
-      memo: '와사비 빼주세요\n아이의 인생 첫 초밥 도전입니다', items: [{ name: '오늘의초밥(10pcs)', qty: 1, price: 14900 }, { name: '연어뱃살초밥(8pcs)', qty: 1, price: 15000 }] } },
+    // 사진 영수증 (소비·카페맛집 같이 쓰는 테마): 식당·카페·마트 예시 — 앱 상점 미리보기(lib/previewSamples samplePhotoReceipts)와 같은 글
+    ...(() => {
+      const meal = { ...food, id: 'pr-meal', design: 'photo', type: 'meal', place: '불판집', date: '2026-10-17', total: 46000,
+        menus: [{ name: '숯불 삼겹살', stars: 5 }, { name: '된장찌개', stars: 4 }, { name: '볶음밥', stars: 5 }],
+        memo: '불금엔 역시 고기죠\n사장님 반찬 리필 감사해요!', photo: { uri: url('meal.jpg'), width: 720, height: 960 } };
+      const cafe = { ...food, id: 'pr-cafe', design: 'photo', date: '2026-10-12', memo: '시험 끝난 기념 달달한 거 하나\n창가 자리 명당이에요',
+        photo: { uri: url('cafe.jpg'), width: 480, height: 434 } };
+      const mart = { ...spending, id: 'pr-mart', design: 'photo', store: '동네 마트', category: '마트', date: '2026-10-15', photo: null,
+        memo: '일주일치 장보기 끝!\n냉장고가 든든하다',
+        items: [{ name: '우유 1L', qty: 1, price: 2980 }, { name: '계란 30구', qty: 1, price: 8990 }, { name: '대파', qty: 1, price: 2490 }, { name: '냉동 만두', qty: 2, price: 6900 }] };
+      return [
+        { name: '사진영수증_식당', record: meal },
+        { name: '사진영수증_식당_프린트', record: { ...meal, id: 'pr-meal-p', printFilter: true } },
+        { name: '사진영수증_카페', record: cafe },
+        { name: '사진영수증_카페_프린트', record: { ...cafe, id: 'pr-cafe-p', printFilter: true } },
+        { name: '사진영수증_마트', record: mart },
+      ];
+    })(),
     { name: '여행_사진0장', record: tr(0), px: 1100 },
     { name: '여행_사진1장', record: tr(1), px: 1100 },
     { name: '여행_사진2장', record: tr(2), px: 1100 },

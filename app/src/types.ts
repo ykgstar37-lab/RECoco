@@ -58,7 +58,7 @@ export interface SpendingRecord extends BaseRecord {
   items: SpendingItem[];
   memo: string;
   theme?: PaperTheme; // 없으면 기본 간이영수증 (종이 영수증일 때만)
-  /** 없으면 종이 영수증, photo 면 사진 위에 흰 글씨 (무료) */
+  /** 없으면 종이 영수증, photo 면 사진 영수증 (유료 테마, 카페·맛집과 같이 씀) */
   design?: SpendingDesign;
   photo?: Photo | null;
   /** 사진을 흑백·자글자글한 프린트 느낌으로 (사진 영수증) */
@@ -169,8 +169,8 @@ export interface GiftRecord extends BaseRecord {
 
 export type FoodType = 'cafe' | 'meal' | 'dessert' | 'bar';
 
-/** order: 맛집 주문서 (무료) / house: 집 모양 · plain 은 예전 '단색 주문서' (= 주문서 먹색) */
-export type FoodDesign = 'order' | 'house' | 'plain';
+/** order: 맛집 주문서 (무료) / house: 집 모양 / photo: 사진 영수증 (소비와 같이 쓰는 테마) · plain 은 예전 '단색 주문서' (= 주문서 먹색) */
+export type FoodDesign = 'order' | 'house' | 'photo' | 'plain';
 
 /** 집 모양의 지붕·차양 색 */
 export type HouseColor = 'orange' | 'red' | 'pink' | 'blue' | 'green';
@@ -200,6 +200,8 @@ export interface FoodRecord extends BaseRecord {
   memo: string; // 한 줄 후기
   photo: Photo | null;
   design?: FoodDesign; // 없으면 주문서
+  /** 사진 영수증: 사진을 흑백 프린트로 글 아래에 */
+  printFilter?: boolean;
   color?: FoodColor; // 모양의 색 (모양을 고를 때 무작위로 정해준다)
 }
 

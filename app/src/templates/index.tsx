@@ -11,7 +11,7 @@ import { MovieTicket, layoutMovie } from './MovieTicket';
 import { PhotoTicket, layoutPhotoTicket } from './PhotoTicket';
 import { ReadingReceipt, layoutReading } from './ReadingReceipt';
 import { SpendingReceipt, layoutSpending } from './SpendingReceipt';
-import { SpendingPhoto, layoutSpendingPhoto } from './SpendingPhoto';
+import { PhotoReceipt, layoutPhotoReceipt } from './SpendingPhoto';
 import { ShowHolo, layoutShowHolo } from './ShowHolo';
 import { FourcutCard, layoutFourcutCard } from './FourcutCard';
 import { FourcutCocochiBack, FourcutCocochiFront, layoutFourcutCocochi } from './FourcutCocochi';
@@ -74,7 +74,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'movie':
       return layoutMovie(record);
     case 'spending':
-      return record.design === 'photo' ? layoutSpendingPhoto(record) : layoutSpending(record);
+      return record.design === 'photo' ? layoutPhotoReceipt(record) : layoutSpending(record);
     case 'travel':
       return layoutTravel(record);
     case 'fourcut':
@@ -82,7 +82,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'gift':
       return layoutGift(record);
     case 'food':
-      return record.design === 'house' ? layoutFoodHouse(record) : layoutFood(record);
+      return record.design === 'photo' ? layoutPhotoReceipt(record) : record.design === 'house' ? layoutFoodHouse(record) : layoutFood(record);
     case 'show':
       return record.design === 'kpop'
         ? layoutPhotoTicket(record)
@@ -144,7 +144,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
     case 'movie':
       return <MovieTicket record={record} width={width} connected={connected} />;
     case 'spending':
-      return record.design === 'photo' ? <SpendingPhoto record={record} width={width} /> : <SpendingReceipt record={record} width={width} />;
+      return record.design === 'photo' ? <PhotoReceipt record={record} width={width} /> : <SpendingReceipt record={record} width={width} />;
     case 'travel':
       return <TravelPass record={record} width={width} connected={connected} />;
     case 'fourcut':
@@ -152,7 +152,13 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
     case 'gift':
       return <GiftCoupon record={record} width={width} connected={connected} />;
     case 'food':
-      return record.design === 'house' ? <FoodHouse record={record} width={width} connected={connected} /> : <FoodOrder record={record} width={width} connected={connected} />;
+      return record.design === 'photo' ? (
+        <PhotoReceipt record={record} width={width} />
+      ) : record.design === 'house' ? (
+        <FoodHouse record={record} width={width} connected={connected} />
+      ) : (
+        <FoodOrder record={record} width={width} connected={connected} />
+      );
     case 'show':
       return record.design === 'kpop' ? (
         <PhotoTicket record={record} width={width} connected={connected} />

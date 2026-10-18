@@ -390,7 +390,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
   const cropping = cropQueue[0] ?? null;
   const nextCrop = () => setCropQueue((q) => q.slice(1));
   /** 사진 한 장 칸: 이 기록(모양)의 칸 비율로 자르기 화면을 연다. force 면 비율이 맞아도 연다 */
-  const askCrop = (draft: { kind: RecordKind; design?: string }, photo: Photo, apply: (p: Photo) => void, force = false) => {
+  const askCrop = (draft: { kind: RecordKind; design?: string; printFilter?: boolean }, photo: Photo, apply: (p: Photo) => void, force = false) => {
     const slot = slotOf(draft);
     if (!slot) return;
     const aspect = slotAspect(slot, photo);
@@ -1038,7 +1038,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   onChange={(design) => {
                     setSpending((sp) => ({ ...sp, design }));
                     // 사진을 먼저 골라 뒀으면 영수증 크기에 맞게 자르기를 띄운다
-                    if (design === 'photo' && spending.photo) askCrop({ kind: 'spending', design: spending.printFilter ? 'print' : 'photo' }, spending.photo, (q) => setSpending((x) => ({ ...x, photo: q })));
+                    if (design === 'photo' && spending.photo) askCrop({ kind: 'spending', design: 'photo', printFilter: spending.printFilter }, spending.photo, (q) => setSpending((x) => ({ ...x, photo: q })));
                   }}
                 />
                 {spending.design === 'photo' ? (
@@ -1051,7 +1051,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                             const [pic] = await pickPhotos(1);
                             if (pic) {
                               setSpending((x) => ({ ...x, photo: pic }));
-                              askCrop({ kind: 'spending', design: spending.printFilter ? 'print' : 'photo' }, pic, (q) => setSpending((x) => ({ ...x, photo: q })));
+                              askCrop({ kind: 'spending', design: 'photo', printFilter: spending.printFilter }, pic, (q) => setSpending((x) => ({ ...x, photo: q })));
                             }
                           });
                         }}
@@ -1073,7 +1073,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     </View>
                     {!!spending.photo && (
                       <Pressable
-                        onPress={() => askCrop({ kind: 'spending', design: spending.printFilter ? 'print' : 'photo' }, spending.photo!, (q) => setSpending((x) => ({ ...x, photo: q })), true)}
+                        onPress={() => askCrop({ kind: 'spending', design: 'photo', printFilter: spending.printFilter }, spending.photo!, (q) => setSpending((x) => ({ ...x, photo: q })), true)}
                         hitSlop={6}
                         style={styles.cropLink}>
                         <Text style={styles.cropLinkText}>{spending.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
@@ -1095,7 +1095,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                                 setSpending((x) => ({ ...x, printFilter: v }));
                                 // 배경 ↔ 글자 아래 사진은 칸 모양이 달라서, 안 맞으면 다시 자르기를 띄운다
                                 if (v !== !!spending.printFilter && spending.photo)
-                                  askCrop({ kind: 'spending', design: v ? 'print' : 'photo' }, spending.photo, (q) => setSpending((x) => ({ ...x, photo: q })));
+                                  askCrop({ kind: 'spending', design: 'photo', printFilter: v }, spending.photo, (q) => setSpending((x) => ({ ...x, photo: q })));
                               }}
                               style={[styles.seg, !!spending.printFilter === v && styles.segOn]}>
                               <Text style={[styles.segText, !!spending.printFilter === v && styles.segTextOn]}>{name}</Text>
@@ -1517,13 +1517,43 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>
-                    {food.design === 'house' ? '집 창문에 사진이 들어가요.\n없으면 창문에 가게 그림이 그려져요.' : '주문서 가운데에 테이프로 붙여져요.'}
+                    {food.design === 'photo'
+                      ? food.printFilter
+                        ? '흰 종이 글 아래에\n흑백 프린트로 붙어요.'
+                        : '영수증 크기로 꽉 깔리고,\n그 위에 흰 글씨로 적혀요.'
+                      : food.design === 'house'
+                        ? '집 창문에 사진이 들어가요.\n없으면 창문에 가게 그림이 그려져요.'
+                        : '주문서 가운데에 테이프로 붙여져요.'}
                   </Text>
                 </View>
                 {!!food.photo && (
                   <Pressable onPress={() => askCrop(food, food.photo!, (q) => setFood((x) => ({ ...x, photo: q })), true)} hitSlop={6} style={styles.cropLink}>
                     <Text style={styles.cropLinkText}>{food.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                   </Pressable>
+                )}
+                {food.design === 'photo' && !!food.photo && (
+                  <>
+                    <Label text="사진 느낌" />
+                    <View style={styles.segment}>
+                      {(
+                        [
+                          [false, '원본 그대로'],
+                          [true, '흑백 프린트 (글 아래 사진)'],
+                        ] as const
+                      ).map(([v, name]) => (
+                        <Pressable
+                          key={name}
+                          onPress={() => {
+                            setFood((x) => ({ ...x, printFilter: v }));
+                            // 배경 ↔ 글자 아래 사진은 칸 모양이 달라서, 안 맞으면 다시 자르기를 띄운다
+                            if (v !== !!food.printFilter && food.photo) askCrop({ ...food, printFilter: v }, food.photo, (q) => setFood((x) => ({ ...x, photo: q })));
+                          }}
+                          style={[styles.seg, !!food.printFilter === v && styles.segOn]}>
+                          <Text style={[styles.segText, !!food.printFilter === v && styles.segTextOn]}>{name}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </>
                 )}
                 <Label text="또 갈래요?" />
                 <View style={styles.segment}>
@@ -1533,11 +1563,15 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     </Pressable>
                   ))}
                 </View>
-                <Field label="한 줄 후기 (포스트잇에 적혀요)" value={food.memo} onChange={(v) => setFood({ ...food, memo: v })} placeholder="치즈케이크 꾸덕해서 또 먹고 싶다" multiline />
+                <Field label={food.design === 'photo' ? '한 줄 후기 (사진 위 맨 위에 적혀요)' : '한 줄 후기 (포스트잇에 적혀요)'} value={food.memo} onChange={(v) => setFood({ ...food, memo: v })} placeholder="치즈케이크 꾸덕해서 또 먹고 싶다" multiline />
                 <FoodDesignPicker
                   value={food.design}
                   color={food.color}
-                  onChange={(design, color) => setFood((f) => ({ ...f, design, color }))}
+                  onChange={(design, color) => {
+                    setFood((f) => ({ ...f, design, color }));
+                    // 모양마다 사진 칸 비율이 달라서, 사진이 있으면 새 칸에 맞게 자르기를 띄운다
+                    if (design !== food.design && food.photo) askCrop({ ...food, design }, food.photo, (q) => setFood((x) => ({ ...x, photo: q })));
+                  }}
                 />
               </>
             )}

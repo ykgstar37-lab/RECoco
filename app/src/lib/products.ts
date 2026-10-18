@@ -9,7 +9,7 @@ import { GRID_COLORS, GRID_COLOR_IDS } from '../templates/shared';
 import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { CocochiColor, ConcertDesign, FourcutHouseColor, FoodRecord, HouseColor, RecoRecord, RecordKind, ShowDesign, TicketColor } from '../types';
-import { FOURCUT_SAMPLE_PHOTOS, SAMPLE_SHOTS, sampleConcert, sampleDaily, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
+import { FOURCUT_SAMPLE_PHOTOS, SAMPLE_SHOTS, sampleConcert, samplePhotoReceipts, sampleDaily, sampleExercise, sampleFood, sampleFourcut, sampleGift, sampleMusic, sampleShow, sampleSpending } from './previewSamples';
 import {
   CONCERT_DESIGNS,
   ConcertDesignItem,
@@ -82,6 +82,17 @@ export function themeProduct(t: ThemeItem): PreviewProduct {
 export const themeProductById = (id: ThemeItem['id']) => themeProduct(THEMES.find((t) => t.id === id)!);
 
 export function foodDesignProduct(d: FoodDesignItem): PreviewProduct {
+  // 사진 영수증은 소비·카페맛집이 같이 쓴다 → 식당·카페·마트 예시를 한 장씩
+  if (d.id === 'photo')
+    return {
+      title: d.name,
+      desc: d.desc,
+      productId: d.productId,
+      price: d.price,
+      tags: d.kinds.map((k) => KIND_LABEL[k]),
+      requires: d.kinds,
+      samples: samplePhotoReceipts(),
+    };
   return {
     title: d.name,
     desc: d.desc,

@@ -1,5 +1,7 @@
-// 소비 (사진 영수증, 무료 모양 `design: 'photo'`): 사진을 영수증 크기로 꽉 깔고 그 위에 흰 글씨로 주문서를 띄운다.
+// 사진 영수증 (유료 테마 `recoco.theme.photo-receipt`, 소비·카페맛집 `design: 'photo'`):
+// 사진을 영수증 크기로 꽉 깔고 그 위에 흰 글씨로 주문서를 띄운다.
 // 위에서부터 코멘트 → 점선 → 구매일자 → 점선 → 품목·개수·가격. 배달 주문 요청사항을 사진에 얹은 느낌.
+// 카페·맛집은 한 줄 후기 → 방문일자 → 메뉴·별점 (+ 합계).
 // 글자가 밝은 사진에 묻히지 않게 글자 덩어리 뒤에만 옅은 그늘을 깔고, 글자마다 살짝 그림자를 준다.
 // 사진이 없으면 흰 종이에 검은 글씨로, 길이는 글자 덩어리에 맞춘다.
 // printFilter(흑백 프린트): 사진을 배경에 깔지 않고, 흰 종이 글자 덩어리 아래에 같은 폭으로 붙인다.
@@ -11,7 +13,7 @@ import { coverRect, photoRatio } from '../lib/photoCrop';
 import { won } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
-import { SpendingRecord } from '../types';
+import { FoodRecord, SpendingRecord } from '../types';
 import { StickerArt, stickerOf } from '../components/Stickers';
 import { PaperShadow, TemplateLayout } from './shared';
 
@@ -70,16 +72,28 @@ function commentLines(memo: string) {
   }
 }
 
+export type PhotoReceiptRecord = SpendingRecord | FoodRecord;
+
+/** 품목 줄: 소비는 품목·개수 / 가격, 카페·맛집은 메뉴 / 별점 (+ 합계) */
+function rowsOf(r: PhotoReceiptRecord): { left: string; right: string }[] {
+  if (r.kind === 'food') {
+    const menus = r.menus.filter((m) => m.name.trim()).map((m) => ({ left: m.name.trim(), right: m.stars > 0 ? '★'.repeat(m.stars) + '☆'.repeat(5 - m.stars) : '' }));
+    return [...menus.slice(0, r.total > 0 ? MAX_ROWS - 1 : MAX_ROWS), ...(r.total > 0 ? [{ left: '합계', right: won(r.total) }] : [])];
+  }
+  return r.items
+    .filter((it) => it.name.trim() || it.store?.trim() || it.price > 0)
+    .slice(0, MAX_ROWS)
+    .map((it) => {
+      const name = [it.store?.trim(), it.name.trim()].filter(Boolean).join(' ');
+      // 총액만 적은 기록은 이름이 없다
+      return { left: name ? `${name} ${it.qty}` : '합계', right: won(it.qty * it.price) };
+    });
+}
+
 /** 글자 덩어리 재기 (사진 없는 종이는 이 높이에 맞춰 길이가 정해진다) */
-function measure(r: SpendingRecord) {
-  const items = r.items.filter((it) => it.name.trim() || it.store?.trim() || it.price > 0).slice(0, MAX_ROWS);
-  const rows = items.map((it) => {
-    const name = [it.store?.trim(), it.name.trim()].filter(Boolean).join(' ');
-    // 총액만 적은 기록은 이름이 없다
-    const what = name ? `${name} ${it.qty}` : '합계';
-    return { what: fitLine(what, BR - BL - 120, 19, 14, 'sans'), price: won(it.qty * it.price) };
-  });
-  const sticker = stickerOf(r.memo) ? r.memo : null;
+function measure(r: PhotoReceiptRecord) {
+  const rows = rowsOf(r).map((row) => ({ what: fitLine(row.left, BR - BL - 120, 19, 14, 'sans'), price: row.right }));
+  const sticker = r.kind === 'spending' && stickerOf(r.memo) ? r.memo : null;
   const comment = !sticker && r.memo.trim() ? commentLines(r.memo) : null;
   const commentH = sticker ? 70 : comment ? comment.lines.length * comment.size * 1.42 : 0;
   const gap = commentH ? 22 : 0;
@@ -92,13 +106,13 @@ function measure(r: SpendingRecord) {
   return { rows, sticker, comment, commentH, gap, blockH, height, mode, printH };
 }
 
-export function layoutSpendingPhoto(r: SpendingRecord): TemplateLayout {
+export function layoutPhotoReceipt(r: PhotoReceiptRecord): TemplateLayout {
   const { height } = measure(r);
   return { width: PW + PAD * 2, height: height + PAD * 2 + 14, foldAt: 0, displayRatio: 0.94, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
-export function SpendingPhoto({ record: r, width }: { record: SpendingRecord; width: number }) {
-  const L = layoutSpendingPhoto(r);
+export function PhotoReceipt({ record: r, width }: { record: PhotoReceiptRecord; width: number }) {
+  const L = layoutPhotoReceipt(r);
   const { rows, sticker, comment, commentH, gap, blockH, height, mode, printH } = measure(r);
   const id = `spphoto-${r.id}`;
   const photo = r.photo ?? null;
@@ -171,7 +185,7 @@ export function SpendingPhoto({ record: r, width }: { record: SpendingRecord; wi
         ))}
 
         <Dash y={dash1} {...t} />
-        <T {...t} x={BL} y={dash1 + 40} fontSize={18} children={`구매일자 : ${r.date}`} />
+        <T {...t} x={BL} y={dash1 + 40} fontSize={18} children={`${r.kind === 'food' ? '방문일자' : '구매일자'} : ${r.date}`} />
         <Dash y={dash2} {...t} />
 
         {rows.map((row, i) => {

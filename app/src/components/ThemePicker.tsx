@@ -22,6 +22,7 @@ import {
   FREE_MUSIC_DESIGNS,
   FREE_SHOW_DESIGNS,
   FREE_SPENDING_DESIGNS,
+  SPENDING_DESIGNS,
   FREE_THEMES,
   SHOW_DESIGNS,
   THEMES,
@@ -29,6 +30,7 @@ import {
   foodDesignUnlocked,
   fourcutDesignUnlocked,
   showDesignUnlocked,
+  spendingDesignUnlocked,
   themeUnlocked,
   useShop,
 } from '../lib/shop';
@@ -84,13 +86,16 @@ export const themeColors = (theme: PaperTheme | undefined): { id: GridColor; nam
 
 /** 모양마다 고를 수 있는 색 (없으면 단색 모양) */
 export const foodColors = (design: FoodDesign): { id: FoodColor; name: string; swatch: string }[] =>
-  design === 'house'
+  design === 'photo'
+    ? [] // 사진 영수증은 색이 없다
+    : design === 'house'
     ? HOUSE_COLOR_IDS.map((id) => ({ id, name: HOUSE_COLORS[id].name, swatch: HOUSE_COLORS[id].roof }))
     : ORDER_COLOR_IDS.map((id) => ({ id, name: ORDER_COLORS[id].name, swatch: ORDER_COLORS[id].main }));
 
 /** 그 모양에서 쓸 수 있는 색이 아니면 무작위로 하나 정해준다 */
 const pickFoodColor = (design: FoodDesign, color: FoodColor | undefined) => {
   const list = foodColors(design);
+  if (!list.length) return color ?? ORDER_COLOR_IDS[0];
   return color && list.some((c) => c.id === color) ? color : list[Math.floor(Math.random() * list.length)].id;
 };
 
@@ -176,6 +181,7 @@ export function ThemePicker({ label, base, value, color, onChange }: Props) {
 
 /** 카페·맛집 모양 견본 (주문서 / 집). 집은 고른 지붕 색으로 그린다 */
 export function FoodDesignSwatch({ design, size = 44, color = 'orange' }: { design: FoodDesign | undefined; size?: number; color?: HouseColor }) {
+  if (design === 'photo') return <SpendingDesignSwatch design="photo" size={size} />;
   if (design === 'plain')
     return (
       <Svg width={size} height={size * 1.3} viewBox="0 0 40 52">
@@ -568,23 +574,48 @@ export function SpendingDesignSwatch({ design, size = 44 }: { design: SpendingDe
   return <ThemeSwatch theme={undefined} base="spending" size={size} />;
 }
 
-/** 소비 폼의 모양 고르기 (둘 다 무료). 사진 영수증이면 종이 고르기 대신 사진을 넣는다 */
+/** 소비 폼의 모양 고르기: 종이 영수증(무료) + 사진 영수증(유료 테마, 안 샀으면 미리보기에서 사기). 사진 영수증이면 종이 고르기 대신 사진을 넣는다 */
 export function SpendingDesignPicker({ value, onChange }: { value: SpendingDesign | undefined; onChange: (design: SpendingDesign) => void }) {
+  const { owned, allOpen } = useShop();
+  const [preview, setPreview] = useState<{ id: SpendingDesign; product: PreviewProduct } | null>(null);
   const design = value ?? 'paper';
+  const options: { id: SpendingDesign; name: string; price: number }[] = [...FREE_SPENDING_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SPENDING_DESIGNS];
+
+  const choose = (id: SpendingDesign) => {
+    if (spendingDesignUnlocked(id, owned)) return onChange(id);
+    setPreview({ id, product: foodDesignProductById('photo') });
+  };
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>영수증 모양</Text>
       <View style={styles.row}>
-        {FREE_SPENDING_DESIGNS.map((o) => {
+        {options.map((o) => {
           const on = design === o.id;
+          const locked = !spendingDesignUnlocked(o.id, owned);
           return (
-            <Pressable key={o.id} onPress={() => onChange(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={o.name}>
-              <SpendingDesignSwatch design={o.id} />
-              <Text style={[styles.name, on && { color: COLORS.orange }]}>{o.name}</Text>
+            <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${locked ? ' (잠김)' : ''}`}>
+              <View style={locked && { opacity: 0.55 }}>
+                <SpendingDesignSwatch design={o.id} />
+              </View>
+              <Text style={[styles.name, on && { color: COLORS.orange }]}>
+                {locked ? '🔒 ' : ''}
+                {o.name}
+              </Text>
+              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
       </View>
+
+      <ProductPreview
+        product={preview?.product ?? null}
+        onClose={() => setPreview(null)}
+        onBought={() => {
+          if (preview) onChange(preview.id);
+          setPreview(null);
+        }}
+      />
     </View>
   );
 }

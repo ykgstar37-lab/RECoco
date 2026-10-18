@@ -86,8 +86,19 @@ export interface FoodDesignItem {
 /** 카페·맛집 영수증 모양 테마 (기본은 맛집 주문서. 색은 모양을 고른 다음 따로 고른다) */
 export const FREE_FOOD_DESIGNS: { id: FoodDesign; name: string }[] = [{ id: 'order', name: '주문서' }];
 
+/** 소비·카페맛집이 같이 쓰는 사진 영수증: 한 번 사면 두 카테고리 모두에서 고를 수 있다 */
+export const PHOTO_RECEIPT = {
+  id: 'photo' as const,
+  name: '사진 영수증',
+  desc: '사진 위에 흰 글씨로 적는 주문서 · 흑백 프린트로 글 아래에 붙일 수도',
+  productId: 'recoco.theme.photo-receipt',
+  price: 1000,
+  kinds: ['spending', 'food'] as RecordKind[],
+};
+
 export const FOOD_DESIGNS: FoodDesignItem[] = [
   { id: 'house', name: '집 모양', desc: '간판·창문 사진·칠판 메뉴가 있는 작은 가게 집 · 지붕 색 5가지', productId: 'recoco.theme.food-house', price: 1000, kinds: ['food'] },
+  PHOTO_RECEIPT,
 ];
 
 export const foodDesignUnlocked = (id: FoodDesign | undefined, owned: string[]) =>
@@ -178,11 +189,14 @@ export const FOURCUT_DESIGNS: FourcutDesignItem[] = [
 export const fourcutDesignUnlocked = (id: FourcutDesign | undefined, owned: string[]) =>
   !id || FREE_FOURCUT_DESIGNS.some((d) => d.id === id) || owned.includes(FOURCUT_DESIGNS.find((d) => d.id === id)?.productId ?? '');
 
+/** 소비 모양: 종이 영수증(무료) + 사진 영수증(카페·맛집과 같이 쓰는 유료 테마) */
+export const FREE_SPENDING_DESIGNS: { id: SpendingDesign; name: string }[] = [{ id: 'paper', name: '종이 영수증' }];
+export const SPENDING_DESIGNS = [PHOTO_RECEIPT];
+
+export const spendingDesignUnlocked = (id: SpendingDesign | undefined, owned: string[]) =>
+  !id || id === 'paper' || owned.includes(SPENDING_DESIGNS.find((d) => d.id === id)?.productId ?? '');
+
 /** 운동·음악의 무료 모양 */
-export const FREE_SPENDING_DESIGNS: { id: SpendingDesign; name: string }[] = [
-  { id: 'paper', name: '종이 영수증' },
-  { id: 'photo', name: '사진 영수증' },
-];
 
 export const FREE_EXERCISE_DESIGNS: { id: ExerciseDesign; name: string }[] = [
   { id: 'slip', name: '기록표' },

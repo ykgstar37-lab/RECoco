@@ -31,12 +31,13 @@ export interface PhotoSlot {
   max: number;
 }
 
-type Draft = Pick<RecoRecord, 'kind'> & { design?: string };
+type Draft = Pick<RecoRecord, 'kind'> & { design?: string; printFilter?: boolean };
 
 /** 사진 한 장 칸이 있는 기록의 칸. 사진이 안 들어가는 모양(팔찌·가로 흰 무지 등)이면 null */
 export function slotOf(r: Draft): PhotoSlot | null {
   switch (r.kind) {
     case 'food':
+      if (r.design === 'photo') return r.printFilter ? SPENDING_PRINT : SPENDING_PHOTO;
       return r.design === 'house' ? FOOD_HOUSE : FOOD_ORDER;
     case 'show':
       if (r.design === 'band') return null;
@@ -57,8 +58,9 @@ export function slotOf(r: Draft): PhotoSlot | null {
     case 'daily':
       return DAILY;
     case 'spending':
-      // 사진 영수증: 배경(photo) / 흑백 프린트(print, 글자 아래 사진)
-      return r.design === 'print' ? SPENDING_PRINT : r.design === 'photo' ? SPENDING_PHOTO : null;
+      // 사진 영수증: 배경 / 흑백 프린트(글자 아래 사진)
+      if (r.design !== 'photo') return null;
+      return r.printFilter ? SPENDING_PRINT : SPENDING_PHOTO;
     default:
       return null;
   }

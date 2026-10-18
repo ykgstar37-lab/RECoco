@@ -153,7 +153,70 @@ export const SAMPLE_SHOTS = {
   exhibit: () => shot(require('../../assets/samples/exhibit-1.jpg'), 480, 480),
   exhibit2: () => shot(require('../../assets/samples/exhibit-2.jpg'), 480, 480),
   poster: () => shot(require('../../assets/samples/show-poster.jpg'), 480, 480),
+  /** 사진 영수증 식당 예시 (고깃집 상차림) */
+  grill: () => shot(require('../../assets/samples/photo-receipt-meal.jpg'), 720, 960),
 };
+
+/** 사진 영수증 미리보기: 식당(사진 배경) · 카페(흑백 프린트) · 마트(사진 없이) — 코멘트를 가게에 맞게 */
+export function samplePhotoReceipts(): { record: FoodRecord | SpendingRecord; caption: string }[] {
+  const food = sampleFood();
+  return [
+    {
+      caption: '식당 · 사진 배경',
+      record: {
+        ...food,
+        id: 'preview-photo-receipt-meal',
+        design: 'photo',
+        type: 'meal',
+        place: '불판집',
+        date: '2026-10-17',
+        menus: [
+          { name: '숯불 삼겹살', stars: 5 },
+          { name: '된장찌개', stars: 4 },
+          { name: '볶음밥', stars: 5 },
+        ],
+        total: 46000,
+        memo: '불금엔 역시 고기죠\n사장님 반찬 리필 감사해요!',
+        photo: SAMPLE_SHOTS.grill(),
+      },
+    },
+    {
+      caption: '카페 · 흑백 프린트',
+      record: {
+        ...food,
+        id: 'preview-photo-receipt-cafe',
+        design: 'photo',
+        printFilter: true,
+        date: '2026-10-12',
+        menus: [
+          { name: '아이스 라떼', stars: 4 },
+          { name: '바스크 치즈케이크', stars: 5 },
+        ],
+        total: 12500,
+        memo: '시험 끝난 기념 달달한 거 하나\n창가 자리 명당이에요',
+        photo: SAMPLE_SHOTS.cafe(),
+      },
+    },
+    {
+      caption: '마트 · 사진 없이',
+      record: {
+        ...sampleSpending(),
+        id: 'preview-photo-receipt-mart',
+        design: 'photo',
+        store: '동네 마트',
+        category: '마트',
+        date: '2026-10-15',
+        items: [
+          { name: '우유 1L', qty: 1, price: 2980 },
+          { name: '계란 30구', qty: 1, price: 8990 },
+          { name: '대파', qty: 1, price: 2490 },
+          { name: '냉동 만두', qty: 2, price: 6900 },
+        ],
+        memo: '일주일치 장보기 끝!\n냉장고가 든든하다',
+      },
+    },
+  ];
+}
 
 /** 인생네컷 테마 미리보기 사진 (사용자가 준 것, 사진 칸 비율에 맞춰 잘라 둠) — ⚠️ 이것도 마인크래프트 캡처라 출시 전에 바꿀 것 */
 const shot = (mod: unknown, width: number, height: number): Photo => ({ uri: uriOf(mod), width, height });
