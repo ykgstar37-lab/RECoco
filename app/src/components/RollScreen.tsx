@@ -233,7 +233,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
 }
 
 const styles = StyleSheet.create({
-  tagsScroll: { flexGrow: 0 },
+  tagsScroll: { flexGrow: 0, flexShrink: 0 },
   tags: { paddingHorizontal: 18, gap: 6, paddingBottom: 10 },
   tag: {
     flexDirection: 'row',
