@@ -1,4 +1,5 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { File } from 'expo-file-system';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
@@ -20,6 +21,8 @@ interface Candidate {
   src: string;
   w: number;
   h: number;
+  /** 화면에 떠 있는 팝업(고정 위치) 안의 그림: 광고일 때가 많아 뒤로 민다 */
+  o?: number;
 }
 
 /**
@@ -34,12 +37,19 @@ const INJECTED = `
   var sent = {};
   function post(msg) { window.ReactNativeWebView.postMessage(JSON.stringify(msg)); }
   function abs(u) { try { return new URL(u, location.href).href; } catch (e) { return null; } }
+  function overlay(el) {
+    for (var p = el; p && p !== document.body; p = p.parentElement) {
+      var pos = getComputedStyle(p).position;
+      if (pos === 'fixed' || pos === 'sticky') return 1;
+    }
+    return 0;
+  }
   function scan() {
     var items = [];
     document.querySelectorAll('img').forEach(function (img) {
       var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
       var src = img.currentSrc || img.src;
-      if (src && w >= 240 && h >= 240) items.push({ src: src, w: w, h: h });
+      if (src && w >= 240 && h >= 240) items.push({ src: src, w: w, h: h, o: overlay(img) });
     });
     document.querySelectorAll('a[href]').forEach(function (a) {
       if (/\\.(jpe?g|png|webp)(\\?|#|$)/i.test(a.href)) items.push({ src: a.href, w: 0, h: 0 });
@@ -49,7 +59,7 @@ const INJECTED = `
       var m = bg && /url\\(["']?([^"')]+)/.exec(bg);
       if (!m) return;
       var r = el.getBoundingClientRect();
-      if (r.width >= 150 && r.height >= 150) items.push({ src: abs(m[1]), w: r.width, h: r.height });
+      if (r.width >= 150 && r.height >= 150) items.push({ src: abs(m[1]), w: r.width, h: r.height, o: overlay(el) });
     });
     var fresh = items.filter(function (it) {
       if (!it.src || sent[it.src] || /\\.svg(\\?|$)/i.test(it.src)) return false;
@@ -92,7 +102,29 @@ function directPhotoUrl(pageUrl: string): string | null {
   return null;
 }
 
-type Step = 'scan' | 'page';
+/**
+ * 인화지 왼쪽 반만 잘라 jpeg data URL 로 돌려주는 페이지.
+ * 포토부스는 1×4 띠를 두 줄 나란히 뽑는 경우가 많아서 한 줄만 쓰고 싶을 때 쓴다.
+ * (자르기 전용 네이티브 모듈 없이 웹뷰 캔버스로 해서 앱 업데이트만으로 된다)
+ */
+const halfHtml = (dataUrl: string) => `<html><body><script>
+var img = new Image();
+img.onload = function () {
+  var w = Math.floor(img.naturalWidth / 2), h = img.naturalHeight;
+  var c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  c.getContext('2d').drawImage(img, 0, 0, w, h, 0, 0, w, h);
+  window.ReactNativeWebView.postMessage(c.toDataURL('image/jpeg', 0.92));
+};
+img.onerror = function () { window.ReactNativeWebView.postMessage('error'); };
+img.src = ${JSON.stringify(dataUrl)};
+</script></body></html>`;
+
+/** 이미 가는 띠(1×4 한 줄)면 반으로 자를 게 없다 */
+const canHalve = (p: Photo) => p.width / p.height >= 0.5;
+
+type Step = 'scan' | 'page' | 'confirm';
 
 export function QrImport({ visible, onClose, onPicked }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -106,10 +138,14 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
   const webRef = useRef<WebView>(null);
   const scanned = useRef(false);
   const directTried = useRef('');
+  const [got, setGot] = useState<{ photo: Photo; url: string } | null>(null);
+  const [cropHtml, setCropHtml] = useState('');
 
   useEffect(() => {
     if (!visible) return;
     directTried.current = '';
+    setGot(null);
+    setCropHtml('');
     setStep('scan');
     setUrl('');
     setTyped('');
@@ -147,7 +183,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
     directTried.current = src;
     setBusy(true);
     try {
-      onPicked(await downloadPhoto(src), openedUrl);
+      receive(await downloadPhoto(src), openedUrl);
     } catch {
       // 만료됐거나 주소 규칙이 바뀐 경우: 페이지에서 찾는 원래 방식으로
       setBusy(false);
@@ -162,12 +198,12 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
       return;
     }
     if (msg.type === 'candidates' && msg.items) {
-      setCandidates((prev) => [...prev, ...msg.items!].sort((a, b) => b.w * b.h - a.w * a.h));
+      setCandidates((prev) => [...prev, ...msg.items!].sort((a, b) => (a.o ?? 0) - (b.o ?? 0) || b.w * b.h - a.w * a.h));
     } else if (msg.type === 'data' && msg.dataUrl) {
       const m = /^data:([^;]+);base64,(.*)$/.exec(msg.dataUrl);
       if (!m) return fail();
       try {
-        onPicked(await saveBase64Photo(m[2], m[1]), url);
+        receive(await saveBase64Photo(m[2], m[1]), url);
       } catch {
         fail();
       }
@@ -186,7 +222,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
     setMessage('');
     if (/^https?:/i.test(c.src)) {
       try {
-        onPicked(await downloadPhoto(c.src), url);
+        receive(await downloadPhoto(c.src), url);
         return;
       } catch {
         // 쿠키가 필요한 페이지 등: 페이지 안에서 직접 읽어오기로 재시도
@@ -197,17 +233,55 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
 
   const fromGallery = async () => {
     const [photo] = await pickPhotos(1);
-    if (photo) onPicked(photo, url);
+    if (photo) receive(photo, url);
+  };
+
+  /** 가져온 사진은 바로 넘기지 않고 통째로 / 반쪽만 고르게 한다 */
+  const receive = (photo: Photo, openedUrl: string) => {
+    setBusy(false);
+    setMessage('');
+    if (!canHalve(photo)) return onPicked(photo, openedUrl);
+    setGot({ photo, url: openedUrl });
+    setStep('confirm');
+  };
+
+  const takeHalf = async () => {
+    if (!got) return;
+    setBusy(true);
+    try {
+      const mime = /\.png$/i.test(got.photo.uri) ? 'image/png' : 'image/jpeg';
+      setCropHtml(halfHtml(`data:${mime};base64,${await new File(got.photo.uri).base64()}`));
+    } catch {
+      cropFail();
+    }
+  };
+
+  const onCropped = async (e: WebViewMessageEvent) => {
+    setCropHtml('');
+    const m = /^data:([^;]+);base64,(.*)$/.exec(e.nativeEvent.data);
+    if (!m || !got) return cropFail();
+    try {
+      onPicked(await saveBase64Photo(m[2], m[1]), got.url);
+    } catch {
+      cropFail();
+    }
+  };
+
+  const cropFail = () => {
+    setBusy(false);
+    setMessage('반으로 자르지 못했어요. 통째로 쓰거나 갤러리에서 잘라서 골라주세요.');
   };
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
       <ModalSafeArea style={styles.root}>
         <View style={styles.header}>
-          <Pressable onPress={step === 'page' ? () => setStep('scan') : onClose} hitSlop={10}>
-            <Text style={styles.headerBtn}>{step === 'page' ? '다시 스캔' : '닫기'}</Text>
+          <Pressable onPress={step === 'scan' ? onClose : () => setStep('scan')} hitSlop={10}>
+            <Text style={styles.headerBtn}>{step === 'scan' ? '닫기' : '다시 스캔'}</Text>
           </Pressable>
-          <Text style={styles.title}>{step === 'scan' ? 'QR로 네컷 가져오기' : '앞면에 쓸 사진 고르기'}</Text>
+          <Text style={styles.title}>
+            {step === 'scan' ? 'QR로 네컷 가져오기' : step === 'page' ? '앞면에 쓸 사진 고르기' : '어떻게 쓸까요?'}
+          </Text>
           <View style={{ width: 56 }} />
         </View>
 
@@ -307,6 +381,35 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
             </View>
           </View>
         )}
+        {step === 'confirm' && got && (
+          <View style={{ flex: 1 }}>
+            <View style={styles.previewBox}>
+              <Image source={{ uri: got.photo.uri }} style={StyleSheet.absoluteFill} resizeMode="contain" />
+            </View>
+            <View style={styles.panel}>
+              {!!message && <Text style={styles.warn}>{message}</Text>}
+              {busy ? (
+                <View style={styles.row}>
+                  <ActivityIndicator color={COLORS.orange} />
+                  <Text style={styles.body}>반으로 자르는 중…</Text>
+                </View>
+              ) : (
+                <View style={styles.row}>
+                  <Pressable style={[styles.primary, { flex: 1 }]} onPress={takeHalf}>
+                    <Text style={[styles.primaryText, { textAlign: 'center' }]}>반쪽만 (한 줄)</Text>
+                  </Pressable>
+                  <Pressable style={[styles.secondary, { flex: 1 }]} onPress={() => onPicked(got.photo, got.url)}>
+                    <Text style={[styles.secondaryText, { textAlign: 'center' }]}>통째로</Text>
+                  </Pressable>
+                </View>
+              )}
+              <Text style={styles.label}>두 줄이 나란히 뽑힌 사진이면 왼쪽 한 줄만 잘라 써요</Text>
+            </View>
+            {!!cropHtml && (
+              <WebView source={{ html: cropHtml }} onMessage={onCropped} style={styles.hidden} javaScriptEnabled />
+            )}
+          </View>
+        )}
         <KeyboardDone />
       </ModalSafeArea>
     </Modal>
@@ -340,6 +443,10 @@ const styles = StyleSheet.create({
   },
   primary: { backgroundColor: COLORS.orange, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
   primaryText: { color: '#fff', fontSize: 14, fontFamily: FONTS.sansBold },
+  secondary: { backgroundColor: '#fff', borderWidth: 1, borderColor: COLORS.line, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
+  secondaryText: { color: COLORS.ink, fontSize: 14, fontFamily: FONTS.sansBold },
+  previewBox: { flex: 1, margin: 16 },
+  hidden: { position: 'absolute', width: 1, height: 1, opacity: 0 },
   smallBtn: { backgroundColor: COLORS.orange, paddingHorizontal: 16, paddingVertical: 11, borderRadius: 10 },
   link: { color: COLORS.orange, fontSize: 13, fontFamily: FONTS.sansBold },
   thumb: {
