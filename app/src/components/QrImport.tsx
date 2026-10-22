@@ -72,6 +72,26 @@ const INJECTED = `
 true;
 `;
 
+/**
+ * 페이지를 거치지 않고 원본 사진 주소를 바로 알 수 있는 업체.
+ * 포토그레이: 페이지가 앱 웹뷰에선 사진을 끝없이 불러오고 광고 팝업만 잡혀서,
+ * QR 주소의 id(base64)에 든 sessionId 로 원본(image.jpg)을 직접 받는다.
+ */
+function directPhotoUrl(pageUrl: string): string | null {
+  try {
+    // RN 의 URL 은 hostname·searchParams 가 안 되는 버전이 있어서 정규식으로 읽는다
+    const pg = /^https?:\/\/photogray-download\.aprd\.io\/?[^#]*[?&]id=([^&#]+)/i.exec(pageUrl);
+    if (pg) {
+      const id = decodeURIComponent(pg[1]).replace(/\s/g, '').replace(/-/g, '+').replace(/_/g, '/');
+      const m = /sessionId=([^&]+)/.exec(atob(id));
+      if (m) return `https://pg-qr-resource.aprd.io/${m[1]}/image.jpg`;
+    }
+  } catch {
+    // 모르는 모양이면 페이지에서 찾기로
+  }
+  return null;
+}
+
 type Step = 'scan' | 'page';
 
 export function QrImport({ visible, onClose, onPicked }: Props) {
@@ -85,9 +105,11 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
   const [timedOut, setTimedOut] = useState(false);
   const webRef = useRef<WebView>(null);
   const scanned = useRef(false);
+  const directTried = useRef('');
 
   useEffect(() => {
     if (!visible) return;
+    directTried.current = '';
     setStep('scan');
     setUrl('');
     setTyped('');
@@ -114,6 +136,22 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
     setMessage('');
     setUrl(u);
     setStep('page');
+    directTried.current = '';
+    tryDirect(u, u);
+  };
+
+  /** 짧은 주소에서 넘어간 경우도 있어서 웹뷰가 옮겨간 주소로도 한 번 더 본다 */
+  const tryDirect = async (pageUrl: string, openedUrl: string) => {
+    const src = directPhotoUrl(pageUrl);
+    if (!src || directTried.current === src) return;
+    directTried.current = src;
+    setBusy(true);
+    try {
+      onPicked(await downloadPhoto(src), openedUrl);
+    } catch {
+      // 만료됐거나 주소 규칙이 바뀐 경우: 페이지에서 찾는 원래 방식으로
+      setBusy(false);
+    }
   };
 
   const onMessage = async (e: WebViewMessageEvent) => {
@@ -231,6 +269,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
               injectedJavaScript={INJECTED}
               onLoadEnd={() => webRef.current?.injectJavaScript(INJECTED)}
               onMessage={onMessage}
+              onNavigationStateChange={(nav) => tryDirect(nav.url, url)}
               javaScriptEnabled
               domStorageEnabled
               sharedCookiesEnabled
