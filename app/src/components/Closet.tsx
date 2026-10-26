@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   close: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   closeText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   body: { paddingHorizontal: 18, paddingBottom: 24, gap: 16 },
-  stage: { backgroundColor: COLORS.orange, borderRadius: 24, alignItems: 'center', paddingTop: 48, paddingBottom: 14, gap: 6 },
+  stage: { backgroundColor: COLORS.orange, borderRadius: 24, alignItems: 'center', paddingTop: 36, paddingBottom: 14, gap: 6 },
   stageName: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   // 한 줄에 4칸 (칸마다 좌우 4씩 띄움)
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, rowGap: 8 },

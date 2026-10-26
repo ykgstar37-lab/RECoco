@@ -12,7 +12,7 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
-  party: { from: [0, 0], to: [0, 0], k: 1, top: -78 },
+  party: { from: [0, 0], to: [236, 86], k: 1, r: 10, top: -36 },
   headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
@@ -46,7 +46,7 @@ export const COVERS_KNOB: Record<OutfitId, boolean> = {
 export const OUTFIT_BELOW: Partial<Record<OutfitId, number>> = { scarf: 56 };
 
 /** 그림 위(y 0)로 솟는 만큼. 아래와 같이 자리 크기는 그대로 두고 위로 넘쳐 그린다 */
-export const OUTFIT_ABOVE: Partial<Record<OutfitId, number>> = { party: 82 };
+export const OUTFIT_ABOVE: Partial<Record<OutfitId, number>> = { party: 40 };
 
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
 export const OUTFIT_TOP = Object.fromEntries((Object.keys(FIT) as OutfitId[]).map((id) => [id, FIT[id].top])) as Record<OutfitId, number>;
@@ -148,13 +148,13 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'party':
-      // 머리 꼭대기에 얹은 큰 고깔. 그림 위(y 0 밖)로 솟아서 OUTFIT_ABOVE 만큼 더 그린다
+      // 세운 고깔. 밑단 가운데가 (0,0) — FIT 으로 머리 꼭대기에 얹고 머리 비탈을 따라 살짝 기울인다
       return (
         <G>
-          <Path d="M146,96 L232,-64 L298,98 C256,86 190,86 146,96 Z" fill="#6cc3a0" />
-          <Path d="M202.8,-9.6 L254.4,-8.9 L261,7.3 L194.2,6.4 Z M177,38.4 L274.2,39.7 L280.8,55.9 L168.4,54.4 Z" fill="#fff5d6" />
-          <Path d="M146,96 C190,86 256,86 298,98" stroke="#4fa885" strokeWidth={7} strokeLinecap="round" fill="none" />
-          <Circle cx={232} cy={-64} r={14} fill="#f2c14e" />
+          <Path d="M-52,0 L0,-112 L52,0 C20,-7 -20,-7 -52,0 Z" fill="#6cc3a0" />
+          <Path d="M-18.7,-71.7 L18.7,-71.7 L23.9,-60.5 L-23.9,-60.5 Z M-34.3,-38.1 L34.3,-38.1 L39.5,-26.9 L-39.5,-26.9 Z" fill="#fff5d6" />
+          <Path d="M-52,0 C-20,-7 20,-7 52,0" stroke="#4fa885" strokeWidth={6} strokeLinecap="round" fill="none" />
+          <Circle cx={0} cy={-112} r={11} fill="#f2c14e" />
         </G>
       );
     case 'headphones':
