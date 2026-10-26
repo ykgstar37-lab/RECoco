@@ -52,15 +52,17 @@ export interface PreviewProduct {
 }
 
 /**
- * 테마 미리보기: 한 칸 걸러 사진 없이 — 사진을 넣었을 때와 안 넣었을 때를 같이 보여준다.
- * 뒷면 칸·사진 칸이 없는 모양(팔찌)은 건드리지 않는다
+ * 테마 미리보기: 사진 없는 견본은 하나만 (마지막 칸), 나머지는 전부 사진을 채워 보여준다.
+ * 뒷면 칸과 전시 견본(전시 예시 그림을 보여줘야 해서)은 사진을 빼지 않는다. 사진 칸이 없는 모양(팔찌)은 건드리지 않는다
  */
 function alternatePhotos(samples: PreviewSample[]): PreviewSample[] {
   const bare = (r: RecoRecord): RecoRecord => (r.kind === 'fourcut' ? { ...r, photos: [], frameImage: null } : 'photo' in r ? ({ ...r, photo: null } as RecoRecord) : r);
-  return samples.map((s, i) => {
-    if (i % 2 === 0 || s.side === 'back') return s;
-    return { ...s, record: bare(s.record), more: s.more?.map(bare), caption: `${s.caption} · 사진 없이` };
+  const exhibition = (r: RecoRecord) => r.kind === 'show' && r.type === 'exhibition';
+  let last = -1;
+  samples.forEach((s, i) => {
+    if (s.side !== 'back' && !exhibition(s.record)) last = i;
   });
+  return samples.map((s, i) => (i === last ? { ...s, record: bare(s.record), more: s.more?.map(bare), caption: `${s.caption} · 사진 없이` } : s));
 }
 
 export function themeProduct(t: ThemeItem): PreviewProduct {
