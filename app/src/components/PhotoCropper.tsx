@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { Image, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FREE_ASPECTS } from '../lib/photoSlots';
 import { COLORS, FONTS } from '../theme';
 import { Photo, PhotoCrop } from '../types';
+import { ModalSafeArea } from './ModalSafeArea';
 
 const MAX_ZOOM = 6;
 
@@ -129,7 +129,8 @@ export function PhotoCropper({ photo, aspect, free = false, step, onDone, onCanc
   return (
     <Modal visible={!!photo} animationType="fade" presentationStyle="fullScreen" onRequestClose={onCancel}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+        {/* Modal 안의 SafeAreaView 는 윗여백을 0으로 잡아 취소·완료가 시계와 겹친다 → ModalSafeArea */}
+        <ModalSafeArea style={styles.root}>
           <View style={styles.top}>
             <Pressable onPress={onCancel} hitSlop={10}>
               <Text style={styles.cancel}>{step ? '건너뛰기' : '취소'}</Text>
@@ -188,7 +189,7 @@ export function PhotoCropper({ photo, aspect, free = false, step, onDone, onCanc
               </Pressable>
             </View>
           </View>
-        </SafeAreaView>
+        </ModalSafeArea>
       </GestureHandlerRootView>
     </Modal>
   );
