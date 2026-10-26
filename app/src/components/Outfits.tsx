@@ -17,10 +17,10 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
   glasses: { from: [0, 0], to: [0, 0], k: 1, top: 160 },
-  scarf: { from: [0, 0], to: [0, 0], k: 1, top: 196 },
+  scarf: { from: [0, 0], to: [0, 0], k: 1, top: 258 },
 };
 
-const SCARF_BAND = 'M30,196 Q200,352 370,196 Q384,220 370,244 Q200,392 30,244 Q16,220 30,196 Z';
+const SCARF_BAND = 'M38,258 Q200,296 362,258 Q370,274 360,290 Q200,328 40,290 Q30,274 38,258 Z';
 const HEART = '#fff'; // 하트 꼬랑지 (코코와 같은 흰색)
 const LINE = '#3a2a22'; // 고양이 귀·수염 (코코 눈과 같은 색)
 const EAR = '#2e2a2f'; // 강아지 귀 (흰 코코와 대비되는 검정)
@@ -200,21 +200,16 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'scarf':
-      // 빨간 목도리: 몸에 칠한 띠가 아니라 두께·테두리가 있는 따로 된 목도리를 몸에 감는다.
-      // 볼 아래 높이로 감아 앞이 아래로 처지고(양옆 아래로 몸이 보여야 '맨' 것처럼 보인다), 양끝은 몸 밖으로 살짝,
-      // 초록 줄은 띠를 가로지르는 줄무늬, 왼쪽 옆에 묶은 매듭에서 꼬리 두 개가 엇갈려 늘어진다 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
+      // 빨간 목도리: 몸 앞을 가로지르는 띠 + 세로 초록 줄 + 오른쪽 앞에 곧게 늘어진 꼬리
+      // (design/tools/make_samples.js 의 SCARF 와 같은 모양, 꼬리만 그림 높이 320 안에 들게 짧다)
       return (
         <G>
-          <Path d="M36,250 Q200,398 364,250" stroke="rgba(120,40,0,0.12)" strokeWidth={10} fill="none" />
           <Path d={SCARF_BAND} fill="#d64545" />
-          <Path d="M64,224.1 L77.6,233.6 L77.6,279.6 L64,270.6 ZM99.7,246.8 L113.3,253.7 L113.3,298.8 L99.7,292.2 ZM135.4,262.7 L149,267 L149,311.3 L135.4,307.3 ZM171.1,271.7 L184.7,273.4 L184.7,317.4 L171.1,315.9 ZM206.8,273.9 L220.4,272.9 L220.4,316.9 L206.8,317.9 ZM242.5,269.1 L256.1,265.5 L256.1,309.9 L242.5,313.4 ZM278.2,257.5 L291.8,251.3 L291.8,296.4 L278.2,302.3 ZM313.9,239 L327.5,230.1 L327.5,276.4 L313.9,284.8 ZM349.6,213.6 L363.2,202.1 L363.2,249.8 L349.6,260.7 Z" fill="#2f8f5b" />
+          <Path d="M60.7,262.9 L74.3,265.6 L75.8,297.6 L62.4,294.9 ZM100.9,269.9 L114.5,271.7 L115.5,303.7 L102.1,301.9 ZM141,274.5 L154.6,275.5 L155.2,307.5 L141.8,306.5 ZM181.2,276.7 L194.8,277 L194.9,309 L181.4,308.7 ZM221.4,276.7 L235,276.1 L234.6,308.1 L221.1,308.7 ZM261.6,274.3 L275.2,272.9 L274.2,304.9 L260.8,306.3 ZM301.7,269.5 L315.3,267.4 L313.9,299.4 L300.5,301.5 ZM341.9,262.4 L355.5,259.5 L353.6,291.5 L340.2,294.4 Z" fill="#2f8f5b" />
           <Path d={SCARF_BAND} fill="none" stroke="#b33636" strokeWidth={4} />
-          <Path d="M60,250 Q76,282 84,316 L108,310 Q96,278 80,248 Z" fill="#c93d3d" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M86,252 Q66,284 34,302 L48,318 Q80,294 100,258 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M78,290 L101,284 M47,294 L61,308" stroke="#2f8f5b" strokeWidth={7} />
-          <Path d="M88,316 l1,5 M97,314 l1,5 M106,311 l2,5 M37,305 l-4,4 M42,311 l-4,4 M47,317 l-3,4" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
-          <Path d="M60,224 Q78,214 96,226 Q100,242 92,258 Q76,264 62,256 Q54,240 60,224 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} />
-          <Path d="M62,240 Q78,232 94,246 M66,226 Q72,240 68,254" stroke="#b33636" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.7} />
+          <Path d="M250,294 L286,292 L288.2,312 L252.4,314 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M251.2,304 L287.2,302" stroke="#2f8f5b" strokeWidth={9} />
+          <Path d="M256.4,314.0 l0,5 M265.7,313.5 l0,5 M274.9,313.0 l0,5 M284.2,312.5 l0,5" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
         </G>
       );
     case 'trapper':
