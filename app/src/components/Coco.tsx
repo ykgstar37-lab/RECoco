@@ -122,24 +122,21 @@ export function CocoArt({
   tone = 'orange',
   id = 'coco',
   outfit,
-  fit = false,
 }: {
   size: number;
   mood?: CocoMood;
   tone?: CocoTone;
   id?: string;
   outfit?: OutfitId | null;
-  /** 작은 칸용: 위로 솟은 옷까지 칸 안에 들게 그림을 줄이고, 아래로 늘어진 건 자른다 */
-  fit?: boolean;
 }) {
   const c = TONES[tone];
   const above = (outfit && OUTFIT_ABOVE[outfit]) || 0;
-  const below = fit ? 0 : (outfit && OUTFIT_BELOW[outfit]) || 0;
-  const overflow = !fit && (above || below);
+  const below = (outfit && OUTFIT_BELOW[outfit]) || 0;
+  const overflow = above || below;
   const art = (
     <Svg
       width={size}
-      height={fit ? size * COCO_RATIO : (size * (VB_H + above + below)) / VB_W}
+      height={(size * (VB_H + above + below)) / VB_W}
       viewBox={`0 ${-above} ${VB_W} ${VB_H + above + below}`}
       style={overflow ? { position: 'absolute', top: (-size * above) / VB_W, left: 0 } : undefined}
     >
@@ -172,6 +169,7 @@ export function CocoArt({
   );
   if (!overflow) return art;
   // 고깔처럼 위로 솟거나 목도리 꼬리처럼 아래로 늘어지는 옷: 자리 크기는 그대로, 넘친 부분은 주변 UI 와 겹친다
+  // (홈에서는 대사·주간 달력·아래 버튼이 코코보다 나중에 그려져서 넘친 부분이 그 뒤로 깔리고, 옷장·상점 칸은 칸 테두리에서 자른다)
   return <View style={{ width: size, height: size * COCO_RATIO }}>{art}</View>;
 }
 

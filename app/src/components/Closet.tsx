@@ -113,7 +113,7 @@ function Tile({
         style={[styles.tile, selected && styles.tileOn]}
         accessibilityLabel={`${label}${locked ? ' (잠김)' : ''}`}>
         <View style={[styles.tileArt, locked && { opacity: 0.45 }]}>
-          <CocoArt size={70} tone="white" outfit={outfit} id={`tile-${outfit ?? 'none'}`} fit />
+          <CocoArt size={70} tone="white" outfit={outfit} id={`tile-${outfit ?? 'none'}`} />
         </View>
         <Text style={styles.tileLabel} numberOfLines={1}>
           {locked ? '🔒 ' : ''}
@@ -149,7 +149,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   tileOn: { borderColor: COLORS.orange, backgroundColor: COLORS.orangeSoft },
-  tileArt: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4 },
+  // 고깔·목도리 꼬리처럼 그림 밖으로 넘치는 옷은 칸 테두리에서 자른다
+  tileArt: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4, overflow: 'hidden' },
   tileLabel: { color: COLORS.ink, fontSize: 12, fontFamily: FONTS.sansBold, marginTop: 6 },
   tileStatus: { color: COLORS.sub, fontSize: 10, fontFamily: FONTS.sans, marginTop: 1 },
   action: { marginHorizontal: 16, marginBottom: 8, backgroundColor: COLORS.orange, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },

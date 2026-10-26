@@ -100,7 +100,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
                 return (
                   <Pressable key={o.id} onPress={onOpenCloset} style={({ pressed }) => [styles.hatCell, pressed && { opacity: 0.7 }]}>
                     <View style={[styles.hat, !have && styles.hatOff]}>
-                      <CocoArt size={60} tone="white" outfit={o.id} id={`shop-${o.id}`} fit />
+                      <CocoArt size={60} tone="white" outfit={o.id} id={`shop-${o.id}`} />
                     </View>
                     <Text style={styles.hatName} numberOfLines={1}>
                       {o.name}
@@ -231,7 +231,8 @@ const styles = StyleSheet.create({
   // 한 줄에 4칸
   hats: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, rowGap: 10 },
   hatCell: { width: '25%', paddingHorizontal: 4, alignItems: 'center' },
-  hat: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4 },
+  // 고깔·목도리 꼬리처럼 그림 밖으로 넘치는 옷은 칸 테두리에서 자른다
+  hat: { backgroundColor: COLORS.orange, borderRadius: 12, paddingHorizontal: 2, paddingTop: 4, overflow: 'hidden' },
   hatOff: { backgroundColor: COLORS.line, opacity: 0.55 },
   hatName: { color: COLORS.ink, fontSize: 12, fontFamily: FONTS.sansBold, marginTop: 5 },
   hatPrice: { color: COLORS.sub, fontSize: 11, fontFamily: FONTS.sans, marginTop: 1 },
