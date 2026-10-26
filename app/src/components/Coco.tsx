@@ -5,7 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, w
 import Svg, { ClipPath, Circle, Defs, Ellipse, G, Path } from 'react-native-svg';
 
 import { bump } from '../lib/haptics';
-import { COVERS_KNOB, OUTFIT_BELOW, OutfitArt, OutfitId } from './Outfits';
+import { COVERS_KNOB, OUTFIT_ABOVE, OUTFIT_BELOW, OutfitArt, OutfitId } from './Outfits';
 
 export type CocoMood = 'idle' | 'happy' | 'print' | 'wow' | 'squish' | 'blink' | 'gag' | 'spew';
 export type CocoTone = 'orange' | 'white';
@@ -122,21 +122,26 @@ export function CocoArt({
   tone = 'orange',
   id = 'coco',
   outfit,
+  fit = false,
 }: {
   size: number;
   mood?: CocoMood;
   tone?: CocoTone;
   id?: string;
   outfit?: OutfitId | null;
+  /** 작은 칸용: 위로 솟은 옷까지 칸 안에 들게 그림을 줄이고, 아래로 늘어진 건 자른다 */
+  fit?: boolean;
 }) {
   const c = TONES[tone];
-  const below = (outfit && OUTFIT_BELOW[outfit]) || 0;
+  const above = (outfit && OUTFIT_ABOVE[outfit]) || 0;
+  const below = fit ? 0 : (outfit && OUTFIT_BELOW[outfit]) || 0;
+  const overflow = !fit && (above || below);
   const art = (
     <Svg
       width={size}
-      height={(size * (VB_H + below)) / VB_W}
-      viewBox={`0 0 ${VB_W} ${VB_H + below}`}
-      style={below ? { position: 'absolute', top: 0, left: 0 } : undefined}
+      height={fit ? size * COCO_RATIO : (size * (VB_H + above + below)) / VB_W}
+      viewBox={`0 ${-above} ${VB_W} ${VB_H + above + below}`}
+      style={overflow ? { position: 'absolute', top: (-size * above) / VB_W, left: 0 } : undefined}
     >
       <Ellipse cx={200} cy={306} rx={150} ry={10} fill={c.shadow} />
       {outfit && COVERS_KNOB[outfit] ? (
@@ -165,8 +170,8 @@ export function CocoArt({
       {outfit && <OutfitArt id={outfit} />}
     </Svg>
   );
-  if (!below) return art;
-  // 목도리 꼬리처럼 아래로 늘어지는 옷: 자리 크기는 그대로, 넘친 부분은 아래 UI 뒤로 겹친다
+  if (!overflow) return art;
+  // 고깔처럼 위로 솟거나 목도리 꼬리처럼 아래로 늘어지는 옷: 자리 크기는 그대로, 넘친 부분은 주변 UI 와 겹친다
   return <View style={{ width: size, height: size * COCO_RATIO }}>{art}</View>;
 }
 

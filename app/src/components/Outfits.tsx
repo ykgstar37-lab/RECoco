@@ -12,7 +12,7 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
-  party: { from: [236, 98], to: [238, 132], k: 1.3, r: 6, top: 6 },
+  party: { from: [0, 0], to: [0, 0], k: 1, top: -78 },
   headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
@@ -44,6 +44,9 @@ export const COVERS_KNOB: Record<OutfitId, boolean> = {
 
 /** 그림 아래(viewBox 높이 320)로 늘어지는 만큼. 코코 자리 크기는 그대로 두고 아래 UI 뒤로 겹쳐 그린다 */
 export const OUTFIT_BELOW: Partial<Record<OutfitId, number>> = { scarf: 56 };
+
+/** 그림 위(y 0)로 솟는 만큼. 아래와 같이 자리 크기는 그대로 두고 위로 넘쳐 그린다 */
+export const OUTFIT_ABOVE: Partial<Record<OutfitId, number>> = { party: 82 };
 
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
 export const OUTFIT_TOP = Object.fromEntries((Object.keys(FIT) as OutfitId[]).map((id) => [id, FIT[id].top])) as Record<OutfitId, number>;
@@ -145,13 +148,13 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'party':
-      // 높이 세운 고깔 (밑변을 좁히고 키를 키움)
+      // 머리 꼭대기에 얹은 큰 고깔. 그림 위(y 0 밖)로 솟아서 OUTFIT_ABOVE 만큼 더 그린다
       return (
         <G>
-          <Path d="M196,98 L236,12 L276,100 C252,94 220,93 196,98 Z" fill="#6cc3a0" />
-          <Path d="M221.6,43 L250.4,43.7 L254.4,52.5 L217.6,51.6 Z M209.6,68.8 L262.4,70.1 L266.4,78.9 L205.6,77.4 Z" fill="#fff5d6" />
-          <Path d="M196,98 C220,93 252,94 276,100" stroke="#4fa885" strokeWidth={6} strokeLinecap="round" fill="none" />
-          <Circle cx={236} cy={12} r={11} fill="#f2c14e" />
+          <Path d="M146,96 L232,-64 L298,98 C256,86 190,86 146,96 Z" fill="#6cc3a0" />
+          <Path d="M202.8,-9.6 L254.4,-8.9 L261,7.3 L194.2,6.4 Z M177,38.4 L274.2,39.7 L280.8,55.9 L168.4,54.4 Z" fill="#fff5d6" />
+          <Path d="M146,96 C190,86 256,86 298,98" stroke="#4fa885" strokeWidth={7} strokeLinecap="round" fill="none" />
+          <Circle cx={232} cy={-64} r={14} fill="#f2c14e" />
         </G>
       );
     case 'headphones':

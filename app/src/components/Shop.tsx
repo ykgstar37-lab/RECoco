@@ -100,7 +100,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
                 return (
                   <Pressable key={o.id} onPress={onOpenCloset} style={({ pressed }) => [styles.hatCell, pressed && { opacity: 0.7 }]}>
                     <View style={[styles.hat, !have && styles.hatOff]}>
-                      <CocoArt size={60} tone="white" outfit={o.id} id={`shop-${o.id}`} />
+                      <CocoArt size={60} tone="white" outfit={o.id} id={`shop-${o.id}`} fit />
                     </View>
                     <Text style={styles.hatName} numberOfLines={1}>
                       {o.name}

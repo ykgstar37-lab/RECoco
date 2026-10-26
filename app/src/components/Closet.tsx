@@ -6,7 +6,7 @@ import { tick } from '../lib/haptics';
 import { OUTFITS, OutfitItem, isUnlocked } from '../lib/shop';
 import { COLORS, FONTS } from '../theme';
 import { Coco, CocoArt } from './Coco';
-import { OutfitId } from './Outfits';
+import { OUTFIT_BELOW, OutfitId } from './Outfits';
 
 interface Props {
   visible: boolean;
@@ -52,7 +52,8 @@ export function Closet({ visible, recordCount, outfit, onClose, onWear }: Props)
         <ScrollView contentContainerStyle={styles.body}>
           <View style={styles.stage}>
             <Coco size={200} tone="white" mood={unlocked ? 'happy' : 'idle'} outfit={trying} interactive id="closet-coco" />
-            <Text style={styles.stageName}>{item ? item.name : '맨머리'}</Text>
+            {/* 목도리 꼬리처럼 그림 아래로 늘어지는 옷은 이름과 겹치지 않게 띄운다 */}
+            <Text style={[styles.stageName, { marginTop: trying ? ((OUTFIT_BELOW[trying] ?? 0) * 200) / 400 : 0 }]}>{item ? item.name : '맨머리'}</Text>
           </View>
 
           <View style={styles.grid}>
@@ -112,7 +113,7 @@ function Tile({
         style={[styles.tile, selected && styles.tileOn]}
         accessibilityLabel={`${label}${locked ? ' (잠김)' : ''}`}>
         <View style={[styles.tileArt, locked && { opacity: 0.45 }]}>
-          <CocoArt size={70} tone="white" outfit={outfit} id={`tile-${outfit ?? 'none'}`} />
+          <CocoArt size={70} tone="white" outfit={outfit} id={`tile-${outfit ?? 'none'}`} fit />
         </View>
         <Text style={styles.tileLabel} numberOfLines={1}>
           {locked ? '🔒 ' : ''}
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
   close: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   closeText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   body: { paddingHorizontal: 18, paddingBottom: 24, gap: 16 },
-  stage: { backgroundColor: COLORS.orange, borderRadius: 24, alignItems: 'center', paddingTop: 22, paddingBottom: 14, gap: 6 },
+  stage: { backgroundColor: COLORS.orange, borderRadius: 24, alignItems: 'center', paddingTop: 48, paddingBottom: 14, gap: 6 },
   stageName: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   // 한 줄에 4칸 (칸마다 좌우 4씩 띄움)
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, rowGap: 8 },
