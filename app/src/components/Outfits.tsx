@@ -12,7 +12,7 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
-  party: { from: [0, 0], to: [236, 86], k: 1, r: 10, top: -36 },
+  party: { from: [0, 0], to: [234, 87], k: 1, r: 9, top: -35 },
   headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
