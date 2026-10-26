@@ -54,7 +54,7 @@ App Store Connect → 앱 내 구입에 손으로 등록할 때 복붙하는 표
 | 15 | `recoco.theme.fourcut-house` | 하우스네컷 | 1,000원 | 길쭉한 집 창틀에 네컷 띠를 끼운다 · 지붕 4가지(줄무늬·격자·땡땡이·굴뚝) · 뒤집으면 그날의 일기 |
 | 16 | `recoco.theme.photo-receipt` | 사진 영수증 | 1,000원 | 사진 위에 흰 글씨로 적는 주문서 · 흑백 프린트로 글 아래에 붙일 수도 |
 
-## 코코 옷 9개 — 나중에 팔 것
+## 코코 옷 11개 — 나중에 팔 것
 
 v1.0 에서는 영수증 장수로 하나씩 열린다(`lib/shop.ts` 의 `OUTFITS`). 팔기로 한 시점에
 아래 ID 를 그대로 쓴다. **리본·하트 꼬랑지·밀짚모자는 원래부터 보상이었으므로 팔지 않는다.**
@@ -64,9 +64,11 @@ v1.0 에서는 영수증 장수로 하나씩 열린다(`lib/shop.ts` 의 `OUTFIT
 | `recoco.outfit.glasses` | 빨간 안경 | 1,000원 | 15장 |
 | `recoco.outfit.beret` | 베레모 | 1,000원 | 21장 |
 | `recoco.outfit.party` | 파티 고깔 | 1,000원 | 28장 |
+| `recoco.outfit.pompom` | 주황 방울 니트 | 1,000원 | 32장 |
 | `recoco.outfit.headphones` | 헤드폰 | 1,000원 | 36장 |
 | `recoco.outfit.cat` | 고양이 | 1,000원 | 45장 |
 | `recoco.outfit.earflap` | 귀도리 니트 | 1,000원 | 56장 |
+| `recoco.outfit.snowcap` | 빨간 방울 니트 | 1,000원 | 63장 |
 | `recoco.outfit.dog` | 강아지 귀 | 1,000원 | 70장 |
 | `recoco.outfit.trapper` | 털 방한모 | 1,000원 | 84장 |
 | `recoco.outfit.crown` | 왕관 | 1,000원 | 100장 |

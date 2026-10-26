@@ -59,17 +59,18 @@ function coco(x, y, w, { tone = 'white', mood = 'idle', flip = false, rot = 0, o
   </g>`;
 }
 
-/** 코코 머리에 씌우는 털모자 (over 에 넣는다). 몸 모양으로 잘라 머리에 꼭 맞게 */
+/** 방울 니트 (over 에 넣는다). 앱 옷장의 빨간·주황 방울 니트(Outfits.tsx 의 Beanie)와 같은 모양 */
 function beanie(color, band, pom) {
-  const id = `b${uid++}`;
-  const ribs = Array.from({ length: 13 }, (_, i) => `<path d="M${68 + i * 22},10 L${68 + i * 22},104" stroke="#000" stroke-width="4" opacity="0.1"/>`).join('');
-  return `<clipPath id="${id}"><path d="${BODY}"/></clipPath>
-    <g clip-path="url(#${id})">
-      <path d="M0,0 L400,0 L400,106 Q200,94 0,106 Z" fill="${color}"/>${ribs}
-      <path d="M0,104 Q200,92 400,104 L400,134 Q200,122 0,134 Z" fill="${band}"/>
-    </g>
-    <circle cx="228" cy="50" r="30" fill="${pom}"/>`;
+  const ribs = [86, 114, 142, 171, 200, 229, 258, 286, 314].map((x) => `<path d="M${x},${(160 - 100 * Math.sqrt(1 - ((x - 200) / 150) ** 2)).toFixed(1)} L${x},138" stroke="#000" stroke-width="5" stroke-linecap="round" opacity="0.1"/>`).join('');
+  const bandRibs = [64, 92, 120, 148, 176, 204, 232, 260, 288, 316, 340].map((x) => `<path d="M${x},${(136 - Math.sin(((x - 44) / 312) * Math.PI) * 10).toFixed(1)} l0,26" stroke="#000" stroke-width="4" stroke-linecap="round" opacity="0.12"/>`).join('');
+  return `<path d="M54,150 C54,22 346,22 346,150 Z" fill="${color}"/>${ribs}
+    <path d="M44,140 C120,118 280,118 356,140 L358,178 C280,156 120,156 42,178 Z" fill="${band}"/>${bandRibs}
+    <circle cx="200" cy="46" r="30" fill="${pom}"/><circle cx="182" cy="36" r="13" fill="${pom}"/><circle cx="220" cy="34" r="13" fill="${pom}"/>`;
 }
+
+/** 짧고 동그란 흰 손·발 (코코와 같은 흰색 + 테두리) */
+const nub = (cx, cy, rx, ry, rot = 0) =>
+  `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#fff" stroke="#e9d6c6" stroke-width="5" transform="rotate(${rot} ${cx} ${cy})"/>`;
 
 /** 코코 몸 안쪽만 칠하기 (옷 같은 것) */
 function inside(content) {
@@ -149,14 +150,19 @@ const guitar = (col = '#e5383b', neck = '#8a5a3c') => `
 
 // ── 장면 ─────────────────────────────────────────────────────────────────────
 const SCENES = {
-  // 눈밭의 눈사람 코코 + 털모자 (코코치 창)
+  // 눈밭의 눈사람 코코 + 목도리 (코코치 창). 목도리가 입을 가리지 않게 입이 작은 표정
   cocochi: [480, 480, () => svg(480, 480, `
     <rect width="480" height="480" fill="url(#sky)"/>
     ${pine(70, 300, 170, '#5d8f7a', true)}${pine(420, 290, 140, '#6a9c86', true)}${pine(360, 270, 90, '#7aa894', true)}
     <path d="M0,300 Q120,270 240,292 T480,286 L480,480 L0,480 Z" fill="#f4f8fb"/>
     <path d="M0,360 Q160,330 300,352 T480,350 L480,480 L0,480 Z" fill="#e6eef4"/>
-    ${coco(240, 452, 300, { mood: 'happy', over: beanie('#d64545', '#2f8f5b', '#fff'),
-      under: `<path d="M60,200 L-40,120 M-10,150 L-30,110 M340,200 L440,120 M410,150 L430,110" stroke="#6b4428" stroke-width="12" stroke-linecap="round"/>` })}
+    ${coco(240, 420, 300, { mood: 'calm', over: inside(`
+      <path d="M0,252 Q200,276 400,252 L400,288 Q200,312 0,288 Z" fill="#d64545"/>
+      ${[70, 110, 150, 190, 230, 270, 310].map((x) => `<path d="M${x},${254 + 24 * (1 - ((x - 200) / 200) ** 2)} l0,34" stroke="#2f8f5b" stroke-width="12"/>`).join('')}`) + `
+      <path d="M262,276 L300,272 L310,346 L276,350 Z" fill="#d64545"/>
+      ${[292, 312, 332].map((y) => `<path d="M${268 + (y - 276) * 0.2},${y} L${304 + (y - 276) * 0.1},${y - 3}" stroke="#2f8f5b" stroke-width="9"/>`).join('')}
+      <path d="M278,350 l-2,10 M288,349 l0,10 M298,348 l1,10 M307,347 l2,10" stroke="#d64545" stroke-width="5" stroke-linecap="round"/>`,
+      under: `<path d="M64,200 L8,156 M26,170 L18,146 M336,200 L392,156 M374,170 L382,146" stroke="#6b4428" stroke-width="12" stroke-linecap="round"/>` })}
     ${snow(70, 480, 480, 7)}
   `, lin('sky', [[0, '#c9dcec'], [1, '#eef4fa']]))],
 
@@ -171,6 +177,7 @@ const SCENES = {
     ${grassBlades(140, { x0: 0, x1: 480, y: 330, h: 40, seed: 3, color: '#7cc155' })}
     <ellipse cx="240" cy="352" rx="300" ry="34" fill="#5fb3e0"/>
     <ellipse cx="200" cy="346" rx="120" ry="8" fill="#a6dcf5" opacity="0.7"/>
+    ${flowers(30, { x0: 10, x1: 470, y0: 190, y1: 300, seed: 11, colors: ['#fff', '#ffd1dc', '#ff9ec4'], r: [3, 7] })}
     ${coco(200, 312, 230, { mood: 'happy' })}
     <g transform="translate(350,300)">
       <ellipse cx="0" cy="8" rx="44" ry="8" fill="rgba(0,0,0,0.15)"/>
@@ -181,7 +188,7 @@ const SCENES = {
       <path d="M-6,-64 Q0,-78 8,-64" stroke="#ffe066" stroke-width="6" fill="none" stroke-linecap="round"/>
       <path d="M-14,10 L-14,2 M14,10 L14,2" stroke="#f59f3a" stroke-width="5" stroke-linecap="round"/>
     </g>
-    ${flowers(14, { x0: 10, x1: 470, y0: 190, y1: 300, seed: 11, colors: ['#fff', '#ffd1dc'], r: [3, 6] })}
+    ${(() => { const R = rnd(29); let s = ''; for (let i = 0; i < 60 && s.split('<ellipse').length <= 34; i++) { const x = R() * 480, y = 20 + R() * 300, k = 0.7 + R() * 0.7; if ((x > 70 && x < 330 && y > 140) || (x > 300 && x < 400 && y > 230)) continue; s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(7 * k).toFixed(1)}" ry="${(4 * k).toFixed(1)}" fill="${R() > 0.4 ? '#ffb3cf' : '#ff8fb8'}" opacity="${(0.75 + R() * 0.25).toFixed(2)}" transform="rotate(${(R() * 180).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; } return s; })()}
   `, lin('sky', [[0, '#7cc4f2'], [1, '#d8f0ff']]))],
 
   // 무대에서 빨간 기타 치는 코코 (콘서트)
@@ -215,7 +222,7 @@ const SCENES = {
         <circle cx="4" cy="0" r="22" fill="#555"/><circle cx="4" cy="0" r="14" fill="#1a1a1a"/><circle cx="-1" cy="-5" r="5" fill="#9ad"/>
         <rect x="22" y="-28" width="16" height="10" rx="2" fill="#fff"/>
       </g>
-      <path d="M330,240 Q352,210 334,182" stroke="#e8692a" stroke-width="22" stroke-linecap="round" fill="none"/>` })}
+      ${nub(338, 214, 18, 24, 15)}` })}
     <circle cx="352" cy="146" r="60" fill="url(#flash)"/>
     <path d="M352,96 L360,136 L400,146 L360,156 L352,196 L344,156 L304,146 L344,136 Z" fill="#fff" opacity="0.9"/>
   `, rad('flash', [[0, '#fff', 1], [1, '#fff', 0]]))],
@@ -262,8 +269,7 @@ const SCENES = {
     ${coco(250, 560, 300, { mood: 'happy', rot: 6, over: `
       <path d="M70,140 Q200,96 330,140 L334,166 Q200,124 66,166 Z" fill="#3a86ff"/>
       <path d="M330,150 Q372,150 386,176 M330,156 Q366,176 372,204" stroke="#3a86ff" stroke-width="12" stroke-linecap="round" fill="none"/>`,
-      under: `<path d="M120,296 Q90,336 40,330 M280,296 Q330,320 350,290" stroke="#e8692a" stroke-width="26" stroke-linecap="round" fill="none"/>
-        <ellipse cx="34" cy="332" rx="34" ry="18" fill="#fff"/><ellipse cx="356" cy="286" rx="34" ry="18" fill="#fff" transform="rotate(-30 356 286)"/>` })}
+      under: `${nub(40, 290, 36, 22, 35)}${nub(322, 316, 38, 22, -8)}` })}
     ${[0, 1, 2].map((i) => `<path d="M${90 - i * 18},${420 + i * 34} L${150 - i * 10},${420 + i * 34}" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity="0.8"/>`).join('')}
     <g transform="translate(400,500)"><rect x="-22" y="-50" width="44" height="76" rx="10" fill="#7fd1f5"/><rect x="-14" y="-62" width="28" height="16" rx="4" fill="#3a86ff"/><rect x="-22" y="-20" width="44" height="18" fill="#fff" opacity="0.6"/></g>
   `, lin('sky', [[0, '#8fd0f5'], [1, '#fef6e4']]))],
@@ -277,10 +283,12 @@ const SCENES = {
     <ellipse cx="240" cy="470" rx="250" ry="120" fill="#2c3b2a" opacity="0.6"/>
     ${coco(240, 400, 310, { mood: 'calm', over: inside(`
       <path d="M0,276 Q200,256 400,276 L400,320 L0,320 Z" fill="#6b2d3f"/>
-      <path d="M170,268 Q200,292 230,268 L222,320 L178,320 Z" fill="#f4ecd8"/>`) })}
+      <path d="M170,268 Q200,292 230,268 L222,320 L178,320 Z" fill="#f4ecd8"/>`) + `
+      <path d="M58,184 Q46,190 46,204" stroke="#d8b55a" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <circle cx="44" cy="224" r="19" fill="url(#pearl)"/><circle cx="38" cy="216" r="5.5" fill="#fff"/>` })}
     <g opacity="0.75">${(() => { const R = rnd(17); let s = ''; for (let i = 0; i < 260; i++) s += `<rect x="${(40 + R() * 392).toFixed(0)}" y="${(40 + R() * 392).toFixed(0)}" width="8" height="3" fill="${R() > 0.5 ? '#000' : '#fff'}" opacity="0.06" transform="rotate(${(R() * 180).toFixed(0)} 240 240)"/>`; return s; })()}</g>
     <path d="M60,420 Q120,380 160,420 L130,440 Z" fill="#e85d3a" opacity="0.85"/><path d="M360,400 Q400,360 430,420 L420,440 L360,440 Z" fill="#f2a33a" opacity="0.8"/>
-  `, rad('bg', [[0, '#5b6b46'], [1, '#1d2617']], 0.45, 0.35, 0.8))],
+  `, rad('bg', [[0, '#5b6b46'], [1, '#1d2617']], 0.45, 0.35, 0.8) + rad('pearl', [[0, '#ffffff'], [0.6, '#eef0f2'], [1, '#b9bec6']], 0.4, 0.35, 0.6))],
 
   // 정물화: 케이크·화병·해바라기 (전시 2)
   'exhibit-2': [480, 480, () => svg(480, 480, `
