@@ -1,66 +1,88 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>레코코 RECoco</title>
-    <meta name="description" content="읽은 책, 본 영화, 쓴 돈, 떠난 여행, 인생네컷을 영수증·티켓처럼 출력해 모으는 기록 앱" />
-    <style>
-      :root {
-        --ink: #2b2118;
-        --sub: #8a7d70;
-        --line: #eadfd3;
-        --bg: #fffaf4;
-        --orange: #ff7a2f;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        padding: 48px 16px 80px;
-        background: var(--bg);
-        color: var(--ink);
-        font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-        line-height: 1.75;
-        font-size: 16px;
-      }
-      main { max-width: 680px; margin: 0 auto; }
-      h1 { font-size: 30px; margin: 0 0 4px; }
-      h1 span { color: var(--orange); }
-      h2 { font-size: 18px; margin: 36px 0 10px; padding-top: 18px; border-top: 1px solid var(--line); }
-      .lead { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 20px 0 0; }
-      ul { padding-left: 20px; }
-      li { margin: 4px 0; }
-      a { color: var(--orange); }
-      footer { margin-top: 44px; color: var(--sub); font-size: 14px; }
-      @media (max-width: 480px) { body { padding-top: 32px; } h1 { font-size: 24px; } }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1>레코코 <span>RECoco</span></h1>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>레코코 RECoco</title>
+<meta name="description" content="읽은 책, 본 영화, 쓴 돈, 떠난 여행, 인생네컷을 영수증·티켓처럼 출력해 모으는 기록 앱" />
+<link rel="icon" href="./brand/favicon.png" />
+<style>
+  /* SubFlow 약관 페이지(mysubflow.app/privacy)와 같은 틀, 포인트 색만 레코코 주황 */
+  :root {
+    --ground:#fffaf4; --surface:#fff; --ink:#2b2118; --ink-soft:#5a4a3d; --ink-faint:#9a8a7c;
+    --line:#f0e2d4; --accent:#e8692a; --surface-2:#fff1e4;
+    --font:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI","Malgun Gothic",sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root{ --ground:#17120e; --surface:#211a14; --ink:#f7efe7; --ink-soft:#d4c6b8; --ink-faint:#9c8c7e; --line:#3a2e24; --accent:#ff9a5c; --surface-2:#2a2018; } }
+  :root[data-theme="light"]{ --ground:#fffaf4; --surface:#fff; --ink:#2b2118; --ink-soft:#5a4a3d; --ink-faint:#9a8a7c; --line:#f0e2d4; --accent:#e8692a; --surface-2:#fff1e4; }
+  :root[data-theme="dark"]{ --ground:#17120e; --surface:#211a14; --ink:#f7efe7; --ink-soft:#d4c6b8; --ink-faint:#9c8c7e; --line:#3a2e24; --accent:#ff9a5c; --surface-2:#2a2018; }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font);background:var(--ground);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .top{border-bottom:1px solid var(--line);}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+  .top .wrap{display:flex;align-items:center;height:60px;}
+  .top img{height:20px;display:block;}
+  /* 로고는 배경 테마에 맞춰 검정/흰색 버전을 바꿔 끼운다 */
+  .top .on-dark{display:none;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .top .on-light{display:none;}
+    :root:not([data-theme="light"]) .top .on-dark{display:block;}
+  }
+  :root[data-theme="dark"] .top .on-light{display:none;}
+  :root[data-theme="dark"] .top .on-dark{display:block;}
+  main{padding:48px 0 80px;}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px;}
+  .meta{color:var(--ink-faint);font-size:13px;margin-bottom:8px;}
+  .notice{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:14px;color:var(--ink-soft);margin:20px 0 32px;}
+  .notice b{color:var(--ink);}
+  h2{font-size:20px;margin:38px 0 12px;letter-spacing:-.01em;}
+  p,li{color:var(--ink-soft);font-size:15px;}
+  b{color:var(--ink);}
+  a{color:var(--accent);}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px;}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;color:var(--ink-soft);}
+  th{background:var(--surface-2);color:var(--ink);font-weight:700;}
+  .wrap-scroll{overflow-x:auto;}
+  .back{display:inline-block;margin-top:40px;font-size:14px;color:var(--accent);font-weight:600;}
+  /* 자주 묻는 것: 질문만 보이고 누르면 답이 펼쳐진다 */
+  details{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin:10px 0;}
+  summary{list-style:none;cursor:pointer;padding:15px 46px 15px 18px;font-weight:700;font-size:15px;position:relative;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"";position:absolute;right:20px;top:50%;width:8px;height:8px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-70%) rotate(45deg);transition:transform .2s;}
+  details[open] summary::after{transform:translateY(-30%) rotate(-135deg);}
+  details p{margin:0;padding:0 18px 16px;}
+  @media (max-width:480px){ main{padding-top:32px;} h1{font-size:24px;} .wrap{padding:0 16px;} }
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><a href="./"><img class="on-light" src="./brand/recoco-logo-black.png" alt="RECoco" /><img class="on-dark" src="./brand/recoco-logo-white.png" alt="" aria-hidden="true" /></a></div></div>
+<main><div class="wrap">
+  <h1>레코코</h1>
+  <p class="meta">영수증·티켓으로 출력하는 기록 앱</p>
+  <div class="notice">읽은 책, 본 영화, 쓴 돈, 떠난 여행, 함께 찍은 인생네컷을 <b>진짜 영수증·티켓처럼 출력</b>해 모아 두는 기록 앱입니다. 회원가입도 서버도 없이, 기록은 <b>폰 안에만</b> 저장됩니다.</div>
 
-      <p class="lead">
-        읽은 책, 본 영화, 쓴 돈, 떠난 여행, 함께 찍은 인생네컷을 <strong>진짜 영수증·티켓처럼 출력</strong>해
-        모아 두는 기록 앱입니다. 회원가입도 서버도 없이, 기록은 폰 안에만 저장됩니다.
-      </p>
+  <h2>자주 묻는 것</h2>
+  <details>
+    <summary>폰을 바꾸면 기록이 옮겨지나요?</summary>
+    <p>기록은 폰 안에만 있어서 자동으로 옮겨지지 않습니다. 설정의 <b>백업 파일 만들기</b>로 파일을 내보낸 뒤, 새 폰에서 <b>백업 파일 불러오기</b>로 가져오세요.</p>
+  </details>
+  <details>
+    <summary>앱을 지우면 기록은 어떻게 되나요?</summary>
+    <p>기록과 사진도 함께 지워집니다. 지우기 전에 설정의 <b>백업 파일 만들기</b>로 백업해 두세요.</p>
+  </details>
+  <details>
+    <summary>만든 사람이 제 기록을 볼 수 있나요?</summary>
+    <p>볼 수 없습니다. 레코코에는 서버가 없어서 적으신 기록과 사진은 어디로도 전송되지 않습니다. 자세한 내용은 <a href="./privacy">개인정보 처리방침</a>에 있습니다.</p>
+  </details>
+  <details>
+    <summary>버그를 발견했거나 바라는 기능이 있어요</summary>
+    <p>앱 안 <b>설정 → 버그 신고하기</b>로 보내주시거나 <a href="mailto:yge0307@gmail.com">yge0307@gmail.com</a>으로 메일 주세요. 스크린샷을 함께 보내주시면 더 빨리 고칠 수 있습니다.</p>
+  </details>
 
-      <h2>문의</h2>
-      <p>
-        궁금한 점, 불편한 점, 바라는 기능은 <a href="mailto:yge0307@gmail.com">yge0307@gmail.com</a>으로
-        보내주세요. 앱 안 <strong>설정 → 버그 신고하기</strong>로도 보내실 수 있습니다.
-      </p>
+  <h2>문의</h2>
+  <p>궁금한 점은 <a href="mailto:yge0307@gmail.com">yge0307@gmail.com</a>으로 보내주세요.</p>
 
-      <h2>자주 묻는 것</h2>
-      <ul>
-        <li><strong>폰을 바꾸면 기록이 옮겨지나요?</strong> 기록은 폰 안에만 있어서 자동으로 옮겨지지 않습니다.
-          설정의 <strong>백업 파일 만들기</strong>로 파일을 내보낸 뒤 새 폰에서 불러오세요.</li>
-        <li><strong>앱을 지우면 어떻게 되나요?</strong> 기록과 사진도 같이 지워집니다. 지우기 전에 백업 파일을 만들어 두세요.</li>
-      </ul>
-
-      <h2>개인정보</h2>
-      <p><a href="/privacy">개인정보 처리방침</a></p>
-
-      <footer>레코코 · 만든 사람 윤경은</footer>
-    </main>
-  </body>
+  <a class="back" href="./privacy">개인정보 처리방침 →</a>
+</div></main>
+</body>
 </html>
