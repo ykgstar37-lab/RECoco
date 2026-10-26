@@ -1,5 +1,5 @@
 // 코코 옷(머리 장식). 코코 그림과 같은 viewBox(400×320) 좌표로 그려서 CocoArt 위에 겹친다
-import { Circle, ClipPath, Defs, Ellipse, G, Path, Rect } from 'react-native-svg';
+import { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
 export type OutfitId = 'ribbon' | 'heart' | 'cat' | 'dog' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses' | 'scarf';
 
@@ -17,10 +17,10 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
   glasses: { from: [0, 0], to: [0, 0], k: 1, top: 160 },
-  scarf: { from: [0, 0], to: [0, 0], k: 1, top: 258 },
+  scarf: { from: [0, 0], to: [0, 0], k: 1, top: 196 },
 };
 
-const SCARF_BAND = 'M30,254 Q200,282 370,254 Q382,272 368,292 Q200,320 32,292 Q18,272 30,254 Z';
+const SCARF_BAND = 'M30,196 Q200,352 370,196 Q384,220 370,244 Q200,392 30,244 Q16,220 30,196 Z';
 const HEART = '#fff'; // 하트 꼬랑지 (코코와 같은 흰색)
 const LINE = '#3a2a22'; // 고양이 귀·수염 (코코 눈과 같은 색)
 const EAR = '#2e2a2f'; // 강아지 귀 (흰 코코와 대비되는 검정)
@@ -41,9 +41,6 @@ export const COVERS_KNOB: Record<OutfitId, boolean> = {
   glasses: false, // 눈에 걸치는 거라 머리 꼭지는 그대로 보인다
   scarf: false, // 몸 아래쪽에 두르는 거라 꼭지는 그대로
 };
-
-/** 얼굴(눈·입)보다 먼저 그리는 옷: 몸에 두르는 거라 입이 그 위로 보여야 한다 */
-export const UNDER_FACE: Partial<Record<OutfitId, boolean>> = { scarf: true };
 
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
 export const OUTFIT_TOP = Object.fromEntries((Object.keys(FIT) as OutfitId[]).map((id) => [id, FIT[id].top])) as Record<OutfitId, number>;
@@ -203,27 +200,21 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'scarf':
-      // 빨간 목도리: 몸에 칠한 띠가 아니라 두께·테두리가 있는 따로 된 목도리를 몸에 감아 붙인다.
-      // 양끝은 몸 밖으로 살짝 나오고, 초록 세로 줄무늬, 오른쪽 앞 큰 매듭 밑으로 꼬리 두 개 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
+      // 빨간 목도리: 몸에 칠한 띠가 아니라 두께·테두리가 있는 따로 된 목도리를 몸에 감는다.
+      // 볼 아래 높이로 감아 앞이 아래로 처지고(양옆 아래로 몸이 보여야 '맨' 것처럼 보인다), 양끝은 몸 밖으로 살짝,
+      // 초록 줄은 띠를 가로지르는 줄무늬, 왼쪽 옆 매듭에서 꼬리 두 개 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
       return (
         <G>
-          <Defs>
-            <ClipPath id="scarf-band"><Path d={SCARF_BAND} /></ClipPath>
-          </Defs>
-          <Path d="M40,286 Q200,316 360,286 L356,300 Q200,326 44,300 Z" fill="rgba(120,40,0,0.12)" />
+          <Path d="M36,250 Q200,398 364,250" stroke="rgba(120,40,0,0.12)" strokeWidth={10} fill="none" />
           <Path d={SCARF_BAND} fill="#d64545" />
-          <G clipPath="url(#scarf-band)">
-            {[52, 86, 120, 154, 188, 222, 256, 290, 324].map((x) => (
-              <Rect key={x} x={x} y={240} width={14} height={90} fill="#2f8f5b" />
-            ))}
-          </G>
+          <Path d="M64,224.1 L77.6,233.6 L77.6,279.6 L64,270.6 ZM99.7,246.8 L113.3,253.7 L113.3,298.8 L99.7,292.2 ZM135.4,262.7 L149,267 L149,311.3 L135.4,307.3 ZM171.1,271.7 L184.7,273.4 L184.7,317.4 L171.1,315.9 ZM206.8,273.9 L220.4,272.9 L220.4,316.9 L206.8,317.9 ZM242.5,269.1 L256.1,265.5 L256.1,309.9 L242.5,313.4 ZM278.2,257.5 L291.8,251.3 L291.8,296.4 L278.2,302.3 ZM313.9,239 L327.5,230.1 L327.5,276.4 L313.9,284.8 ZM349.6,213.6 L363.2,202.1 L363.2,249.8 L349.6,260.7 Z" fill="#2f8f5b" />
           <Path d={SCARF_BAND} fill="none" stroke="#b33636" strokeWidth={4} />
-          <Path d="M278,288 Q272,302 274,314 L302,314 Q300,302 304,290 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M304,288 Q318,300 332,310 L348,296 Q334,288 322,278 Z" fill="#c93d3d" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M275,300 L302,300 M314,300 L334,288" stroke="#2f8f5b" strokeWidth={7} />
-          <Path d="M279,314 l-1,5 M288,314 l0,5 M297,314 l1,5 M336,309 l2,5 M343,304 l3,5" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
-          <Path d="M272,262 Q300,250 328,262 Q338,280 326,298 Q300,308 274,298 Q262,280 272,262 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} />
-          <Path d="M286,262 Q294,280 286,300 M314,262 Q306,280 314,300" stroke="#b33636" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.7} />
+          <Path d="M54,246 Q44,280 30,312 L56,318 Q64,284 72,252 Z" fill="#c93d3d" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M74,250 Q82,284 80,316 L106,316 Q104,282 92,246 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M40,292 L62,297 M78,290 L102,289" stroke="#2f8f5b" strokeWidth={7} />
+          <Path d="M33,313 l-2,6 M42,315 l-1,6 M51,317 l0,5 M84,316 l0,5 M93,316 l0,5 M102,316 l1,5" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
+          <Path d="M52,216 Q72,206 92,218 Q100,236 90,256 Q70,264 52,254 Q42,236 52,216 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} />
+          <Path d="M64,214 Q70,236 64,258 M80,214 Q76,236 80,258" stroke="#b33636" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.7} />
         </G>
       );
     case 'trapper':
