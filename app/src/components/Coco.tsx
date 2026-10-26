@@ -1,11 +1,11 @@
 // 레코코 마스코트 "코코": 말랑한 만두 모양. 누르면 슬라임처럼 눌렸다가 출렁이며 돌아온다
 import { useEffect, useState } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { ClipPath, Circle, Defs, Ellipse, G, Path } from 'react-native-svg';
 
 import { bump } from '../lib/haptics';
-import { COVERS_KNOB, OutfitArt, OutfitId } from './Outfits';
+import { COVERS_KNOB, OUTFIT_BELOW, OutfitArt, OutfitId } from './Outfits';
 
 export type CocoMood = 'idle' | 'happy' | 'print' | 'wow' | 'squish' | 'blink' | 'gag' | 'spew';
 export type CocoTone = 'orange' | 'white';
@@ -130,8 +130,14 @@ export function CocoArt({
   outfit?: OutfitId | null;
 }) {
   const c = TONES[tone];
-  return (
-    <Svg width={size} height={size * COCO_RATIO} viewBox={`0 0 ${VB_W} ${VB_H}`}>
+  const below = (outfit && OUTFIT_BELOW[outfit]) || 0;
+  const art = (
+    <Svg
+      width={size}
+      height={(size * (VB_H + below)) / VB_W}
+      viewBox={`0 0 ${VB_W} ${VB_H + below}`}
+      style={below ? { position: 'absolute', top: 0, left: 0 } : undefined}
+    >
       <Ellipse cx={200} cy={306} rx={150} ry={10} fill={c.shadow} />
       {outfit && COVERS_KNOB[outfit] ? (
         <Path d={BODY_ROUND} fill={c.body} />
@@ -159,6 +165,9 @@ export function CocoArt({
       {outfit && <OutfitArt id={outfit} />}
     </Svg>
   );
+  if (!below) return art;
+  // 목도리 꼬리처럼 아래로 늘어지는 옷: 자리 크기는 그대로, 넘친 부분은 아래 UI 뒤로 겹친다
+  return <View style={{ width: size, height: size * COCO_RATIO }}>{art}</View>;
 }
 
 /**

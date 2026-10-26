@@ -17,10 +17,10 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
   glasses: { from: [0, 0], to: [0, 0], k: 1, top: 160 },
-  scarf: { from: [0, 0], to: [0, 0], k: 1, top: 258 },
+  scarf: { from: [0, 0], to: [0, 0], k: 1, top: 240 },
 };
 
-const SCARF_BAND = 'M38,258 Q200,296 362,258 Q370,274 360,290 Q200,328 40,290 Q30,274 38,258 Z';
+const SCARF_BAND = 'M36,240 Q200,308 364,240 Q376,265 362,290 Q200,336 38,290 Q24,265 36,240 Z';
 const HEART = '#fff'; // 하트 꼬랑지 (코코와 같은 흰색)
 const LINE = '#3a2a22'; // 고양이 귀·수염 (코코 눈과 같은 색)
 const EAR = '#2e2a2f'; // 강아지 귀 (흰 코코와 대비되는 검정)
@@ -41,6 +41,9 @@ export const COVERS_KNOB: Record<OutfitId, boolean> = {
   glasses: false, // 눈에 걸치는 거라 머리 꼭지는 그대로 보인다
   scarf: false, // 몸 아래쪽에 두르는 거라 꼭지는 그대로
 };
+
+/** 그림 아래(viewBox 높이 320)로 늘어지는 만큼. 코코 자리 크기는 그대로 두고 아래 UI 뒤로 겹쳐 그린다 */
+export const OUTFIT_BELOW: Partial<Record<OutfitId, number>> = { scarf: 56 };
 
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
 export const OUTFIT_TOP = Object.fromEntries((Object.keys(FIT) as OutfitId[]).map((id) => [id, FIT[id].top])) as Record<OutfitId, number>;
@@ -200,16 +203,16 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'scarf':
-      // 빨간 목도리: 몸 앞을 가로지르는 띠 + 세로 초록 줄 + 오른쪽 앞에 곧게 늘어진 꼬리
-      // (design/tools/make_samples.js 의 SCARF 와 같은 모양, 꼬리만 그림 높이 320 안에 들게 짧다)
+      // 빨간 목도리: 몸 앞을 가로지르는 두꺼운 띠 + 세로 초록 줄 + 띠 밑에서 나와 오른쪽 앞에 곧게 늘어진 꼬리.
+      // 꼬리는 그림 아래(y 320 밖)까지 내려가서 OUTFIT_BELOW 만큼 더 그린다 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
       return (
         <G>
+          <Path d="M248,290 L288,288 L294.2,364 L255.6,366 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M251.6,326 L291,324 M253.4,344 L292.5,342" stroke="#2f8f5b" strokeWidth={10} />
+          <Path d="M260.6,366.0 l0,8 M270.1,365.4 l0,8 M279.7,364.8 l0,8 M289.2,364.2 l0,8" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
           <Path d={SCARF_BAND} fill="#d64545" />
-          <Path d="M60.7,262.9 L74.3,265.6 L75.8,297.6 L62.4,294.9 ZM100.9,269.9 L114.5,271.7 L115.5,303.7 L102.1,301.9 ZM141,274.5 L154.6,275.5 L155.2,307.5 L141.8,306.5 ZM181.2,276.7 L194.8,277 L194.9,309 L181.4,308.7 ZM221.4,276.7 L235,276.1 L234.6,308.1 L221.1,308.7 ZM261.6,274.3 L275.2,272.9 L274.2,304.9 L260.8,306.3 ZM301.7,269.5 L315.3,267.4 L313.9,299.4 L300.5,301.5 ZM341.9,262.4 L355.5,259.5 L353.6,291.5 L340.2,294.4 Z" fill="#2f8f5b" />
+          <Path d="M60.6,249.4 L77,254.9 L78.5,300.1 L62.3,296.4 ZM100.6,261.5 L117,265.3 L118,307.1 L101.8,304.6 ZM140.6,269.5 L157,271.7 L157.6,311.4 L141.4,310 ZM180.6,273.5 L197,274 L197.1,313 L180.9,312.7 ZM220.7,273.5 L237.1,272.3 L236.6,311.8 L220.4,312.6 ZM260.7,269.3 L277.1,266.5 L276.1,307.9 L259.9,309.9 ZM300.7,261.2 L317.1,256.7 L315.7,301.3 L299.5,304.3 ZM340.7,249 L357.1,242.8 L355.2,291.9 L339,296.1 Z" fill="#2f8f5b" />
           <Path d={SCARF_BAND} fill="none" stroke="#b33636" strokeWidth={4} />
-          <Path d="M250,294 L286,292 L288.2,312 L252.4,314 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M251.2,304 L287.2,302" stroke="#2f8f5b" strokeWidth={9} />
-          <Path d="M256.4,314.0 l0,5 M265.7,313.5 l0,5 M274.9,313.0 l0,5 M284.2,312.5 l0,5" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
         </G>
       );
     case 'trapper':
