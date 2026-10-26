@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BadBackup, canBackup, exportBackup, pickBackup } from '../lib/backup';
@@ -11,6 +11,9 @@ import { APP_VERSION } from '../lib/support';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { BugReport } from './BugReport';
+
+/** 스토어 등록 정보에 적은 것과 같은 주소 (landing/privacy.html 을 Cloudflare Pages 프로젝트 recoco 로 올림) */
+const PRIVACY_URL = 'https://recoco.pages.dev/privacy';
 
 interface Props {
   visible: boolean;
@@ -174,6 +177,11 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
           </Group>
 
           <Group title="정보">
+            <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}>
+              <Text style={styles.rowLabel}>개인정보 처리방침</Text>
+              <Text style={styles.rowValue}>›</Text>
+            </Pressable>
+            <View style={styles.divider} />
             <View style={styles.row}>
               <Text style={styles.rowLabel}>버전</Text>
               <Text style={styles.rowValue}>{APP_VERSION}</Text>
