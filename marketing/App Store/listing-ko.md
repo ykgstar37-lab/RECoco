@@ -49,7 +49,7 @@ App Store Connect에 그대로 복붙하는 문구. **로케일마다 따로 넣
 · 인생네컷 — 네컷 사진을 그대로, 뒷면에는 그날의 메모를
 
 
-■ 골라서 더하는 6가지
+■ 상점에서 받아 더하는 7가지 (지금은 무료)
 
 · 선물 — 받은 선물, 보낸 선물을 모바일 교환권처럼
 · 카페·맛집 — 메뉴마다 별점을 매기는 주문서. 또 갈지도 남겨요
@@ -57,16 +57,19 @@ App Store Connect에 그대로 복붙하는 문구. **로케일마다 따로 넣
 · 콘서트 — 밤하늘이 깔린 가로 티켓
 · 운동 — 러닝·헬스·요가·등산·수영, 종류마다 다른 기록표
 · 음악 — 앨범 감상과 플레이리스트
+· 일상 — 사진첩 사진을 줄줄이 모으는 앨범, 뒤집으면 그날의 글
 
 
 ■ 종이를 골라 쓰는 재미
 
 같은 기록도 종이를 바꾸면 완전히 달라져요.
 모눈종이, 작은 가게 집 모양, 레트로 극장 티켓, 공연장 팔찌,
-별빛이 뿌려진 밤하늘 티켓, 사진이 큼직한 포토 티켓.
+별빛이 뿌려진 밤하늘 티켓, 사진이 큼직한 포토 티켓, 사진 위에 적는 영수증.
 
 인생네컷은 코코몬 카드로도 뽑을 수 있어요.
 등급은 고르는 게 아니라 뽑히는 것 — C부터 아주 드문 R까지 있습니다.
+
+영수증을 모을수록 코코 옷장에 옷이 하나씩 열려요.
 
 
 ■ 서버가 없습니다
@@ -148,7 +151,7 @@ FIVE TO START WITH (free)
 - Photo Booth — your four-cut strip, with a note for that day on the back
 
 
-SIX MORE TO ADD
+SEVEN MORE FROM THE SHOP (free for now)
 
 - Gifts — gifts given and received, like a mobile voucher
 - Cafes and Restaurants — an order slip with a star rating for every dish
@@ -156,16 +159,19 @@ SIX MORE TO ADD
 - Concerts — a wide ticket with a night sky across it
 - Exercise — running, gym, yoga, hiking, swimming
 - Music — albums you listened to, and playlists
+- Daily — an album of your camera roll, with that day's note on the back
 
 
 PICK YOUR PAPER
 
 The same record looks completely different on another paper.
 Grid notebook paper, a little shop-shaped house, a retro cinema ticket,
-a venue wristband, a starlit night ticket, a big photo ticket.
+a venue wristband, a starlit night ticket, a big photo ticket, a receipt written over your photo.
 
 Photo booth strips can also be printed as Cocomon cards.
 You do not choose the grade — you draw it, from C up to the very rare R.
+
+The more receipts you collect, the more outfits open up in Coco's closet.
 
 
 NO SERVER
@@ -205,31 +211,36 @@ receipt,diary,journal,log,books,movies,tracker,ticket,memory,collect,scrapbook,h
 | 연령 등급 | 4+ | 코코몬 카드 '뽑기'가 도박으로 잡히는지 확인 — 현금 없이 등급만 무작위라 4+ 예상 |
 | 가격 | **무료 (앱 내 구입 없음)** | v1.0 기준. 유료화하면 고칠 것 |
 | 배포 국가 | 한국 우선. SubFlow는 174개국(중국 본토 제외) | |
-| 앱 내 구입 | 22개 — `iap-products.md` | 첫 심사 때 앱과 같이 심사된다 |
+| 앱 내 구입 | **v1.0 에는 등록하지 않는다** | 유료화할 때 `iap-products.md` 의 상품을 등록하고, 그 판의 심사 때 앱과 같이 심사된다 |
 
 ## 심사 메모 (4,000자 제한 — 넘으면 버튼이 비활성화된다)
 
-로그인이 없어서 **데모 계정은 필요 없다.** 대신 앱 내 구입 구조를 설명해 둔다.
+로그인이 없어서 **데모 계정은 필요 없다.** v1.0 은 앱 내 구입이 없으니 상점이 전부 무료라는 점을 적어 둔다
+(심사관이 상점을 열면 '무료로 받기' 버튼을 본다).
 
 ```
 RECoco is an offline journaling app. There is no account, no login and no server —
 everything the user writes is stored on the device only. No demo account is needed.
 
-IN-APP PURCHASES
-All 22 products are non-consumable.
-- 6 "category" products (1,500 KRW each) unlock an extra kind of record (gifts, cafes,
-  shows, concerts, exercise, music). Five kinds (reading, movies, spending, travel,
-  photo booth) are free and always available.
-- 7 "paper theme" products and 9 "hat" products (1,000 KRW each) are cosmetic.
-Restore Purchases is in Settings > Purchases.
+NO IN-APP PURCHASES IN THIS VERSION
+Everything in the in-app Shop (extra record categories, paper themes) is free in this
+version: each item has a "Get for free" button and no payment sheet is ever shown.
+Coco's outfits open up as the user collects more receipts. Nothing is sold.
 
 RANDOM CARD GRADE
 The "Cocomon card" theme prints a photo as a collectible card whose grade (C/B/A/S/SS/R)
 is derived from the record's own id. It is not a paid draw: the grade costs nothing,
-cannot be re-rolled for money, and has no trade or resale value.
+cannot be re-rolled, and has no trade or resale value.
 
 NETWORK USE
-The app contacts only two services, and only with what the user types into a search box:
-Kakao (book and place search) and TMDB (film search). No record content or photo is sent.
-Bug reports are sent only when the user taps send in Settings.
+No record content or photo ever leaves the device. The app only contacts:
+- Kakao (book and place search) and TMDB (film search), with the search words typed
+- a photo booth's own photo page, when the user scans that booth's QR code
+- Expo's update server, to check for app updates
+Bug reports are sent only when the user taps send in Settings > 버그 신고하기 (Report a bug).
+
+PERMISSIONS
+Camera: scanning book/boarding-pass/voucher barcodes and photo booth QR codes.
+Photos: attaching photos to records (only the picked photos). Text in a picked screenshot
+is read on the device. Save to Photos: saving a receipt image.
 ```
