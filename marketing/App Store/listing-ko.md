@@ -244,3 +244,42 @@ Camera: scanning book/boarding-pass/voucher barcodes and photo booth QR codes.
 Photos: attaching photos to records (only the picked photos). Text in a picked screenshot
 is read on the device. Save to Photos: saving a receipt image.
 ```
+
+---
+
+## App Store Connect 칸별 체크리스트 (SubFlow 제출 기록과 대조, 2026-10-27)
+
+SubFlow(`C:\dev\SubFlow\marketing\App Store\listing-ko.md`, 메모리 `ios-apple-developer.md`)에서 실제로 채운 칸을 그대로 따라간다.
+
+### 앱 정보 (왼쪽 메뉴)
+- [ ] **기본 언어 확인** — SubFlow 는 영어(미국)가 기본 언어라 영어 칸이 전부 필수였다. 레코코도 영어면 영어 칸을 다 채우거나 기본 언어를 한국어로 바꾼다
+- [ ] 이름 `레코코 - 기록 영수증` / 부제 `오늘 하루를 영수증으로 뽑기` (영어: `RECoco - Receipt Diary` / `Print your day as a receipt`)
+- [ ] 카테고리: 라이프스타일 / 2차 생산성
+- [ ] 콘텐츠 권한: **제3자 콘텐츠 있음 → 권한 있음** (책 표지·영화 포스터를 카카오·TMDB API 로 보여준다, TMDB 표기는 설정 → 정보에 있음)
+- [ ] 연령 등급 설문: 전부 "없음" → 4+ (도박·뽑기 항목도 없음 — 코코몬 등급은 돈이 오가지 않는다)
+- [ ] 개인정보 처리방침 URL `https://recoco.pages.dev/privacy` — **로케일마다**
+
+### 가격 및 사용 가능 여부
+- [ ] 가격: 무료
+- [ ] 국가: SubFlow 는 174개국(중국 본토 제외)
+
+### 앱 개인정보 보호
+- [ ] `app-privacy-ko.md` 대로 3개 유형(이메일, 사진, 고객 지원) + 기타 진단 데이터(SubFlow 처럼 체크 권장) → 추적 아니요 · 목적 앱 기능 → **게시**
+
+### 1.0 제출 준비 중 (버전 페이지) — 로케일마다
+- [ ] 스크린샷 6.9" (1320×2868)
+- [ ] 프로모션 텍스트 · 설명 · 키워드 (위 한국어/영어)
+- [ ] 지원 URL `https://recoco.pages.dev`
+- [ ] 마케팅 URL — SubFlow 는 홈 주소를 넣었다 → `https://recoco.pages.dev` (비워도 됨)
+- [ ] 저작권 `2026 Gyeongeun Yoon` (SubFlow 와 같은 표기)
+- [ ] 빌드: **4** (사진 자르기 수정 포함). 수출 규정은 app.json `ITSAppUsesNonExemptEncryption: false` 라 안 물을 수 있다
+- [ ] 앱 심사 정보: 로그인 필요 **해제** · 성 `Yoon` / 이름 `Gyeongeun` · 전화번호 · 이메일 `yge0307@gmail.com` · 메모(위 영문) · 첨부 없음
+- [ ] 버전 출시: **수동 출시** (SubFlow 도 수동)
+
+### 해당 없음 (건드리지 않음)
+- 라우팅 앱 적용 범위 파일, 앱 클립, iMessage 앱, Game Center
+- 앱 내 구입 — v1.0 에는 상품을 붙이지 않는다
+
+### 제출 뒤
+- 2.1(정보 요청) 반려는 흔하다 → **회신 먼저**, 그다음 빌드 교체 → 심사 업데이트
+- 회신·메모 칸 각각 4,000자. 넘으면 버튼이 꺼진다. 회신 창에서 `취소`를 누르면 첨부가 날아간다
