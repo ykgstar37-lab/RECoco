@@ -167,7 +167,7 @@ export function CocoArt({
       )}
       <Eyes mood={mood} />
       <Mouth mood={mood} tone={tone} clipId={`${id}-mouth`} />
-      {outfit && <OutfitArt id={outfit} />}
+      {outfit && <OutfitArt id={outfit} head={BODY_ROUND} />}
     </Svg>
   );
   if (!overflow) return art;
