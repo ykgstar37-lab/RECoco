@@ -42,7 +42,7 @@ function mouth(mood, c) {
 }
 
 /** 바닥 가운데(x, y)에 너비 w 로 세운 코코. over: 코코 위에 얹을 것(코코 좌표 400x320 기준) */
-function coco(x, y, w, { tone = 'orange', mood = 'idle', flip = false, rot = 0, over = '', under = '', shadow = true } = {}) {
+function coco(x, y, w, { tone = 'white', mood = 'idle', flip = false, rot = 0, over = '', under = '', shadow = true } = {}) {
   const s = w / 320;
   const c = TONES[tone];
   const outline = tone === 'white' ? ` stroke="#e9d6c6" stroke-width="5"` : '';
@@ -57,6 +57,24 @@ function coco(x, y, w, { tone = 'orange', mood = 'idle', flip = false, rot = 0, 
     <ellipse cx="292" cy="228" rx="24" ry="13" fill="${c.blush}" opacity="0.85"/>
     ${eyes(mood)}${mouth(mood, c)}${over}
   </g>`;
+}
+
+/** 코코 머리에 씌우는 털모자 (over 에 넣는다). 몸 모양으로 잘라 머리에 꼭 맞게 */
+function beanie(color, band, pom) {
+  const id = `b${uid++}`;
+  const ribs = Array.from({ length: 13 }, (_, i) => `<path d="M${68 + i * 22},10 L${68 + i * 22},104" stroke="#000" stroke-width="4" opacity="0.1"/>`).join('');
+  return `<clipPath id="${id}"><path d="${BODY}"/></clipPath>
+    <g clip-path="url(#${id})">
+      <path d="M0,0 L400,0 L400,106 Q200,94 0,106 Z" fill="${color}"/>${ribs}
+      <path d="M0,104 Q200,92 400,104 L400,134 Q200,122 0,134 Z" fill="${band}"/>
+    </g>
+    <circle cx="228" cy="50" r="30" fill="${pom}"/>`;
+}
+
+/** 코코 몸 안쪽만 칠하기 (옷 같은 것) */
+function inside(content) {
+  const id = `c${uid++}`;
+  return `<clipPath id="${id}"><path d="${BODY}"/></clipPath><g clip-path="url(#${id})">${content}</g>`;
 }
 
 // ── 자잘한 소품 ───────────────────────────────────────────────────────────────
@@ -131,17 +149,13 @@ const guitar = (col = '#e5383b', neck = '#8a5a3c') => `
 
 // ── 장면 ─────────────────────────────────────────────────────────────────────
 const SCENES = {
-  // 눈밭의 눈사람 코코 + 목도리 (코코치 창)
+  // 눈밭의 눈사람 코코 + 털모자 (코코치 창)
   cocochi: [480, 480, () => svg(480, 480, `
     <rect width="480" height="480" fill="url(#sky)"/>
     ${pine(70, 300, 170, '#5d8f7a', true)}${pine(420, 290, 140, '#6a9c86', true)}${pine(360, 270, 90, '#7aa894', true)}
     <path d="M0,300 Q120,270 240,292 T480,286 L480,480 L0,480 Z" fill="#f4f8fb"/>
     <path d="M0,360 Q160,330 300,352 T480,350 L480,480 L0,480 Z" fill="#e6eef4"/>
-    ${coco(240, 452, 300, { tone: 'white', mood: 'happy', over: `
-      <path d="M90,262 Q200,296 310,262 L314,292 Q200,326 86,292 Z" fill="#d64545"/>
-      ${[110, 150, 190, 230, 270].map((x) => `<rect x="${x}" y="${270 + Math.abs(x - 200) * -0.05}" width="14" height="30" fill="#2f8f5b" opacity="0.9"/>`).join('')}
-      <path d="M250,290 L286,288 L292,372 L258,374 Z" fill="#d64545"/>
-      ${[300, 324, 348].map((y) => `<rect x="258" y="${y}" width="32" height="10" fill="#2f8f5b"/>`).join('')}` ,
+    ${coco(240, 452, 300, { mood: 'happy', over: beanie('#d64545', '#2f8f5b', '#fff'),
       under: `<path d="M60,200 L-40,120 M-10,150 L-30,110 M340,200 L440,120 M410,150 L430,110" stroke="#6b4428" stroke-width="12" stroke-linecap="round"/>` })}
     ${snow(70, 480, 480, 7)}
   `, lin('sky', [[0, '#c9dcec'], [1, '#eef4fa']]))],
@@ -215,7 +229,7 @@ const SCENES = {
     <rect x="368" y="62" width="4" height="126" fill="#26244a"/>
     <rect x="30" y="210" width="420" height="380" rx="20" fill="#7a5236"/>
     <rect x="50" y="230" width="380" height="340" rx="14" fill="#f7efe3"/>
-    <rect x="90" y="250" width="300" height="110" rx="40" fill="#fff"/>
+    <rect x="90" y="250" width="300" height="110" rx="40" fill="#dfe8f6"/>
     ${coco(240, 400, 230, { mood: 'sleep', shadow: false })}
     <path d="M50,370 Q240,340 430,370 L430,560 Q240,580 50,560 Z" fill="#8fb8e8"/>
     ${[0, 1, 2, 3].map((r) => [0, 1, 2, 3, 4].map((c) => `<circle cx="${92 + c * 74 + (r % 2) * 37}" cy="${410 + r * 40}" r="8" fill="#fff" opacity="0.7"/>`).join('')).join('')}
@@ -231,7 +245,7 @@ const SCENES = {
     <path d="M0,140 L480,140 L480,360 L0,360 Z" fill="#a4d97a"/>
     ${grassBlades(120, { x0: 0, x1: 480, y: 170, h: 30, seed: 21, color: '#8cc964' })}
     ${flowers(46, { x0: 0, x1: 480, y0: 160, y1: 350, seed: 13, colors: ['#ff9ec4', '#f7b5d3', '#ffffff', '#d9a7f2'], r: [5, 11] })}
-    ${coco(240, 318, 220, { tone: 'white', mood: 'happy' })}
+    ${coco(240, 318, 220, { mood: 'happy' })}
     ${flowers(12, { x0: 0, x1: 480, y0: 310, y1: 360, seed: 31, colors: ['#ff9ec4', '#ffffff'], r: [9, 13] })}
   `, lin('sky', [[0, '#8fd0f5'], [1, '#e2f5ff']]))],
 
@@ -261,11 +275,9 @@ const SCENES = {
     <rect x="22" y="22" width="436" height="436" fill="#e2c26a"/>
     <rect x="40" y="40" width="400" height="400" fill="url(#bg)"/>
     <ellipse cx="240" cy="470" rx="250" ry="120" fill="#2c3b2a" opacity="0.6"/>
-    ${coco(240, 400, 310, { mood: 'calm', over: `
-      <path d="M40,256 Q200,230 360,256 L360,300 L40,300 Z" fill="#6b2d3f"/>
-      <path d="M150,240 Q200,280 250,240 L240,300 L160,300 Z" fill="#f4ecd8"/>
-      <path d="M150,62 Q200,10 260,40 Q300,20 300,70 Q250,60 200,74 Q170,70 150,62 Z" fill="#c9a54a"/>
-      ${[160, 190, 220, 250, 280].map((x) => `<circle cx="${x}" cy="${46 + Math.abs(x - 220) * 0.1}" r="16" fill="#d8b55a"/>`).join('')}` })}
+    ${coco(240, 400, 310, { mood: 'calm', over: inside(`
+      <path d="M0,276 Q200,256 400,276 L400,320 L0,320 Z" fill="#6b2d3f"/>
+      <path d="M170,268 Q200,292 230,268 L222,320 L178,320 Z" fill="#f4ecd8"/>`) })}
     <g opacity="0.75">${(() => { const R = rnd(17); let s = ''; for (let i = 0; i < 260; i++) s += `<rect x="${(40 + R() * 392).toFixed(0)}" y="${(40 + R() * 392).toFixed(0)}" width="8" height="3" fill="${R() > 0.5 ? '#000' : '#fff'}" opacity="0.06" transform="rotate(${(R() * 180).toFixed(0)} 240 240)"/>`; return s; })()}</g>
     <path d="M60,420 Q120,380 160,420 L130,440 Z" fill="#e85d3a" opacity="0.85"/><path d="M360,400 Q400,360 430,420 L420,440 L360,440 Z" fill="#f2a33a" opacity="0.8"/>
   `, rad('bg', [[0, '#5b6b46'], [1, '#1d2617']], 0.45, 0.35, 0.8))],
@@ -354,10 +366,11 @@ const SCENES = {
     <rect width="464" height="354" fill="url(#sea)"/>
     ${[60, 180, 300, 420].map((x, i) => `<path d="M${x},0 L${x + 40},0 L${x - 30 + i * 6},354 L${x - 70 + i * 6},354 Z" fill="#fff" opacity="0.07"/>`).join('')}
     <path d="M0,290 Q120,270 230,296 T464,284 L464,354 L0,354 Z" fill="#e8d7a8"/>
-    ${[30, 70, 400, 440].map((x, i) => `<path d="M${x},300 Q${x - 18},${240 - i * 8} ${x + 4},${180 - i * 10} Q${x + 16},${240} ${x + 8},300 Z" fill="#3fa36b"/>`).join('')}
-    ${coco(232, 300, 230, { mood: 'wow', over: `${[[-30, 120], [-50, 160], [-20, 200], [430, 120], [450, 160], [420, 200]].map(([x, y]) => `<path d="M${x < 200 ? 50 : 350},${y} Q${x},${y - 20} ${x},${y}" stroke="#ff9ec4" stroke-width="16" stroke-linecap="round" fill="none"/>`).join('')}` })}
+    ${[20, 105, 360, 446].map((x, i) => `<path d="M${x},300 Q${x - 18},${240 - i * 8} ${x + 4},${180 - i * 10} Q${x + 16},${240} ${x + 8},300 Z" fill="#3fa36b"/>`).join('')}
+    ${[[62, '#ff8fb1'], [404, '#ff9e7a']].map(([x, col]) => `<path d="M${x},304 L${x},262 M${x},284 L${x - 18},252 L${x - 22},232 M${x - 18},252 L${x - 30},246 M${x},272 L${x + 16},242 L${x + 14},222 M${x + 16},242 L${x + 28},236" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`).join('')}
+    ${coco(232, 300, 230, { mood: 'wow' })}
     ${[[90, 120, 10], [110, 80, 7], [124, 50, 5], [370, 70, 9], [390, 40, 6]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#fff" stroke-width="2.5" opacity="0.8"/>`).join('')}
-    <g transform="translate(380,250)"><ellipse rx="22" ry="12" fill="#ffb347"/><path d="M20,0 L36,-12 L36,12 Z" fill="#ffb347"/><circle cx="-10" cy="-2" r="3" fill="${EYE}"/></g>
+    <g transform="translate(400,160)"><ellipse rx="22" ry="12" fill="#ffb347"/><path d="M20,0 L36,-12 L36,12 Z" fill="#ffb347"/><circle cx="-10" cy="-2" r="3" fill="${EYE}"/></g>
   `, lin('sea', [[0, '#6fd0e8'], [1, '#2a8fb8']]))],
 
   'house-2': [464, 354, () => svg(464, 354, `
@@ -380,7 +393,7 @@ const SCENES = {
     <rect y="214" width="464" height="140" fill="url(#lake)"/>
     <path d="M300,214 L380,214 L360,354 L320,354 Z" fill="#fff1c1" opacity="0.35"/>
     <path d="M0,290 Q120,268 260,300 L260,354 L0,354 Z" fill="#f4f8fb"/>
-    ${coco(140, 318, 190, { tone: 'white', mood: 'idle', over: `<path d="M110,48 L290,48 L270,10 L130,10 Z" fill="#2b2b2b"/><rect x="80" y="44" width="240" height="16" rx="6" fill="#2b2b2b"/><path d="M90,262 Q200,296 310,262 L314,288 Q200,322 86,288 Z" fill="#ff8a3d"/>` })}
+    ${coco(140, 318, 190, { mood: 'idle', over: beanie('#ff8a3d', '#e8692a', '#fff') })}
     ${snow(40, 464, 354, 61, 2.5)}
   `, lin('sky', [[0, '#5f7fb8'], [0.7, '#f3b98a'], [1, '#ffd9a8']]) + rad('glow', [[0, '#fff1c1', 0.8], [1, '#fff1c1', 0]]) + lin('lake', [[0, '#7aa4cf'], [1, '#3e6a9a']]))],
 
@@ -415,22 +428,17 @@ const SCENES = {
     </g>
   `, lin('wood', [[0, '#7a4e30'], [1, '#a06a44']], 1, 0))],
 
-  // 붉은 커튼 앞, 소녀와 코코가 기대앉은 공연 포스터 그림 (공연)
+  // 붉은 커튼 앞 무대에 선 나비넥타이 코코 (공연)
   'show-poster': [480, 480, () => svg(480, 480, `
     <rect width="480" height="480" fill="#2a1a14"/>
     <rect x="10" y="10" width="460" height="460" fill="url(#bg)"/>
     ${[0, 1, 2, 3, 4, 5].map((i) => `<path d="M${10 + i * 26},10 Q${30 + i * 26},240 ${10 + i * 20},470" stroke="#7a1420" stroke-width="10" fill="none" opacity="0.5"/>`).join('')}
     ${[0, 1, 2, 3, 4, 5].map((i) => `<path d="M${470 - i * 26},10 Q${450 - i * 26},240 ${470 - i * 20},470" stroke="#7a1420" stroke-width="10" fill="none" opacity="0.5"/>`).join('')}
     <ellipse cx="240" cy="300" rx="190" ry="210" fill="url(#spot)"/>
-    <path d="M110,470 C120,380 160,330 200,320 C240,330 270,380 280,470 Z" fill="#d9a441"/>
-    <path d="M130,470 C140,400 170,360 200,350" stroke="#f2c96a" stroke-width="8" fill="none" opacity="0.6"/>
-    <path d="M170,330 C160,280 172,240 200,236 C228,240 240,280 230,330 Z" fill="#3a5a8a"/>
-    <circle cx="200" cy="206" r="40" fill="#f2d2b8"/>
-    <path d="M156,214 C150,150 250,150 246,214 C250,260 240,300 260,330 C230,320 236,260 236,226 C220,200 180,200 164,226 C164,260 170,320 140,330 C160,300 150,260 156,214 Z" fill="#7a3a1e"/>
-    <circle cx="186" cy="210" r="4" fill="${EYE}"/><circle cx="214" cy="210" r="4" fill="${EYE}"/><path d="M192,226 Q200,232 208,226" stroke="#a0524a" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <ellipse cx="178" cy="222" rx="7" ry="4" fill="#f5a3a0" opacity="0.7"/><ellipse cx="222" cy="222" rx="7" ry="4" fill="#f5a3a0" opacity="0.7"/>
-    ${coco(320, 400, 200, { tone: 'white', mood: 'happy' })}
-    <path d="M226,300 Q260,320 262,350" stroke="#f2d2b8" stroke-width="16" stroke-linecap="round" fill="none"/>
+    <path d="M10,430 Q240,404 470,430 L470,470 L10,470 Z" fill="#4a2414"/>
+    <path d="M10,430 Q240,404 470,430" stroke="#d9a441" stroke-width="4" fill="none" opacity="0.7"/>
+    ${coco(240, 436, 270, { mood: 'happy', over: `<path d="M200,286 L168,272 L168,300 Z M200,286 L232,272 L232,300 Z" fill="#c8102e"/><circle cx="200" cy="286" r="8" fill="#9a0c22"/>` })}
+    <g fill="#ffe7b0" opacity="0.85"><ellipse cx="96" cy="190" rx="11" ry="8" transform="rotate(-20 96 190)"/><path d="M105,188 L105,146" stroke="#ffe7b0" stroke-width="4"/><ellipse cx="380" cy="150" rx="11" ry="8" transform="rotate(-20 380 150)"/><path d="M389,148 L389,106 Q400,114 406,126" stroke="#ffe7b0" stroke-width="4" fill="none"/></g>
     <g>${(() => { const R = rnd(71); let s = ''; for (let i = 0; i < 260; i++) s += `<rect x="${(10 + R() * 456).toFixed(0)}" y="${(10 + R() * 456).toFixed(0)}" width="9" height="3" fill="${R() > 0.5 ? '#000' : '#fff'}" opacity="0.07" transform="rotate(${(R() * 180).toFixed(0)} 240 240)"/>`; return s; })()}</g>
   `, rad('bg', [[0, '#8a2a2a'], [1, '#3a0f12']], 0.5, 0.4, 0.8) + rad('spot', [[0, '#ffe7b0', 0.55], [1, '#ffe7b0', 0]]))],
 };
