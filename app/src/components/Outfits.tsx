@@ -202,19 +202,19 @@ function Hat({ id }: { id: OutfitId }) {
     case 'scarf':
       // 빨간 목도리: 몸에 칠한 띠가 아니라 두께·테두리가 있는 따로 된 목도리를 몸에 감는다.
       // 볼 아래 높이로 감아 앞이 아래로 처지고(양옆 아래로 몸이 보여야 '맨' 것처럼 보인다), 양끝은 몸 밖으로 살짝,
-      // 초록 줄은 띠를 가로지르는 줄무늬, 왼쪽 옆 매듭에서 꼬리 두 개 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
+      // 초록 줄은 띠를 가로지르는 줄무늬, 왼쪽 옆에 묶은 매듭에서 꼬리 두 개가 엇갈려 늘어진다 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
       return (
         <G>
           <Path d="M36,250 Q200,398 364,250" stroke="rgba(120,40,0,0.12)" strokeWidth={10} fill="none" />
           <Path d={SCARF_BAND} fill="#d64545" />
           <Path d="M64,224.1 L77.6,233.6 L77.6,279.6 L64,270.6 ZM99.7,246.8 L113.3,253.7 L113.3,298.8 L99.7,292.2 ZM135.4,262.7 L149,267 L149,311.3 L135.4,307.3 ZM171.1,271.7 L184.7,273.4 L184.7,317.4 L171.1,315.9 ZM206.8,273.9 L220.4,272.9 L220.4,316.9 L206.8,317.9 ZM242.5,269.1 L256.1,265.5 L256.1,309.9 L242.5,313.4 ZM278.2,257.5 L291.8,251.3 L291.8,296.4 L278.2,302.3 ZM313.9,239 L327.5,230.1 L327.5,276.4 L313.9,284.8 ZM349.6,213.6 L363.2,202.1 L363.2,249.8 L349.6,260.7 Z" fill="#2f8f5b" />
           <Path d={SCARF_BAND} fill="none" stroke="#b33636" strokeWidth={4} />
-          <Path d="M54,246 Q44,280 30,312 L56,318 Q64,284 72,252 Z" fill="#c93d3d" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M74,250 Q82,284 80,316 L106,316 Q104,282 92,246 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M40,292 L62,297 M78,290 L102,289" stroke="#2f8f5b" strokeWidth={7} />
-          <Path d="M33,313 l-2,6 M42,315 l-1,6 M51,317 l0,5 M84,316 l0,5 M93,316 l0,5 M102,316 l1,5" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
-          <Path d="M52,216 Q72,206 92,218 Q100,236 90,256 Q70,264 52,254 Q42,236 52,216 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} />
-          <Path d="M64,214 Q70,236 64,258 M80,214 Q76,236 80,258" stroke="#b33636" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.7} />
+          <Path d="M60,250 Q76,282 84,316 L108,310 Q96,278 80,248 Z" fill="#c93d3d" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M86,252 Q66,284 34,302 L48,318 Q80,294 100,258 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M78,290 L101,284 M47,294 L61,308" stroke="#2f8f5b" strokeWidth={7} />
+          <Path d="M88,316 l1,5 M97,314 l1,5 M106,311 l2,5 M37,305 l-4,4 M42,311 l-4,4 M47,317 l-3,4" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
+          <Path d="M60,224 Q78,214 96,226 Q100,242 92,258 Q76,264 62,256 Q54,240 60,224 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} />
+          <Path d="M62,240 Q78,232 94,246 M66,226 Q72,240 68,254" stroke="#b33636" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.7} />
         </G>
       );
     case 'trapper':
