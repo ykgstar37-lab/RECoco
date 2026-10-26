@@ -12,7 +12,7 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
-  party: { from: [236, 98], to: [238, 104], k: 1.25, r: 12, top: 6 },
+  party: { from: [236, 98], to: [238, 132], k: 1.3, r: 6, top: 6 },
   headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
@@ -145,23 +145,13 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'party':
+      // 높이 세운 고깔 (밑변을 좁히고 키를 키움)
       return (
         <G>
-          <Path d="M170,98 L236,30 L302,102 C262,92 210,90 170,98 Z" fill="#6cc3a0" />
-          <Path d="M196,70 L204,62 L250,44 L257,52 Z M176,92 L183,84 L272,68 L279,76 Z" fill="#fff5d6" />
-          <Path d="M170,98 C210,90 262,92 302,102" stroke="#4fa885" strokeWidth={6} strokeLinecap="round" fill="none" />
-          <Circle cx={236} cy={30} r={11} fill="#f2c14e" />
-        </G>
-      );
-    case 'glasses':
-      // 빨간 뿔테: 타원 알 두 개 + 콧대만 (안경다리·경첩 없음). 코코 눈(158,190)·(242,190) 위에 얹는다
-      return (
-        <G>
-          <Path d="M188,179 Q200,170 212,179" stroke="#c9331d" strokeWidth={8} strokeLinecap="round" fill="none" />
-          <Ellipse cx={154} cy={190} rx={33} ry={25} fill="none" stroke="#e2402a" strokeWidth={9} />
-          <Ellipse cx={246} cy={190} rx={33} ry={25} fill="none" stroke="#e2402a" strokeWidth={9} />
-          <Path d="M132,177 Q144,169 162,170" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
-          <Path d="M224,177 Q236,169 254,170" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
+          <Path d="M196,98 L236,12 L276,100 C252,94 220,93 196,98 Z" fill="#6cc3a0" />
+          <Path d="M221.6,43 L250.4,43.7 L254.4,52.5 L217.6,51.6 Z M209.6,68.8 L262.4,70.1 L266.4,78.9 L205.6,77.4 Z" fill="#fff5d6" />
+          <Path d="M196,98 C220,93 252,94 276,100" stroke="#4fa885" strokeWidth={6} strokeLinecap="round" fill="none" />
+          <Circle cx={236} cy={12} r={11} fill="#f2c14e" />
         </G>
       );
     case 'headphones':

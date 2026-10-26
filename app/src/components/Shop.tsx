@@ -49,7 +49,7 @@ const SHELF: ShelfItem[] = [
 /** 분류 알약에 세울 카테고리 (테마가 하나라도 붙은 것만, 카테고리 차례대로) */
 const SHELF_KINDS = (Object.keys(KIND_LABEL) as RecordKind[]).filter((k) => SHELF.some((s) => s.kinds.includes(k)));
 
-/** 상점: 코코 모자(영수증을 모으면 하나씩 받는다), 영수증 테마, 새 카테고리 */
+/** 상점: 코코 옷장(영수증을 모으면 하나씩 받는다), 영수증 테마, 새 카테고리 */
 export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenCloset }: Props) {
   const { allOpen, purchased } = useShop();
   /** 가진 것: 산 건 '보유', 무료로 받은 건 '받음' */
@@ -93,7 +93,7 @@ export function Shop({ visible, owned, recordCount, onClose, onBought, onOpenClo
         </View>
 
         <ScrollView contentContainerStyle={styles.body}>
-          <Section title="코코 모자" sub={next ? `다음 모자까지 영수증 ${next.left}장` : '모자를 다 모았어요!'}>
+          <Section title="코코 옷장" sub={next ? `다음 옷까지 영수증 ${next.left}장` : '옷을 다 모았어요!'}>
             <View style={styles.hats}>
               {OUTFITS.map((o) => {
                 const have = isUnlocked(o, recordCount);
