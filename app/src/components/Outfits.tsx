@@ -1,7 +1,7 @@
 // 코코 옷(머리 장식). 코코 그림과 같은 viewBox(400×320) 좌표로 그려서 CocoArt 위에 겹친다
-import { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
+import { Circle, ClipPath, Defs, Ellipse, G, Path, Rect } from 'react-native-svg';
 
-export type OutfitId = 'ribbon' | 'heart' | 'cat' | 'dog' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses' | 'snowcap' | 'pompom';
+export type OutfitId = 'ribbon' | 'heart' | 'cat' | 'dog' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses' | 'scarf';
 
 // 모자 그림의 기준점(from)을 코코 머리 위 자리(to)에 맞추고, k배 키우고 r도 기울인다. top = 얹었을 때 가장 위쪽 y
 const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: number; r?: number; top: number }> = {
@@ -17,10 +17,10 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
   glasses: { from: [0, 0], to: [0, 0], k: 1, top: 160 },
-  snowcap: { from: [0, 0], to: [0, 0], k: 1, top: 20 },
-  pompom: { from: [0, 0], to: [0, 0], k: 1, top: 20 },
+  scarf: { from: [0, 0], to: [0, 0], k: 1, top: 258 },
 };
 
+const SCARF_BAND = 'M30,254 Q200,282 370,254 Q382,272 368,292 Q200,320 32,292 Q18,272 30,254 Z';
 const HEART = '#fff'; // 하트 꼬랑지 (코코와 같은 흰색)
 const LINE = '#3a2a22'; // 고양이 귀·수염 (코코 눈과 같은 색)
 const EAR = '#2e2a2f'; // 강아지 귀 (흰 코코와 대비되는 검정)
@@ -39,9 +39,11 @@ export const COVERS_KNOB: Record<OutfitId, boolean> = {
   earflap: true,
   trapper: true,
   glasses: false, // 눈에 걸치는 거라 머리 꼭지는 그대로 보인다
-  snowcap: true,
-  pompom: true,
+  scarf: false, // 몸 아래쪽에 두르는 거라 꼭지는 그대로
 };
+
+/** 얼굴(눈·입)보다 먼저 그리는 옷: 몸에 두르는 거라 입이 그 위로 보여야 한다 */
+export const UNDER_FACE: Partial<Record<OutfitId, boolean>> = { scarf: true };
 
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
 export const OUTFIT_TOP = Object.fromEntries((Object.keys(FIT) as OutfitId[]).map((id) => [id, FIT[id].top])) as Record<OutfitId, number>;
@@ -200,12 +202,27 @@ function Hat({ id }: { id: OutfitId }) {
           <Circle cx={212} cy={54} r={14} fill="#e9dfd0" />
         </G>
       );
-    case 'snowcap':
-      // 빨간 방울 니트 (초록 접단 + 흰 방울)
-      return <Beanie color="#d64545" band="#2f8f5b" pom="#ffffff" />;
-    case 'pompom':
-      // 주황 방울 니트 (진한 주황 접단 + 흰 방울)
-      return <Beanie color="#ff8a3d" band="#e8692a" pom="#ffffff" />;
+    case 'scarf':
+      // 빨간 목도리: 몸에 칠한 띠가 아니라 두께·테두리가 있는 따로 된 목도리를 몸에 감아 붙인다.
+      // 양끝은 몸 밖으로 살짝 나오고, 오른쪽 앞 매듭에서 꼬리 두 개 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
+      return (
+        <G>
+          <Defs>
+            <ClipPath id="scarf-band"><Path d={SCARF_BAND} /></ClipPath>
+          </Defs>
+          <Path d="M40,286 Q200,316 360,286 L356,300 Q200,326 44,300 Z" fill="rgba(120,40,0,0.12)" />
+          <Path d={SCARF_BAND} fill="#d64545" stroke="#b33636" strokeWidth={4} />
+          <G clipPath="url(#scarf-band)">
+            <Path d="M20,266 Q200,294 380,266 M20,280 Q200,308 380,280" stroke="#2f8f5b" strokeWidth={6} fill="none" />
+          </G>
+          <Path d="M284,282 Q278,298 282,312 L304,311 Q300,297 302,284 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M304,280 Q316,294 326,306 L342,296 Q328,286 316,276 Z" fill="#c93d3d" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M281,300 L303,299 M318,296 L334,286" stroke="#2f8f5b" strokeWidth={5} />
+          <Path d="M285,312 l-1,5 M293,312 l0,5 M301,311 l1,5 M330,305 l2,5 M337,301 l3,5" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
+          <Ellipse cx={300} cy={276} rx={22} ry={17} fill="#d64545" stroke="#b33636" strokeWidth={4} />
+          <Path d="M286,274 Q300,268 314,274" stroke="#2f8f5b" strokeWidth={5} fill="none" />
+        </G>
+      );
     case 'trapper':
       // 털 달린 방한모 (가죽 + 앞 털 말림 + 귀 덮개)
       return (
@@ -224,21 +241,3 @@ function Hat({ id }: { id: OutfitId }) {
   }
 }
 
-/** 머리를 덮는 방울 니트: 둥근 몸판 + 세로 골 + 접어 올린 단 + 방울 */
-function Beanie({ color, band, pom }: { color: string; band: string; pom: string }) {
-  return (
-    <G>
-      <Path d="M54,150 C54,22 346,22 346,150 Z" fill={color} />
-      {[86, 114, 142, 171, 200, 229, 258, 286, 314].map((x) => (
-        <Path key={x} d={`M${x},${160 - 100 * Math.sqrt(1 - ((x - 200) / 150) ** 2)} L${x},138`} stroke="#000" strokeWidth={5} strokeLinecap="round" opacity={0.1} />
-      ))}
-      <Path d="M44,140 C120,118 280,118 356,140 L358,178 C280,156 120,156 42,178 Z" fill={band} />
-      {[64, 92, 120, 148, 176, 204, 232, 260, 288, 316, 340].map((x) => (
-        <Path key={x} d={`M${x},${136 - Math.sin(((x - 44) / 312) * Math.PI) * 10} l0,26`} stroke="#000" strokeWidth={4} strokeLinecap="round" opacity={0.12} />
-      ))}
-      <Circle cx={200} cy={46} r={30} fill={pom} />
-      <Circle cx={182} cy={36} r={13} fill={pom} />
-      <Circle cx={220} cy={34} r={13} fill={pom} />
-    </G>
-  );
-}

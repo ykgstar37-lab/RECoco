@@ -59,7 +59,7 @@ function coco(x, y, w, { tone = 'white', mood = 'idle', flip = false, rot = 0, o
   </g>`;
 }
 
-/** 방울 니트 (over 에 넣는다). 앱 옷장의 빨간·주황 방울 니트(Outfits.tsx 의 Beanie)와 같은 모양 */
+/** 방울 니트 (over 에 넣는다). 머리를 덮어 꼭지를 가린다 */
 function beanie(color, band, pom) {
   const ribs = [86, 114, 142, 171, 200, 229, 258, 286, 314].map((x) => `<path d="M${x},${(160 - 100 * Math.sqrt(1 - ((x - 200) / 150) ** 2)).toFixed(1)} L${x},138" stroke="#000" stroke-width="5" stroke-linecap="round" opacity="0.1"/>`).join('');
   const bandRibs = [64, 92, 120, 148, 176, 204, 232, 260, 288, 316, 340].map((x) => `<path d="M${x},${(136 - Math.sin(((x - 44) / 312) * Math.PI) * 10).toFixed(1)} l0,26" stroke="#000" stroke-width="4" stroke-linecap="round" opacity="0.12"/>`).join('');
@@ -67,6 +67,21 @@ function beanie(color, band, pom) {
     <path d="M44,140 C120,118 280,118 356,140 L358,178 C280,156 120,156 42,178 Z" fill="${band}"/>${bandRibs}
     <circle cx="200" cy="46" r="30" fill="${pom}"/><circle cx="182" cy="36" r="13" fill="${pom}"/><circle cx="220" cy="34" r="13" fill="${pom}"/>`;
 }
+
+/** 빨간 목도리 (over 에 넣는다). 몸에 칠한 띠가 아니라 두께·테두리가 있는 따로 된 목도리를 몸에 감아 붙인다.
+ *  양끝은 몸 밖으로 살짝 나오고, 오른쪽 앞 매듭에서 꼬리 두 개가 늘어진다. 앱 옷장의 목도리(Outfits.tsx 의 Scarf)와 같은 모양 */
+const SCARF_BAND = 'M30,254 Q200,282 370,254 Q382,272 368,292 Q200,320 32,292 Q18,272 30,254 Z';
+const SCARF = `<clipPath id="scarf-band"><path d="${SCARF_BAND}"/></clipPath>
+  <path d="M40,286 Q200,316 360,286 L356,300 Q200,326 44,300 Z" fill="rgba(120,40,0,0.12)"/>
+  <path d="${SCARF_BAND}" fill="#d64545" stroke="#b33636" stroke-width="4"/>
+  <g clip-path="url(#scarf-band)" stroke="#2f8f5b" stroke-width="6" fill="none"><path d="M20,266 Q200,294 380,266"/><path d="M20,280 Q200,308 380,280"/></g>
+  <path d="M284,282 Q278,298 282,312 L304,311 Q300,297 302,284 Z" fill="#d64545" stroke="#b33636" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M304,280 Q316,294 326,306 L342,296 Q328,286 316,276 Z" fill="#c93d3d" stroke="#b33636" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M281,300 L303,299" stroke="#2f8f5b" stroke-width="5"/>
+  <path d="M318,296 L334,286" stroke="#2f8f5b" stroke-width="5"/>
+  <path d="M285,312 l-1,5 M293,312 l0,5 M301,311 l1,5 M330,305 l2,5 M337,301 l3,5" stroke="#b33636" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="300" cy="276" rx="22" ry="17" fill="#d64545" stroke="#b33636" stroke-width="4"/>
+  <path d="M286,274 Q300,268 314,274" stroke="#2f8f5b" stroke-width="5" fill="none"/>`;
 
 /** 짧고 동그란 흰 손·발 (코코와 같은 흰색 + 테두리) */
 const nub = (cx, cy, rx, ry, rot = 0) =>
@@ -156,12 +171,7 @@ const SCENES = {
     ${pine(70, 300, 170, '#5d8f7a', true)}${pine(420, 290, 140, '#6a9c86', true)}${pine(360, 270, 90, '#7aa894', true)}
     <path d="M0,300 Q120,270 240,292 T480,286 L480,480 L0,480 Z" fill="#f4f8fb"/>
     <path d="M0,360 Q160,330 300,352 T480,350 L480,480 L0,480 Z" fill="#e6eef4"/>
-    ${coco(240, 420, 300, { mood: 'calm', over: inside(`
-      <path d="M0,252 Q200,276 400,252 L400,288 Q200,312 0,288 Z" fill="#d64545"/>
-      ${[70, 110, 150, 190, 230, 270, 310].map((x) => `<path d="M${x},${254 + 24 * (1 - ((x - 200) / 200) ** 2)} l0,34" stroke="#2f8f5b" stroke-width="12"/>`).join('')}`) + `
-      <path d="M262,276 L300,272 L310,346 L276,350 Z" fill="#d64545"/>
-      ${[292, 312, 332].map((y) => `<path d="M${268 + (y - 276) * 0.2},${y} L${304 + (y - 276) * 0.1},${y - 3}" stroke="#2f8f5b" stroke-width="9"/>`).join('')}
-      <path d="M278,350 l-2,10 M288,349 l0,10 M298,348 l1,10 M307,347 l2,10" stroke="#d64545" stroke-width="5" stroke-linecap="round"/>`,
+    ${coco(240, 420, 300, { mood: 'calm', over: SCARF,
       under: `<path d="M64,200 L8,156 M26,170 L18,146 M336,200 L392,156 M374,170 L382,146" stroke="#6b4428" stroke-width="12" stroke-linecap="round"/>` })}
     ${snow(70, 480, 480, 7)}
   `, lin('sky', [[0, '#c9dcec'], [1, '#eef4fa']]))],
@@ -184,7 +194,6 @@ const SCENES = {
       <ellipse cx="0" cy="-26" rx="42" ry="38" fill="#ffe066"/>
       <circle cx="-14" cy="-36" r="5" fill="${EYE}"/><circle cx="14" cy="-36" r="5" fill="${EYE}"/>
       <path d="M-8,-24 L8,-24 L0,-14 Z" fill="#f59f3a"/>
-      <path d="M-40,-30 Q-58,-26 -50,-10" stroke="#f7d14a" stroke-width="12" stroke-linecap="round" fill="none"/>
       <path d="M-6,-64 Q0,-78 8,-64" stroke="#ffe066" stroke-width="6" fill="none" stroke-linecap="round"/>
       <path d="M-14,10 L-14,2 M14,10 L14,2" stroke="#f59f3a" stroke-width="5" stroke-linecap="round"/>
     </g>
@@ -284,8 +293,7 @@ const SCENES = {
     ${coco(240, 400, 310, { mood: 'calm', over: inside(`
       <path d="M0,276 Q200,256 400,276 L400,320 L0,320 Z" fill="#6b2d3f"/>
       <path d="M170,268 Q200,292 230,268 L222,320 L178,320 Z" fill="#f4ecd8"/>`) + `
-      <path d="M58,184 Q46,190 46,204" stroke="#d8b55a" stroke-width="5" stroke-linecap="round" fill="none"/>
-      <circle cx="44" cy="224" r="19" fill="url(#pearl)"/><circle cx="38" cy="216" r="5.5" fill="#fff"/>` })}
+      <circle cx="356" cy="226" r="27" fill="url(#pearl)"/><circle cx="348" cy="215" r="7.5" fill="#fff"/>` })}
     <g opacity="0.75">${(() => { const R = rnd(17); let s = ''; for (let i = 0; i < 260; i++) s += `<rect x="${(40 + R() * 392).toFixed(0)}" y="${(40 + R() * 392).toFixed(0)}" width="8" height="3" fill="${R() > 0.5 ? '#000' : '#fff'}" opacity="0.06" transform="rotate(${(R() * 180).toFixed(0)} 240 240)"/>`; return s; })()}</g>
     <path d="M60,420 Q120,380 160,420 L130,440 Z" fill="#e85d3a" opacity="0.85"/><path d="M360,400 Q400,360 430,420 L420,440 L360,440 Z" fill="#f2a33a" opacity="0.8"/>
   `, rad('bg', [[0, '#5b6b46'], [1, '#1d2617']], 0.45, 0.35, 0.8) + rad('pearl', [[0, '#ffffff'], [0.6, '#eef0f2'], [1, '#b9bec6']], 0.4, 0.35, 0.6))],

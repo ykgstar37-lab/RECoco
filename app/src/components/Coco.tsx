@@ -5,7 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, w
 import Svg, { ClipPath, Circle, Defs, Ellipse, G, Path } from 'react-native-svg';
 
 import { bump } from '../lib/haptics';
-import { COVERS_KNOB, OutfitArt, OutfitId } from './Outfits';
+import { COVERS_KNOB, OutfitArt, OutfitId, UNDER_FACE } from './Outfits';
 
 export type CocoMood = 'idle' | 'happy' | 'print' | 'wow' | 'squish' | 'blink' | 'gag' | 'spew';
 export type CocoTone = 'orange' | 'white';
@@ -154,9 +154,10 @@ export function CocoArt({
           <Ellipse cx={292} cy={228} rx={mood === 'gag' ? 32 : 24} ry={mood === 'gag' ? 19 : 13} fill={c.blush} opacity={mood === 'gag' ? 1 : 0.85} />
         </>
       )}
+      {outfit && UNDER_FACE[outfit] && <OutfitArt id={outfit} />}
       <Eyes mood={mood} />
       <Mouth mood={mood} tone={tone} clipId={`${id}-mouth`} />
-      {outfit && <OutfitArt id={outfit} />}
+      {outfit && !UNDER_FACE[outfit] && <OutfitArt id={outfit} />}
     </Svg>
   );
 }
