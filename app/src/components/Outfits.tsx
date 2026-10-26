@@ -204,23 +204,26 @@ function Hat({ id }: { id: OutfitId }) {
       );
     case 'scarf':
       // 빨간 목도리: 몸에 칠한 띠가 아니라 두께·테두리가 있는 따로 된 목도리를 몸에 감아 붙인다.
-      // 양끝은 몸 밖으로 살짝 나오고, 오른쪽 앞 매듭에서 꼬리 두 개 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
+      // 양끝은 몸 밖으로 살짝 나오고, 초록 세로 줄무늬, 오른쪽 앞 큰 매듭 밑으로 꼬리 두 개 (design/tools/make_samples.js 의 SCARF 와 같은 모양)
       return (
         <G>
           <Defs>
             <ClipPath id="scarf-band"><Path d={SCARF_BAND} /></ClipPath>
           </Defs>
           <Path d="M40,286 Q200,316 360,286 L356,300 Q200,326 44,300 Z" fill="rgba(120,40,0,0.12)" />
-          <Path d={SCARF_BAND} fill="#d64545" stroke="#b33636" strokeWidth={4} />
+          <Path d={SCARF_BAND} fill="#d64545" />
           <G clipPath="url(#scarf-band)">
-            <Path d="M20,266 Q200,294 380,266 M20,280 Q200,308 380,280" stroke="#2f8f5b" strokeWidth={6} fill="none" />
+            {[52, 86, 120, 154, 188, 222, 256, 290, 324].map((x) => (
+              <Rect key={x} x={x} y={240} width={14} height={90} fill="#2f8f5b" />
+            ))}
           </G>
-          <Path d="M284,282 Q278,298 282,312 L304,311 Q300,297 302,284 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M304,280 Q316,294 326,306 L342,296 Q328,286 316,276 Z" fill="#c93d3d" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
-          <Path d="M281,300 L303,299 M318,296 L334,286" stroke="#2f8f5b" strokeWidth={5} />
-          <Path d="M285,312 l-1,5 M293,312 l0,5 M301,311 l1,5 M330,305 l2,5 M337,301 l3,5" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
-          <Ellipse cx={300} cy={276} rx={22} ry={17} fill="#d64545" stroke="#b33636" strokeWidth={4} />
-          <Path d="M286,274 Q300,268 314,274" stroke="#2f8f5b" strokeWidth={5} fill="none" />
+          <Path d={SCARF_BAND} fill="none" stroke="#b33636" strokeWidth={4} />
+          <Path d="M278,288 Q272,302 274,314 L302,314 Q300,302 304,290 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M304,288 Q318,300 332,310 L348,296 Q334,288 322,278 Z" fill="#c93d3d" stroke="#b33636" strokeWidth={4} strokeLinejoin="round" />
+          <Path d="M275,300 L302,300 M314,300 L334,288" stroke="#2f8f5b" strokeWidth={7} />
+          <Path d="M279,314 l-1,5 M288,314 l0,5 M297,314 l1,5 M336,309 l2,5 M343,304 l3,5" stroke="#b33636" strokeWidth={4} strokeLinecap="round" />
+          <Path d="M272,262 Q300,250 328,262 Q338,280 326,298 Q300,308 274,298 Q262,280 272,262 Z" fill="#d64545" stroke="#b33636" strokeWidth={4} />
+          <Path d="M286,262 Q294,280 286,300 M314,262 Q306,280 314,300" stroke="#b33636" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.7} />
         </G>
       );
     case 'trapper':

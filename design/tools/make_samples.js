@@ -71,17 +71,18 @@ function beanie(color, band, pom) {
 /** 빨간 목도리 (over 에 넣는다). 몸에 칠한 띠가 아니라 두께·테두리가 있는 따로 된 목도리를 몸에 감아 붙인다.
  *  양끝은 몸 밖으로 살짝 나오고, 오른쪽 앞 매듭에서 꼬리 두 개가 늘어진다. 앱 옷장의 목도리(Outfits.tsx 의 Scarf)와 같은 모양 */
 const SCARF_BAND = 'M30,254 Q200,282 370,254 Q382,272 368,292 Q200,320 32,292 Q18,272 30,254 Z';
+const SCARF_STRIPES = [52, 86, 120, 154, 188, 222, 256, 290, 324].map((x) => `<rect x="${x}" y="240" width="14" height="90" fill="#2f8f5b"/>`).join('');
 const SCARF = `<clipPath id="scarf-band"><path d="${SCARF_BAND}"/></clipPath>
   <path d="M40,286 Q200,316 360,286 L356,300 Q200,326 44,300 Z" fill="rgba(120,40,0,0.12)"/>
-  <path d="${SCARF_BAND}" fill="#d64545" stroke="#b33636" stroke-width="4"/>
-  <g clip-path="url(#scarf-band)" stroke="#2f8f5b" stroke-width="6" fill="none"><path d="M20,266 Q200,294 380,266"/><path d="M20,280 Q200,308 380,280"/></g>
-  <path d="M284,282 Q278,298 282,312 L304,311 Q300,297 302,284 Z" fill="#d64545" stroke="#b33636" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M304,280 Q316,294 326,306 L342,296 Q328,286 316,276 Z" fill="#c93d3d" stroke="#b33636" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M281,300 L303,299" stroke="#2f8f5b" stroke-width="5"/>
-  <path d="M318,296 L334,286" stroke="#2f8f5b" stroke-width="5"/>
-  <path d="M285,312 l-1,5 M293,312 l0,5 M301,311 l1,5 M330,305 l2,5 M337,301 l3,5" stroke="#b33636" stroke-width="4" stroke-linecap="round"/>
-  <ellipse cx="300" cy="276" rx="22" ry="17" fill="#d64545" stroke="#b33636" stroke-width="4"/>
-  <path d="M286,274 Q300,268 314,274" stroke="#2f8f5b" stroke-width="5" fill="none"/>`;
+  <path d="${SCARF_BAND}" fill="#d64545"/>
+  <g clip-path="url(#scarf-band)">${SCARF_STRIPES}</g>
+  <path d="${SCARF_BAND}" fill="none" stroke="#b33636" stroke-width="4"/>
+  <path d="M278,288 Q272,302 274,314 L302,314 Q300,302 304,290 Z" fill="#d64545" stroke="#b33636" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M304,288 Q318,300 332,310 L348,296 Q334,288 322,278 Z" fill="#c93d3d" stroke="#b33636" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M275,300 L302,300 M314,300 L334,288" stroke="#2f8f5b" stroke-width="7"/>
+  <path d="M279,314 l-1,5 M288,314 l0,5 M297,314 l1,5 M336,309 l2,5 M343,304 l3,5" stroke="#b33636" stroke-width="4" stroke-linecap="round"/>
+  <path d="M272,262 Q300,250 328,262 Q338,280 326,298 Q300,308 274,298 Q262,280 272,262 Z" fill="#d64545" stroke="#b33636" stroke-width="4"/>
+  <path d="M286,262 Q294,280 286,300 M314,262 Q306,280 314,300" stroke="#b33636" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>`;
 
 /** 짧고 동그란 흰 손·발 (코코와 같은 흰색 + 테두리) */
 const nub = (cx, cy, rx, ry, rot = 0) =>
