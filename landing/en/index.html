@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RECoco</title>
+<meta name="description" content="A journal app that prints the books, films, spending, trips and photo booth strips of your day as receipts and tickets" />
+<link rel="icon" href="/brand/favicon.png" />
+<style>
+  /* SubFlow 약관 페이지(mysubflow.app/privacy)와 같은 틀, 포인트 색만 레코코 주황 */
+  :root {
+    --ground:#fffaf4; --surface:#fff; --ink:#2b2118; --ink-soft:#5a4a3d; --ink-faint:#9a8a7c;
+    --line:#f0e2d4; --accent:#e8692a; --surface-2:#fff1e4;
+    --font:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI","Malgun Gothic",sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root{ --ground:#17120e; --surface:#211a14; --ink:#f7efe7; --ink-soft:#d4c6b8; --ink-faint:#9c8c7e; --line:#3a2e24; --accent:#ff9a5c; --surface-2:#2a2018; } }
+  :root[data-theme="light"]{ --ground:#fffaf4; --surface:#fff; --ink:#2b2118; --ink-soft:#5a4a3d; --ink-faint:#9a8a7c; --line:#f0e2d4; --accent:#e8692a; --surface-2:#fff1e4; }
+  :root[data-theme="dark"]{ --ground:#17120e; --surface:#211a14; --ink:#f7efe7; --ink-soft:#d4c6b8; --ink-faint:#9c8c7e; --line:#3a2e24; --accent:#ff9a5c; --surface-2:#2a2018; }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font);background:var(--ground);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .top{border-bottom:1px solid var(--line);}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+  .top .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;}
+  /* 한국어 | English 전환 */
+  .lang{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;font-size:13px;font-weight:600;}
+  .lang a{color:var(--ink-faint);text-decoration:none;padding:4px 11px;border-radius:999px;}
+  .lang a[aria-current]{background:var(--surface);color:var(--accent);}
+  .top img{height:20px;display:block;}
+  /* 로고는 배경 테마에 맞춰 검정/흰색 버전을 바꿔 끼운다 */
+  .top .on-dark{display:none;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .top .on-light{display:none;}
+    :root:not([data-theme="light"]) .top .on-dark{display:block;}
+  }
+  :root[data-theme="dark"] .top .on-light{display:none;}
+  :root[data-theme="dark"] .top .on-dark{display:block;}
+  main{padding:48px 0 80px;}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px;}
+  .meta{color:var(--ink-faint);font-size:13px;margin-bottom:8px;}
+  .notice{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:14px;color:var(--ink-soft);margin:20px 0 32px;}
+  .notice b{color:var(--ink);}
+  h2{font-size:20px;margin:38px 0 12px;letter-spacing:-.01em;}
+  p,li{color:var(--ink-soft);font-size:15px;}
+  b{color:var(--ink);}
+  a{color:var(--accent);}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px;}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;color:var(--ink-soft);}
+  th{background:var(--surface-2);color:var(--ink);font-weight:700;}
+  .wrap-scroll{overflow-x:auto;}
+  .back{display:inline-block;margin-top:40px;font-size:14px;color:var(--accent);font-weight:600;}
+  /* 자주 묻는 것: 질문만 보이고 누르면 답이 펼쳐진다 */
+  details{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin:10px 0;}
+  summary{list-style:none;cursor:pointer;padding:15px 46px 15px 18px;font-weight:700;font-size:15px;position:relative;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"";position:absolute;right:20px;top:50%;width:8px;height:8px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-70%) rotate(45deg);transition:transform .2s;}
+  details[open] summary::after{transform:translateY(-30%) rotate(-135deg);}
+  details p{margin:0;padding:0 18px 16px;}
+  @media (max-width:480px){ main{padding-top:32px;} h1{font-size:24px;} .wrap{padding:0 16px;} }
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><a href="/en/"><img class="on-light" src="/brand/recoco-logo-black.png" alt="RECoco" /><img class="on-dark" src="/brand/recoco-logo-white.png" alt="" aria-hidden="true" /></a><nav class="lang" aria-label="Language"><a href="/" hreflang="ko">한국어</a><a href="/en/" hreflang="en" aria-current="page">English</a></nav></div></div>
+<main><div class="wrap">
+  <h1>RECoco</h1>
+  <p class="meta">A journal that prints your day as receipts and tickets</p>
+  <div class="notice">Books you read, films you watched, money you spent, trips you took, photo booth strips with friends — RECoco <b>prints them like real receipts and tickets</b> and keeps them in one long roll. No sign-up, no server: your records stay <b>on your phone only</b>.</div>
+
+  <h2>FAQ</h2>
+  <details>
+    <summary>Will my records move to a new phone?</summary>
+    <p>Records live only on your phone, so they do not move by themselves. Use <b>Settings → 백업 파일 만들기 (Create backup file)</b> to export a file, then <b>백업 파일 불러오기 (Load backup file)</b> on the new phone.</p>
+  </details>
+  <details>
+    <summary>What happens if I delete the app?</summary>
+    <p>Your records and photos are deleted with it. Make a backup file in Settings first.</p>
+  </details>
+  <details>
+    <summary>Can the developer see my records?</summary>
+    <p>No. RECoco has no server, so what you write and the photos you attach are never sent anywhere. See the <a href="./privacy">Privacy Policy</a> for details.</p>
+  </details>
+  <details>
+    <summary>I found a bug or have a feature idea</summary>
+    <p>Send it from <b>Settings → 버그 신고하기 (Report a bug)</b> in the app, or email <a href="mailto:yge0307@gmail.com">yge0307@gmail.com</a>. A screenshot helps us fix it faster.</p>
+  </details>
+
+  <h2>Contact</h2>
+  <p>Questions? Email <a href="mailto:yge0307@gmail.com">yge0307@gmail.com</a>.</p>
+
+  <a class="back" href="./privacy">Privacy Policy →</a>
+</div></main>
+</body>
+</html>

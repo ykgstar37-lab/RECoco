@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — RECoco</title>
+<meta name="description" content="A journal app that prints the books, films, spending, trips and photo booth strips of your day as receipts and tickets" />
+<link rel="icon" href="/brand/favicon.png" />
+<style>
+  /* SubFlow 약관 페이지(mysubflow.app/privacy)와 같은 틀, 포인트 색만 레코코 주황 */
+  :root {
+    --ground:#fffaf4; --surface:#fff; --ink:#2b2118; --ink-soft:#5a4a3d; --ink-faint:#9a8a7c;
+    --line:#f0e2d4; --accent:#e8692a; --surface-2:#fff1e4;
+    --font:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI","Malgun Gothic",sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root{ --ground:#17120e; --surface:#211a14; --ink:#f7efe7; --ink-soft:#d4c6b8; --ink-faint:#9c8c7e; --line:#3a2e24; --accent:#ff9a5c; --surface-2:#2a2018; } }
+  :root[data-theme="light"]{ --ground:#fffaf4; --surface:#fff; --ink:#2b2118; --ink-soft:#5a4a3d; --ink-faint:#9a8a7c; --line:#f0e2d4; --accent:#e8692a; --surface-2:#fff1e4; }
+  :root[data-theme="dark"]{ --ground:#17120e; --surface:#211a14; --ink:#f7efe7; --ink-soft:#d4c6b8; --ink-faint:#9c8c7e; --line:#3a2e24; --accent:#ff9a5c; --surface-2:#2a2018; }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font);background:var(--ground);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .top{border-bottom:1px solid var(--line);}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+  .top .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;}
+  /* 한국어 | English 전환 */
+  .lang{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;font-size:13px;font-weight:600;}
+  .lang a{color:var(--ink-faint);text-decoration:none;padding:4px 11px;border-radius:999px;}
+  .lang a[aria-current]{background:var(--surface);color:var(--accent);}
+  .top img{height:20px;display:block;}
+  /* 로고는 배경 테마에 맞춰 검정/흰색 버전을 바꿔 끼운다 */
+  .top .on-dark{display:none;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .top .on-light{display:none;}
+    :root:not([data-theme="light"]) .top .on-dark{display:block;}
+  }
+  :root[data-theme="dark"] .top .on-light{display:none;}
+  :root[data-theme="dark"] .top .on-dark{display:block;}
+  main{padding:48px 0 80px;}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px;}
+  .meta{color:var(--ink-faint);font-size:13px;margin-bottom:8px;}
+  .notice{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:14px;color:var(--ink-soft);margin:20px 0 32px;}
+  .notice b{color:var(--ink);}
+  h2{font-size:20px;margin:38px 0 12px;letter-spacing:-.01em;}
+  p,li{color:var(--ink-soft);font-size:15px;}
+  b{color:var(--ink);}
+  a{color:var(--accent);}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px;}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;color:var(--ink-soft);}
+  th{background:var(--surface-2);color:var(--ink);font-weight:700;}
+  .wrap-scroll{overflow-x:auto;}
+  .back{display:inline-block;margin-top:40px;font-size:14px;color:var(--accent);font-weight:600;}
+  /* 자주 묻는 것: 질문만 보이고 누르면 답이 펼쳐진다 */
+  details{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin:10px 0;}
+  summary{list-style:none;cursor:pointer;padding:15px 46px 15px 18px;font-weight:700;font-size:15px;position:relative;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"";position:absolute;right:20px;top:50%;width:8px;height:8px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-70%) rotate(45deg);transition:transform .2s;}
+  details[open] summary::after{transform:translateY(-30%) rotate(-135deg);}
+  details p{margin:0;padding:0 18px 16px;}
+  @media (max-width:480px){ main{padding-top:32px;} h1{font-size:24px;} .wrap{padding:0 16px;} }
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><a href="/en/"><img class="on-light" src="/brand/recoco-logo-black.png" alt="RECoco" /><img class="on-dark" src="/brand/recoco-logo-white.png" alt="" aria-hidden="true" /></a><nav class="lang" aria-label="Language"><a href="/privacy" hreflang="ko">한국어</a><a href="/en/privacy" hreflang="en" aria-current="page">English</a></nav></div></div>
+<main><div class="wrap">
+  <h1>Privacy Policy</h1>
+  <p class="meta">Effective: October 26, 2026 · Last updated: October 26, 2026</p>
+  <div class="notice">RECoco (the "app") has <b>no sign-up and no server</b>. What you write and the photos you attach are stored on your phone only — not even the developer can see them.</div>
+
+  <h2>1. What stays on your phone</h2>
+  <p>All of the following stays on the device and is never sent anywhere.</p>
+  <ul>
+    <li>All your records (books, movies, spending, travel, photo booth, gifts, cafes &amp; restaurants, shows &amp; exhibitions, concerts, exercise, music, daily)</li>
+    <li>Photos attached to records (copied into the app's own folder, so a record keeps its photo even if you delete it from your album)</li>
+    <li>The categories, themes and outfits you have, and your settings</li>
+  </ul>
+  <p>Deleting the app deletes this data too. To move it, export a single backup file from <b>Settings → 백업 파일 만들기 (Create backup file)</b> and keep it yourself. Where that file goes depends on what you choose in the share sheet.</p>
+
+  <h2>2. What leaves your phone</h2>
+  <div class="wrap-scroll"><table>
+    <tr><th>When</th><th>What</th><th>Where</th></tr>
+    <tr><td>Searching for a book, film or shop</td><td><b>Only the search words</b> you type</td><td>Kakao (books, places), TMDB (films)</td></tr>
+    <tr><td>Importing photos with a photo booth QR code</td><td>A request to open the photo page in the QR code (the app sends nothing else)</td><td>That photo booth's photo page</td></tr>
+    <tr><td>Opening the app (update check)</td><td>App version, device type (iOS/Android)</td><td>Expo (app update server)</td></tr>
+    <tr><td>Sending a bug report</td><td>What you write, the contact you leave, screenshots you pick, app version, device model and OS version, number of records</td><td>The developer's email</td></tr>
+    <tr><td>Buying something</td><td>Payment is handled by the App Store. The app only learns <b>what was bought</b></td><td>Apple</td></tr>
+  </table></div>
+  <p>Search words are used only to fetch results and are not stored. Record content and photos are never included in a search. Bug reports are sent <b>only when you send one</b>, and a contact address is needed only if you want a reply.</p>
+
+  <h2>3. What we do not do</h2>
+  <ul>
+    <li>No ads</li>
+    <li>No tracking or analytics tools</li>
+    <li>No location (shop search uses only the words you type)</li>
+    <li>We never sell or hand over any data to third parties</li>
+  </ul>
+
+  <h2>4. Permissions</h2>
+  <div class="wrap-scroll"><table>
+    <tr><th>Permission</th><th>Used when</th></tr>
+    <tr><td>Camera</td><td>Scanning book, boarding pass and voucher barcodes, and photo booth QR codes</td></tr>
+    <tr><td>Photos</td><td>Picking photos to attach, or screenshots of payment alerts and bookings (only the photos you pick are read; text in a screenshot is read on the device and never sent)</td></tr>
+    <tr><td>Save to Photos</td><td>Saving a receipt image to your album</td></tr>
+  </table></div>
+  <p>Each is asked only when you use that feature. If you decline, everything else keeps working.</p>
+
+  <h2>5. Retention and deletion</h2>
+  <ul>
+    <li>Records stay on your phone until you delete them, and are deleted with the app.</li>
+    <li>Bug report emails are deleted once the problem is solved.</li>
+  </ul>
+
+  <h2>6. Children</h2>
+  <p>RECoco does not ask for age and does not knowingly collect personal information from children.</p>
+
+  <h2>7. Contact</h2>
+  <p>For questions or data deletion requests, contact us below. You can also use <b>Settings → 버그 신고하기 (Report a bug)</b> in the app.</p>
+  <ul>
+    <li>Privacy officer: <b>Gyeongeun Yoon</b></li>
+    <li>Email: <a href="mailto:yge0307@gmail.com">yge0307@gmail.com</a></li>
+  </ul>
+
+  <h2>8. Changes</h2>
+  <p>If this policy changes, we update the date on this page, and announce major changes in the app.</p>
+
+  <a class="back" href="./">← RECoco home</a>
+</div></main>
+</body>
+</html>

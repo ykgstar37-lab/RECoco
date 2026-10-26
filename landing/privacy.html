@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>개인정보처리방침 — 레코코</title>
 <meta name="description" content="읽은 책, 본 영화, 쓴 돈, 떠난 여행, 인생네컷을 영수증·티켓처럼 출력해 모으는 기록 앱" />
-<link rel="icon" href="./brand/favicon.png" />
+<link rel="icon" href="/brand/favicon.png" />
 <style>
   /* SubFlow 약관 페이지(mysubflow.app/privacy)와 같은 틀, 포인트 색만 레코코 주황 */
   :root {
@@ -20,7 +20,11 @@
   body{margin:0;font-family:var(--font);background:var(--ground);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;}
   .top{border-bottom:1px solid var(--line);}
   .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
-  .top .wrap{display:flex;align-items:center;height:60px;}
+  .top .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;}
+  /* 한국어 | English 전환 */
+  .lang{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;font-size:13px;font-weight:600;}
+  .lang a{color:var(--ink-faint);text-decoration:none;padding:4px 11px;border-radius:999px;}
+  .lang a[aria-current]{background:var(--surface);color:var(--accent);}
   .top img{height:20px;display:block;}
   /* 로고는 배경 테마에 맞춰 검정/흰색 버전을 바꿔 끼운다 */
   .top .on-dark{display:none;}
@@ -55,7 +59,7 @@
 </style>
 </head>
 <body>
-<div class="top"><div class="wrap"><a href="./"><img class="on-light" src="./brand/recoco-logo-black.png" alt="RECoco" /><img class="on-dark" src="./brand/recoco-logo-white.png" alt="" aria-hidden="true" /></a></div></div>
+<div class="top"><div class="wrap"><a href="/"><img class="on-light" src="/brand/recoco-logo-black.png" alt="RECoco" /><img class="on-dark" src="/brand/recoco-logo-white.png" alt="" aria-hidden="true" /></a><nav class="lang" aria-label="Language"><a href="/privacy" hreflang="ko" aria-current="page">한국어</a><a href="/en/privacy" hreflang="en">English</a></nav></div></div>
 <main><div class="wrap">
   <h1>개인정보처리방침</h1>
   <p class="meta">시행일자: 2026년 10월 26일 · 최종 수정일: 2026년 10월 26일</p>
