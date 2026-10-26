@@ -1,5 +1,5 @@
 // 코코 옷(머리 장식). 코코 그림과 같은 viewBox(400×320) 좌표로 그려서 CocoArt 위에 겹친다
-import { Circle, ClipPath, Defs, Ellipse, G, Path, Rect } from 'react-native-svg';
+import { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
 export type OutfitId = 'ribbon' | 'heart' | 'cat' | 'dog' | 'straw' | 'beret' | 'crown' | 'party' | 'headphones' | 'earflap' | 'trapper' | 'glasses' | 'scarf';
 
@@ -12,7 +12,7 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
   beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
-  party: { from: [0, 0], to: [0, 0], k: 1, top: -32 },
+  party: { from: [0, 0], to: [234, 87], k: 1, r: 9, top: -35 },
   headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
   earflap: { from: [0, 0], to: [0, 0], k: 1, top: 14 },
   trapper: { from: [0, 0], to: [0, 0], k: 1, top: 62 },
@@ -51,17 +51,16 @@ export const OUTFIT_ABOVE: Partial<Record<OutfitId, number>> = { party: 40 };
 /** 옷의 가장 위쪽 y (메인에서 대사를 코코에 붙일 때 모자에 겹치지 않도록) */
 export const OUTFIT_TOP = Object.fromEntries((Object.keys(FIT) as OutfitId[]).map((id) => [id, FIT[id].top])) as Record<OutfitId, number>;
 
-/** head: 코코 머리 윤곽(꼭지 숨긴 둥근 몸) — 머리에 맞춰 잘라 그리는 옷(고깔)이 쓴다 */
-export function OutfitArt({ id, head }: { id: OutfitId; head: string }) {
+export function OutfitArt({ id }: { id: OutfitId }) {
   const { from, to, k, r = 0 } = FIT[id];
   return (
     <G transform={`translate(${to[0]} ${to[1]}) rotate(${r}) scale(${k}) translate(${-from[0]} ${-from[1]})`}>
-      <Hat id={id} head={head} />
+      <Hat id={id} />
     </G>
   );
 }
 
-function Hat({ id, head }: { id: OutfitId; head: string }) {
+function Hat({ id }: { id: OutfitId }) {
   switch (id) {
     case 'ribbon':
       // 가운데가 조여진 나비 리본: 고리 두 개 + 접힌 주름 + 짧게 퍼지는 꼬리 + 동그란 매듭
@@ -149,22 +148,13 @@ function Hat({ id, head }: { id: OutfitId; head: string }) {
         </G>
       );
     case 'party':
-      // 머리에 얹은 세운 고깔 (9° 기울임). 고깔은 머리 속까지 이어 그리되 머리 바깥쪽만 보이게 자르고,
-      // 밑단은 머리 윤곽선을 따라 그린다 → 밑단이 늘 머리 곡선에 딱 붙는다
+      // 세운 고깔. 밑단 가운데가 (0,0) — FIT 으로 머리 꼭대기에 얹고 머리 비탈을 따라 살짝 기울인다
       return (
         <G>
-          <Defs>
-            <ClipPath id="party-cone"><Path d="M158,118.5 L251.5,-20.6 L297.4,140.5 Z" /></ClipPath>
-            <ClipPath id="party-out"><Path d={`M-100,-200 L500,-200 L500,500 L-100,500 Z ${head}`} clipRule="evenodd" /></ClipPath>
-          </Defs>
-          <G clipPath="url(#party-out)">
-            <Path d="M158,118.5 L251.5,-20.6 L297.4,140.5 Z" fill="#6cc3a0" />
-            <Path d="M226.7,16.3 L263.7,22.1 L267.1,34 L219.8,26.5 Z M206.1,47 L273.9,57.8 L277.2,69.6 L199.2,57.3 Z" fill="#fff5d6" />
-            <G clipPath="url(#party-cone)">
-              <Path d={head} stroke="#4fa885" strokeWidth={14} fill="none" />
-            </G>
-          </G>
-          <Circle cx={251.5} cy={-20.6} r={11} fill="#f2c14e" />
+          <Path d="M-52,0 L0,-112 L52,0 C20,-7 -20,-7 -52,0 Z" fill="#6cc3a0" />
+          <Path d="M-18.7,-71.7 L18.7,-71.7 L23.9,-60.5 L-23.9,-60.5 Z M-34.3,-38.1 L34.3,-38.1 L39.5,-26.9 L-39.5,-26.9 Z" fill="#fff5d6" />
+          <Path d="M-52,0 C-20,-7 20,-7 52,0" stroke="#4fa885" strokeWidth={6} strokeLinecap="round" fill="none" />
+          <Circle cx={0} cy={-112} r={11} fill="#f2c14e" />
         </G>
       );
     case 'headphones':
