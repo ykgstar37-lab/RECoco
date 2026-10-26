@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { RecoRecord } from '../types';
+import { relinkPhotos } from './photos';
 import { retryOnce } from './retry';
 import { SAMPLE_RECORDS } from './samples';
 
@@ -9,7 +10,8 @@ const SEEDED_KEY = 'recoco.seeded.v1';
 
 export async function loadRecords(): Promise<RecoRecord[]> {
   const [raw, seeded] = await Promise.all([AsyncStorage.getItem(KEY), AsyncStorage.getItem(SEEDED_KEY)]);
-  if (raw) return JSON.parse(raw) as RecoRecord[];
+  // 업데이트로 앱 폴더 경로가 바뀌었을 수 있어서 사진 경로를 지금 폴더로 다시 잇는다
+  if (raw) return relinkPhotos(JSON.parse(raw) as RecoRecord[]);
   if (seeded) return [];
   // 첫 실행: 롤이 비어 보이지 않도록 예시 기록을 넣어둔다
   await Promise.all([saveRecords(SAMPLE_RECORDS), AsyncStorage.setItem(SEEDED_KEY, '1')]);

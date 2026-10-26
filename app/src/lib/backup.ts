@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 
 import { RecoRecord } from '../types';
 import { newId } from './format';
-import { photoDir } from './photos';
+import { mapPhotos, photoDir } from './photos';
 
 export const canBackup = Platform.OS !== 'web';
 
@@ -19,17 +19,6 @@ interface BackupFile {
   records: RecoRecord[];
   /** 사진 이름 → base64 */
   photos: Record<string, string>;
-}
-
-/** 기록 안의 모든 사진 uri 를 바꾼다 ({ uri, width, height } 모양이면 사진으로 본다) */
-function mapPhotos(value: unknown, fn: (uri: string) => string): unknown {
-  if (Array.isArray(value)) return value.map((v) => mapPhotos(v, fn));
-  if (value && typeof value === 'object') {
-    const obj = value as Record<string, unknown>;
-    if (typeof obj.uri === 'string' && typeof obj.width === 'number') return { ...obj, uri: fn(obj.uri) };
-    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, mapPhotos(v, fn)]));
-  }
-  return value;
 }
 
 const stamp = () => new Date().toISOString().slice(0, 10).replace(/-/g, '');

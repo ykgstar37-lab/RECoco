@@ -13,6 +13,31 @@ export function photoDir() {
   return dir;
 }
 
+/** 기록 안의 모든 사진 uri 를 바꾼다 ({ uri, width, height } 모양이면 사진으로 본다) */
+export function mapPhotos(value: unknown, fn: (uri: string) => string): unknown {
+  if (Array.isArray(value)) return value.map((v) => mapPhotos(v, fn));
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    if (typeof obj.uri === 'string' && typeof obj.width === 'number') return { ...obj, uri: fn(obj.uri) };
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, mapPhotos(v, fn)]));
+  }
+  return value;
+}
+
+/**
+ * 앱 사진 폴더를 가리키는 uri 를 지금 폴더로 다시 잇는다.
+ * iOS 는 앱을 업데이트하면 앱 폴더 경로(…/Application/<UUID>/Documents)를 바꿀 수 있는데,
+ * 기록에는 저장할 때의 전체 경로가 들어 있어서 그대로 두면 업데이트 뒤 사진·책 표지가 전부 안 보인다.
+ */
+export function relinkPhotos<T>(records: T): T {
+  if (!isNative) return records;
+  const base = photoDir().uri.replace(/\/?$/, '/');
+  return mapPhotos(records, (uri) => {
+    const m = /^file:.*\/Documents\/photos\/([^/]+)$/.exec(uri);
+    return m && !uri.startsWith(base) ? base + m[1] : uri;
+  }) as T;
+}
+
 const extOf = (uri: string, fallback = 'jpg') => {
   const m = /\.(jpe?g|png|heic|webp|gif)(?:\?|#|$)/i.exec(uri);
   return (m?.[1] ?? fallback).toLowerCase();
