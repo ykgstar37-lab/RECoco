@@ -24,7 +24,7 @@ const FX = CX - FW / 2;
 const FPAD = 14; // 창틀 두께
 const FR = 18; // 창틀 모서리
 const STRIP = 726; // 사진 띠 높이
-const GAP = 6; // 사진 사이 검은 줄
+const GAP = 6; // 사진 사이 줄 (창틀 색)
 const INK = '#2b2622';
 
 type Roof = 'stripe' | 'grid' | 'dots' | 'chimney';
@@ -277,7 +277,8 @@ export function FourcutHouseFront({ record: r, width, connected = false }: Props
         <Rect x={FX - 18} y={g.frameBot - 8} width={FW + 36} height={18} rx={6} fill={g.color.frame} />
         <Rect x={FX - 18} y={g.frameBot + 6} width={FW + 36} height={4} rx={2} fill="#000" opacity={0.1} />
         <G clipPath={`url(#${id}-strip)`}>
-          <Rect x={sx} y={sy} width={sw} height={STRIP} fill="#1b1a1c" />
+          {/* 사진 사이 줄은 창틀 색 (검정이면 창틀과 따로 놀았다) */}
+          <Rect x={sx} y={sy} width={sw} height={STRIP} fill={g.color.frame} />
           {qr ? (
             <Image href={{ uri: qr.uri }} x={sx} y={sy} width={sw} height={STRIP} preserveAspectRatio="xMidYMid slice" />
           ) : (

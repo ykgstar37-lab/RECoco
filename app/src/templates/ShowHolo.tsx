@@ -40,7 +40,8 @@ function computeLayout(r: ShowRecord) {
   const titleTop = 128;
   const titleBoxH = TITLE_HEAD + title.lines.length * TITLE_LINE;
   const photoTop = titleTop + titleBoxH + 14;
-  const photoH = r.photo ? Math.round(Math.min(380, Math.max(240, ((PW - M * 2) * photoRatio(r.photo))))) : 0;
+  // 사진은 자르지 않고 비율 그대로 — 세로로 긴 사진이면 티켓이 그만큼 길어진다 (아주 길거나 납작한 것만 PHOTO_SLOT 범위로)
+  const photoH = r.photo ? Math.round(Math.min(PHOTO_SLOT.max, Math.max(PHOTO_SLOT.min, PHOTO_SLOT.w * photoRatio(r.photo)))) : 0;
   const rowsTop = photoTop + (r.photo ? photoH + 14 : 0);
   const rows: [string, string, string][] = [
     ['Date.', '날짜', `${dotDateWithDay(r.date)}${r.time ? `  ${r.time}` : ''}`],
@@ -194,4 +195,4 @@ export function ShowHolo({ record: r, width, connected = false }: { record: Show
 }
 
 /** 사진 칸 크기 (폭, 높이 범위) — 자르기 화면이 이 비율로 틀을 띄운다 (lib/photoSlots) */
-export const PHOTO_SLOT = { w: PW - M * 2, min: 240, max: 380 };
+export const PHOTO_SLOT = { w: PW - M * 2, min: 240, max: Math.round((PW - M * 2) * 1.8) };

@@ -139,7 +139,7 @@ const SPOT: Record<MonsterRank, Spot> = {
   },
   r: {
     crop: { x: 0, y: 0, w: 1086, h: 1448 },
-    win: { x0: 110, x1: 1000, topL: 215, notchFrom: 600, notchTo: 700, topR: 300, bottom: 905 },
+    win: { x0: 92, x1: 1000, topL: 215, notchFrom: 600, notchTo: 700, topR: 300, bottom: 905 }, // 왼쪽을 110 으로 재서 은색 테두리와 사진 사이에 바탕이 비쳤다 (2026-10-27 다시 잼)
     bar: { y: 1022, left: 358, right: 730 },
     descPanel: true,
     foot: { x0: 407, x1: 680, y0: 1359, y1: 1400 },
