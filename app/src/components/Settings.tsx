@@ -3,6 +3,7 @@ import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Swi
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BadBackup, canBackup, exportBackup, pickBackup } from '../lib/backup';
+import { loadLastBackup, markBackedUp } from '../lib/backupNudge';
 import { resetEverything } from '../lib/devReset';
 import { loadHaptics, setHaptics } from '../lib/haptics';
 import { FREE_FOR_ALL } from '../lib/launch';
@@ -11,6 +12,7 @@ import { APP_VERSION } from '../lib/support';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { BugReport } from './BugReport';
+import { dateKey } from './WeekStamps';
 
 /** 스토어 등록 정보에 적은 것과 같은 주소 (landing/privacy.html 을 Cloudflare Pages 프로젝트 recoco 로 올림) */
 const PRIVACY_URL = 'https://recoco.pages.dev/privacy';
@@ -31,12 +33,14 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
   const [backupNotice, setBackupNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [bugOpen, setBugOpen] = useState(false);
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
     setNotice('');
     setBackupNotice('');
     loadHaptics().then(setHapticsOn);
+    loadLastBackup().then(setLastBackup).catch(() => {});
   }, [visible]);
 
   const restore = async () => {
@@ -56,6 +60,8 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
     setBackupNotice('');
     try {
       await exportBackup(records);
+      await markBackedUp();
+      setLastBackup(new Date().toISOString());
       setBackupNotice('백업 파일을 만들었어요. 파일·드라이브 같은 안전한 곳에 저장해 두세요.');
     } catch {
       setBackupNotice('백업 파일을 만들지 못했어요.');
@@ -113,7 +119,7 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
               <Text style={styles.rowValue}>{records.length}장</Text>
             </View>
             <Text style={styles.help}>
-              기록은 로그인 없이 이 폰 안에만 저장돼요. 앱을 지우거나 폰을 바꾸기 전에 백업 파일을 만들어 두세요.
+              기록은 로그인 없이 이 폰 안에만 저장돼요. 앱을 지우면 기록과 사진도 함께 지워지니, 지우거나 폰을 바꾸기 전에 꼭 백업 파일을 만들어 두세요.
             </Text>
           </Group>
 
@@ -129,7 +135,8 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
             </Pressable>
             <Text style={styles.help}>
               {canBackup
-                ? backupNotice || '기록과 사진이 파일 하나에 담겨요. 불러오면 지금 기록에 합쳐지고, 이미 있는 영수증은 건너뛰어요.'
+                ? backupNotice ||
+                  `${lastBackup ? `마지막 백업: ${dateKey(new Date(lastBackup)).replace(/-/g, '.')}\n` : ''}기록과 사진이 파일 하나에 담겨요. 불러오면 지금 기록에 합쳐지고, 이미 있는 영수증은 건너뛰어요.`
                 : '백업은 폰 앱에서만 할 수 있어요.'}
             </Text>
           </Group>

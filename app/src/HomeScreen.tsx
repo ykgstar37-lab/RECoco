@@ -17,6 +17,8 @@ import { RollScreen } from './components/RollScreen';
 import { Settings } from './components/Settings';
 import { Shop } from './components/Shop';
 import { WeekStamps, dateKey } from './components/WeekStamps';
+import { exportBackup } from './lib/backup';
+import { backupAsk, markBackedUp } from './lib/backupNudge';
 import { loadHaptics, tick } from './lib/haptics';
 import { OUTFITS, addOwned, categoryUnlocked, initShop, useShop, wearOutfit } from './lib/shop';
 import { categoryProduct } from './lib/products';
@@ -30,6 +32,7 @@ import { Photo, RecoRecord, RecordKind } from './types';
 const LOGO_WHITE = require('../assets/logo/recoco-logo-white.png');
 
 const HEADLINE_H = 70; // 대사 두 줄 높이
+const ASK_H = 52; // 백업을 물을 때 대사 아래 버튼 줄
 const MIN_TOP_GAP = 36; // 상단 바와 대사 사이 최소 여백
 const COCO_TOP_EMPTY = 34 / 320; // 코코 그림에서 꼭지 위쪽 빈 공간 비율 (모자를 쓰면 더 줄어듦)
 
@@ -60,6 +63,7 @@ export function HomeScreen() {
   const { owned, outfit } = useShop();
   const [gift, setGift] = useState<string | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [askBackup, setAskBackup] = useState<string | null>(null);
   // 사진첩 등에서 "공유 → 레코코" 로 받은 사진: 일상 폼에 미리 넣는다
   const shared = useSharedImage();
   const [sharedPhoto, setSharedPhoto] = useState<Photo | null>(null);
@@ -112,6 +116,25 @@ export function HomeScreen() {
     } else setDailyPreview(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sharedPhoto, shopReady]);
+
+  // 영수증이 쌓이면 코코가 백업을 권한다 (lib/backupNudge.ts)
+  useEffect(() => {
+    backupAsk(records.length)
+      .then((text) => text && setAskBackup(text))
+      .catch(() => {});
+  }, [records.length]);
+
+  const makeBackup = async () => {
+    tick();
+    setAskBackup(null);
+    try {
+      await exportBackup(records);
+      await markBackedUp();
+      say('든든하다!\n고마워', 2500);
+    } catch {
+      say('백업 파일을\n못 만들었어…', 2500);
+    }
+  };
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -184,17 +207,22 @@ export function HomeScreen() {
           ? '영수증 나왔다!\n도장 쾅 찍어줄게'
           : picking
             ? (focusHint ?? '오늘은\n뭘 기록할까?')
-            : poke
-              ? poke
-              : todayCount > 0
-                ? `오늘 벌써\n${todayCount}장이나 남겼어!`
-                : '오늘 하루도\n영수증으로 남겨볼까?';
+            : askBackup
+              ? askBackup
+              : poke
+                ? poke
+                : todayCount > 0
+                  ? `오늘 벌써\n${todayCount}장이나 남겼어!`
+                  : '오늘 하루도\n영수증으로 남겨볼까?';
+  // 백업을 물을 때만 대사 아래에 버튼 줄이 붙는다
+  const asking = !!askBackup && headline === askBackup;
+  const headlineH = HEADLINE_H + (asking ? ASK_H : 0);
 
   // 모자를 쓰면 그림 위쪽 빈 공간이 줄어든다
   const topEmpty = outfit ? Math.min(COCO_TOP_EMPTY, OUTFIT_TOP[outfit] / 320) : COCO_TOP_EMPTY;
   // 코코는 (대사 + 위쪽 여백)을 뺀 세로 공간을 꽉 채우고, 양옆은 화면 밖으로 살짝 잘릴 만큼 크게
   const cocoSize = stage.width
-    ? Math.min((stage.width - 80) * 1.32, (stage.height - HEADLINE_H - MIN_TOP_GAP) / (COCO_RATIO * (1 - topEmpty)))
+    ? Math.min((stage.width - 80) * 1.32, (stage.height - headlineH - MIN_TOP_GAP) / (COCO_RATIO * (1 - topEmpty)))
     : 0;
   // 그림 위쪽의 빈 공간(꼭지 위)만큼 대사를 코코 쪽으로 내려서 딱 붙인다
   const hug = -cocoSize * COCO_RATIO * topEmpty;
@@ -276,8 +304,23 @@ export function HomeScreen() {
       {/* 상단 바와 대사 사이는 비워두고, 대사와 코코는 붙여서 아래쪽에 모은다 */}
       <View style={styles.stage} onLayout={(e) => setStage(e.nativeEvent.layout)}>
         {/* 한 줄 대사여도 코코 바로 위에 붙도록 아래 정렬 */}
-        <View style={[styles.headlineBox, { marginBottom: hug }]}>
+        <View style={[styles.headlineBox, { height: headlineH, marginBottom: hug }]}>
           <Text style={styles.headline}>{headline}</Text>
+          {asking && (
+            <Animated.View entering={FadeIn.duration(200)} style={styles.askRow}>
+              <Pressable onPress={makeBackup} style={({ pressed }) => [styles.askBtn, styles.askBtnMain, pressed && { opacity: 0.85 }]}>
+                <Text style={[styles.askBtnText, { color: COLORS.orange }]}>백업하기</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  tick();
+                  setAskBackup(null);
+                }}
+                style={({ pressed }) => [styles.askBtn, pressed && { opacity: 0.85 }]}>
+                <Text style={styles.askBtnText}>30일 뒤에</Text>
+              </Pressable>
+            </Animated.View>
+          )}
         </View>
         {cocoSize > 0 && (
           <Coco
@@ -467,7 +510,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: FONTS.sansHeavy,
   },
-  headlineBox: { height: HEADLINE_H, justifyContent: 'flex-end', zIndex: 1 },
+  headlineBox: { justifyContent: 'flex-end', zIndex: 1 },
+  askRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 12 },
+  askBtn: { height: 40, paddingHorizontal: 18, borderRadius: 999, justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.22)' },
+  askBtnMain: { backgroundColor: '#fff' },
+  askBtnText: { color: '#fff', fontSize: 15, fontFamily: FONTS.sansBold },
   // 코코가 남는 세로 공간을 전부 차지한다
   stage: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 6, marginHorizontal: -40 },
   saveWarn: {
