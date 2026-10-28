@@ -152,10 +152,8 @@ const SPOT: Record<MonsterRank, Spot> = {
  */
 const WIN_PAD = 24;
 const winBox = (win: Spot['win']) => ({ x: win.x0 - WIN_PAD, y: win.topL - WIN_PAD, w: win.x1 - win.x0 + WIN_PAD * 2, h: win.bottom - win.topL + WIN_PAD * 2 });
-/** 제목: 사진 창 바로 위에 붙인다 (A 카드 간격 기준) */
-const TITLE = { cx: PW / 2, gap: 3, w: 420 };
-/** 설명 칸: 틀에 있는 칸을 덮고 어느 카드에서나 같은 크기로 (카드 좌표) */
-const PANEL = { x: 30, y: 596, w: 548, h: 140, pad: 22, line: 32 };
+/** 설명 칸: 틀에 있는 칸을 덮고 어느 카드에서나 같은 크기로 (카드 좌표). 맨 윗줄에 제목, 그 아래 설명 */
+const PANEL = { x: 30, y: 596, w: 548, h: 140, pad: 22, line: 27, titleGap: 31 };
 /** 아래 날짜 판 (카드 좌표, 모든 카드 공통) */
 const FOOT = { w: 218, h: 32 };
 
@@ -199,12 +197,13 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const shape = cardPath(connected);
   const id = `cocomon-${r.id}`;
   const art = artOf(r);
-  const title = fitLine(r.title.trim() || '이름 없는 하루', TITLE.w, 22, 14, 'sansHeavy');
+  const title = fitLine(r.title.trim() || '이름 없는 하루', PANEL.w - PANEL.pad * 2, 20, 14, 'sansHeavy');
   const desc = fitLines(`${fortune} ${r.diary.trim()}`.trim(), PANEL.w - PANEL.pad * 2, 17, 13, 3, 'sans');
   // 날짜 판은 어느 카드에서나 같은 크기로, 카드 밖으로 나가지 않게 살짝 당긴다
-  const titleY = Y(win.topL) - TITLE.gap;
-  // 설명 글은 칸 한가운데에 (줄 수가 달라도 위아래 여백이 같게)
-  const descTop = PANEL.y + (PANEL.h - (desc.lines.length - 1) * PANEL.line) / 2 + desc.size * 0.36;
+  // 제목 + 설명 글 덩어리를 칸 한가운데에 (줄 수가 달라도 위아래 여백이 같게)
+  const span = PANEL.titleGap + (desc.lines.length - 1) * PANEL.line;
+  const titleY = PANEL.y + (PANEL.h - span) / 2 + title.size * 0.36;
+  const descTop = titleY + PANEL.titleGap;
   const footY = (Y(foot.y0) + Y(foot.y1)) / 2;
   const footX = Math.min(Math.max((X(foot.x0) + X(foot.x1)) / 2, FOOT.w / 2 + 18), PW - FOOT.w / 2 - 18);
 
@@ -239,10 +238,6 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
           </G>
         )}
 
-        {/* 제목 (카드마다 무늬가 있어서 옅은 판을 깔고 쓴다) */}
-        <Rect x={TITLE.cx - title.text.length * title.size * 0.32 - 16} y={titleY - title.size - 3} width={title.text.length * title.size * 0.64 + 32} height={title.size + 15} rx={(title.size + 15) / 2} fill="#fff" opacity={0.78} />
-        <T f="sansHeavy" x={TITLE.cx} y={titleY} fontSize={title.size} textAnchor="middle" children={title.text} />
-
         {/* 능력치 두 칸 */}
         <T f="sansHeavy" x={X(bar.left)} y={Y(bar.y)} fontSize={22} textAnchor="middle" children={`${stats[0].name} / ${stats[0].value}`} />
         <T f="sansHeavy" x={X(bar.right)} y={Y(bar.y)} fontSize={22} textAnchor="middle" children={`${stats[1].name} / ${stats[1].value}`} />
@@ -254,6 +249,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
             <Rect x={PANEL.x} y={PANEL.y} width={PANEL.w} height={PANEL.h} rx={14} fill="none" stroke="#fff" strokeWidth={2} opacity={0.85} />
           </G>
         )}
+        <T f="sansHeavy" x={PANEL.x + PANEL.w / 2} y={titleY} fontSize={title.size} textAnchor="middle" children={title.text} />
         {desc.lines.map((line, i) => (
           <T key={i} x={PANEL.x + PANEL.pad} y={descTop + i * PANEL.line} fontSize={desc.size} children={line} />
         ))}
