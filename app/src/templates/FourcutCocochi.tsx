@@ -11,6 +11,7 @@
 import type { ComponentProps } from 'react';
 import Svg, { Circle, ClipPath, Defs, G, Image, Path, Rect, Text } from 'react-native-svg';
 
+import { withParticle } from '../lib/format';
 import { coverRect } from '../lib/photoCrop';
 import { fitLine, fitLines, measure } from '../lib/text';
 import { PAPER_FONTS as FONTS } from '../theme';
@@ -257,7 +258,7 @@ export function FourcutCocochiBack({ record: r, width, connected }: Props) {
               fill={info.ink}
               opacity={0.6}
               textAnchor="middle"
-              children={fitLine(`${withWhom}와 함께`, inner, 18, 13, 'sans').text}
+              children={fitLine(`${withParticle(withWhom)} 함께`, inner, 18, 13, 'sans').text}
             />
           )}
         </G>

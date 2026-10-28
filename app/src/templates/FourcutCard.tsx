@@ -5,7 +5,7 @@ import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Path, Rect, Text } from 'react-native-svg';
 
 import { coverRect } from '../lib/photoCrop';
-import { seededRandom } from '../lib/format';
+import { seededRandom, withParticle } from '../lib/format';
 import { fitLine, fitLines, measure } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { FourcutRecord, MonsterRank } from '../types';
@@ -228,7 +228,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const footY = (Y(foot.y0) + Y(foot.y1)) / 2;
   const footX = Math.min(Math.max((X(foot.x0) + X(foot.x1)) / 2, FOOT.w / 2 + 18), PW - FOOT.w / 2 - 18);
   // 어디서·누구랑: 날짜 판 왼쪽에 같은 모양의 작은 판으로 (핀은 장소가 있을 때만)
-  const where = [r.place.trim(), r.withWhom.trim() && `${r.withWhom.trim()}와 함께`].filter(Boolean).join(' · ');
+  const where = [r.place.trim(), r.withWhom.trim() && `${withParticle(r.withWhom.trim())} 함께`].filter(Boolean).join(' · ');
   const pinW = r.place.trim() ? 16 : 0;
   const whereRight = footX - FOOT.w / 2 - 8;
   const whereText = where ? fitLine(where, whereRight - 18 - 28 - pinW, 14, 11, 'sansBold') : null;
