@@ -10,7 +10,7 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   cat: { from: [0, 0], to: [0, 0], k: 1, top: 50 },
   dog: { from: [0, 0], to: [0, 0], k: 1, top: 86 },
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
-  beret: { from: [200, 140], to: [200, 148], k: 1.1, top: 31 },
+  beret: { from: [200, 140], to: [206, 148], k: 1.15, top: 28 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
   party: { from: [0, 0], to: [234, 87], k: 1, r: 9, top: -35 },
   headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
