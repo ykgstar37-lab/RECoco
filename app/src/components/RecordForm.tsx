@@ -1344,7 +1344,8 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     )}
                   </>
                 )}
-                <Label text="뒷면 — 오늘의 하루" />
+                {/* 코코몬 카드는 뒷면 없이 앞면 아래 칸에 글이 새겨진다 */}
+                <Label text={fourcut.design === 'card' ? '카드에 새겨질 글' : '뒷면 — 오늘의 하루'} />
                 {/* 코코몬 카드·코코치·하우스네컷는 뒷면을 제 모양대로 그리므로 뒷면 종이를 고르지 않는다 */}
                 {fourcut.design !== 'card' && fourcut.design !== 'cocochi' && fourcut.design !== 'house' && (
                   <ThemePicker
@@ -1858,7 +1859,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                 )}
                 <Label text="소분류" />
                 <DailyTagPicker value={daily.tag} onChange={(tag) => setDaily((d) => ({ ...d, tag }))} />
-                <Label text="뒷면 — 탭하면 사진이 옅어지고 이 글이 떠요" />
+                <Label
+                  text={
+                    daily.design === 'card' ? '카드에 새겨질 글' : daily.design === 'cocochi' ? '뒷면 — 탭하면 뒤집혀서 이 글이 떠요' : '뒷면 — 탭하면 사진이 옅어지고 이 글이 떠요'
+                  }
+                />
                 <Row>
                   <Field label="제목 (선택)" value={daily.title} onChange={(v) => setDaily({ ...daily, title: v })} placeholder="100일 기념 한강" />
                   <DateField label="날짜" value={daily.date} onChange={(v) => setDaily({ ...daily, date: v })} />

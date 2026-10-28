@@ -9,6 +9,7 @@ import { seededRandom } from '../lib/format';
 import { fitLine, fitLines, measure } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { FourcutRecord, MonsterRank } from '../types';
+import { Pin } from './FourcutCocochi';
 import { PaperShadow, TemplateLayout } from './shared';
 
 /** require 한 그림. 미리보기 도구에서는 { default: 'data:...' } 로 와서 한 겹 벗긴다 */
@@ -226,6 +227,12 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const luckY = blockTop + blockH - LUCK.h;
   const footY = (Y(foot.y0) + Y(foot.y1)) / 2;
   const footX = Math.min(Math.max((X(foot.x0) + X(foot.x1)) / 2, FOOT.w / 2 + 18), PW - FOOT.w / 2 - 18);
+  // 어디서·누구랑: 날짜 판 왼쪽에 같은 모양의 작은 판으로 (핀은 장소가 있을 때만)
+  const where = [r.place.trim(), r.withWhom.trim() && `${r.withWhom.trim()}와 함께`].filter(Boolean).join(' · ');
+  const pinW = r.place.trim() ? 16 : 0;
+  const whereRight = footX - FOOT.w / 2 - 8;
+  const whereText = where ? fitLine(where, whereRight - 18 - 28 - pinW, 14, 11, 'sansBold') : null;
+  const whereW = whereText ? measure(whereText.text, whereText.size, 'sansBold') + 28 + pinW : 0;
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
@@ -281,6 +288,13 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
 
         {/* 아래: 그림에 굳어 있는 날짜를 덮고 이 기록의 날짜를 쓴다 (판 크기는 카드마다 같게) */}
         <Rect x={footX - FOOT.w / 2} y={footY - FOOT.h / 2} width={FOOT.w} height={FOOT.h} rx={FOOT.h / 2} fill="#fff" />
+        {whereText && (
+          <G>
+            <Rect x={whereRight - whereW} y={footY - FOOT.h / 2} width={whereW} height={FOOT.h} rx={FOOT.h / 2} fill="#fff" />
+            {!!pinW && <Pin x={whereRight - whereW + 14} y={footY + 7} size={15} fill={INK} />}
+            <T f="sansBold" x={whereRight - whereW + 14 + pinW} y={footY + 5} fontSize={whereText.size} children={whereText.text} />
+          </G>
+        )}
         <T f="sansBold" x={footX} y={footY + 5} fontSize={14} textAnchor="middle" children={`${BRAND.en} ★ ${r.date.replace(/-/g, '.')}`} />
       </G>
     </Svg>

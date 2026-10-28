@@ -22,7 +22,7 @@ export const PAID_SINCE: string | null = null;
 export const PAID_FROM_BUILD: number | null = null;
 
 /** 코코몬 카드 등급을 기록할 때 직접 고를 수 있게 (스토어 미리보기 캡처용). 다 찍으면 false 로 — 원래는 뽑을 때 무작위 */
-export const PICK_COCOMON_RANK = true;
+export const PICK_COCOMON_RANK = false;
 
 /** 이 사람이 돈 없이 받을 수 있는지 */
 export function opensAll(since: string | null, firstBuild: number | null) {

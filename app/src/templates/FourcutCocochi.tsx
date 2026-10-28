@@ -166,7 +166,7 @@ function eggPath(b: Box) {
 }
 
 /** 위치 앞에 붙는 핀 */
-function Pin({ x, y, size, fill }: { x: number; y: number; size: number; fill: string }) {
+export function Pin({ x, y, size, fill }: { x: number; y: number; size: number; fill: string }) {
   const w = size * 0.72;
   return (
     <G transform={`translate(${x} ${y - size * 0.78}) scale(${w / 24} ${size / 32})`}>
@@ -199,16 +199,18 @@ export function FourcutCocochiBack({ record: r, width, connected }: Props) {
   const inner = plate.w * 0.66;
   const cx = plate.x + plate.w / 2;
   const date = r.date.replace(/-/g, '.');
-  const title = fitLine(r.title.trim() || '이름 없는 하루', inner, 34, 20, 'sansBold');
+  const title = fitLine(r.title.trim(), inner, 34, 20, 'sansBold');
   const place = r.place.trim();
   const withWhom = r.withWhom.trim();
+  // 아무것도 안 적었으면 뒷면은 빈 껍데기만 (날짜도 안 쓴다)
+  const blank = !r.title.trim() && !r.diary.trim() && !place && !withWhom;
 
   const dateY = plate.y + plate.h * 0.24;
   const titleY = dateY + 42;
   const bodyTop = titleY + 26;
   const footY = plate.y + plate.h * 0.82;
   const maxLines = Math.max(2, Math.floor((footY - 34 - bodyTop) / (22 * 1.52)));
-  const diary = fitLines(r.diary.trim() || '오늘도 한 장 남겼다.', inner, 22, 15, maxLines, 'sans');
+  const diary = r.diary.trim() ? fitLines(r.diary.trim(), inner, 22, 15, maxLines, 'sans') : { lines: [] as string[], size: 22 };
   const line = diary.size * 1.52;
   const diaryTop = bodyTop + diary.size;
 
@@ -233,8 +235,8 @@ export function FourcutCocochiBack({ record: r, width, connected }: Props) {
         <Shell color={color} id={id} back />
 
         <G clipPath={`url(#${id}-plate)`}>
-          <T f="monoBold" x={cx} y={dateY} fontSize={20} fill={info.ink} opacity={0.6} letterSpacing={1.6} textAnchor="middle" children={date} />
-          <T f="sansBold" x={cx} y={titleY} fontSize={title.size} fill={info.ink} textAnchor="middle" children={title.text} />
+          {!blank && <T f="monoBold" x={cx} y={dateY} fontSize={20} fill={info.ink} opacity={0.6} letterSpacing={1.6} textAnchor="middle" children={date} />}
+          {!!title.text && <T f="sansBold" x={cx} y={titleY} fontSize={title.size} fill={info.ink} textAnchor="middle" children={title.text} />}
           {diary.lines.map((t, i) => (
             <T key={i} x={cx} y={diaryTop + i * line} fontSize={diary.size} fill={info.ink} opacity={0.82} textAnchor="middle" children={t} />
           ))}
