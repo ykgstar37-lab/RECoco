@@ -101,6 +101,7 @@ interface Spot {
   bar: { y: number; left: number; right: number };
   /** 틀에 설명 칸이 이미 그려져 있으면 우리 판을 겹쳐 그리지 않는다 */
   descPanel: boolean;
+  /** 그림에 굳어 있던 "RECoco ★ 날짜" 자리 (지금은 지워졌다. C 카드 자리만 날짜 판 자리로 쓴다) */
   foot: { x0: number; x1: number; y0: number; y1: number };
 }
 
@@ -156,11 +157,20 @@ const SPOT: Record<MonsterRank, Spot> = {
 const WIN_PAD = 24;
 const winBox = (win: Spot['win']) => ({ x: win.x0 - WIN_PAD, y: win.topL - WIN_PAD, w: win.x1 - win.x0 + WIN_PAD * 2, h: win.bottom - win.topL + WIN_PAD * 2 });
 /** 설명 칸: 틀에 있는 칸을 덮고 어느 카드에서나 같은 크기로 (카드 좌표). 맨 윗줄에 제목, 그 아래 설명 */
-const PANEL = { x: 30, y: 596, w: 548, h: 140, pad: 22, line: 25 };
+const PANEL = { x: 30, y: 596, w: 548, h: 140, pad: 22, line: 22 };
 /** 오늘의 운세 줄 (맨 아래): 각진 연두 판 위에 네잎클로버 + 흰 글씨 */
-const LUCK = { h: 26, pad: 10, clover: 18, size: 14, fill: '#5fae2e' };
+const LUCK = { h: 24, pad: 10, clover: 18, size: 13, fill: '#5fae2e' };
 /** 아래 날짜 판 (카드 좌표, 모든 카드 공통) */
 const FOOT = { w: 218, h: 32 };
+/**
+ * 날짜 판 자리: 모든 등급을 빨간 C 카드 자리(오른쪽 아래)에 맞춘다.
+ * 등급마다 그림에 굳어 있던 날짜 글자는 design/tools/erase_card_feet.js 가 지웠다
+ */
+const FOOT_AT = (() => {
+  const { crop, foot } = SPOT.c;
+  const x = (((foot.x0 + foot.x1) / 2 - crop.x) * PW) / crop.w;
+  return { x: Math.min(Math.max(x, FOOT.w / 2 + 18), PW - FOOT.w / 2 - 18), y: (((foot.y0 + foot.y1) / 2 - crop.y) * PH) / crop.h };
+})();
 
 /** 네잎클로버 (운세 줄 앞) */
 const Clover = ({ x, y }: { x: number; y: number }) => (
@@ -201,7 +211,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const L = layoutFourcutCard(r);
   const { rank, info, stats, fortune } = monsterOf(r);
   const spot = SPOT[rank];
-  const { crop, win, bar, foot } = spot;
+  const { crop, win, bar } = spot;
   // 원본 그림 좌표 → 카드 좌표 (가로·세로 배율이 조금 다르다)
   const kx = PW / crop.w;
   const ky = PH / crop.h;
@@ -212,29 +222,28 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const shape = cardPath(connected);
   const id = `cocomon-${r.id}`;
   const art = artOf(r);
-  const title = fitLine(r.title.trim() || '이름 없는 하루', PANEL.w - PANEL.pad * 2, 20, 14, 'sansHeavy');
+  const title = fitLine(r.title.trim() || '이름 없는 하루', PANEL.w - PANEL.pad * 2, 18, 14, 'sansHeavy');
   const luck = fitLine(fortune, PANEL.w - PANEL.pad * 2 - LUCK.pad * 2 - LUCK.clover, LUCK.size, 11, 'sansBold');
   const luckW = measure(luck.text, luck.size, 'sansBold') + LUCK.pad * 2 + LUCK.clover;
-  const diary = r.diary.trim();
-  const desc = diary ? fitLines(diary, PANEL.w - PANEL.pad * 2, 16, 12, 2, 'sans') : { lines: [] as string[], size: 16 };
-  // 날짜 판은 어느 카드에서나 같은 크기로, 카드 밖으로 나가지 않게 살짝 당긴다
-  // 제목 · 일기 · 운세 덩어리를 칸 한가운데에 (일기 줄 수가 달라도 위아래 여백이 같게)
   // 어디서·누구랑: 운세 바로 위에 작게 (핀은 장소가 있을 때만)
   const where = [r.place.trim(), r.withWhom.trim() && `${withParticle(r.withWhom.trim())} 함께`].filter(Boolean).join(' · ');
   const pinW = r.place.trim() ? 15 : 0;
   const whereText = where ? fitLine(where, PANEL.w - PANEL.pad * 2 - pinW, 13, 11, 'sans') : null;
   const whereW = whereText ? measure(whereText.text, whereText.size, 'sans') + pinW : 0;
-  const WHERE_H = 22;
-  const blockH = title.size + 6 + (desc.lines.length ? desc.lines.length * PANEL.line + 4 : 0) + (whereText ? WHERE_H : 0) + 4 + LUCK.h;
+  const WHERE_H = 20;
+  // 틀에 그려진 설명 칸은 우리 칸보다 낮아서(C 카드 약 120) 글 덩어리를 100 안쪽으로 — 어디서 줄이 있으면 일기는 한 줄
+  const diary = r.diary.trim();
+  const desc = diary ? fitLines(diary, PANEL.w - PANEL.pad * 2, 15, 12, whereText ? 1 : 2, 'sans') : { lines: [] as string[], size: 15 };
+  // 제목 · 일기 · 어디서 · 운세 덩어리를 칸 한가운데에 (줄 수가 달라도 위아래 여백이 같게)
+  const blockH = title.size + 5 + (desc.lines.length ? desc.lines.length * PANEL.line + 3 : 0) + (whereText ? WHERE_H : 0) + 4 + LUCK.h;
   const blockTop = PANEL.y + (PANEL.h - blockH) / 2;
   const titleY = blockTop + title.size * 0.84;
   // 순서: 제목 → 일기 → 어디서·누구랑 → 맨 아래 운세
-  const descTop = blockTop + title.size + 6 + PANEL.line * 0.72;
+  const descTop = blockTop + title.size + 5 + PANEL.line * 0.72;
   const luckY = blockTop + blockH - LUCK.h;
   const whereY = luckY - 4 - WHERE_H / 2 + 4.5;
   const whereLeft = PANEL.x + (PANEL.w - whereW) / 2;
-  const footY = (Y(foot.y0) + Y(foot.y1)) / 2;
-  const footX = Math.min(Math.max((X(foot.x0) + X(foot.x1)) / 2, FOOT.w / 2 + 18), PW - FOOT.w / 2 - 18);
+  const { x: footX, y: footY } = FOOT_AT;
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
