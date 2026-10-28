@@ -341,7 +341,12 @@ export interface DailyRecord extends BaseRecord {
   title: string; // 한 줄 제목 (선택)
   memo: string;
   place: string;
+  design?: DailyDesign; // 없으면 사진 한 장 그대로 (이어 붙는 일상)
+  cocochiColor?: CocochiColor; // 코코치 껍데기 색
 }
+
+/** 일상 모양: 인생네컷의 코코몬 카드·코코치를 사진 한 장으로 빌려 쓴다 */
+export type DailyDesign = 'story' | 'card' | 'cocochi';
 
 export type RecoRecord =
   | ReadingRecord

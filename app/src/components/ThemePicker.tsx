@@ -45,7 +45,7 @@ import { HOLO_COLORS, HOLO_COLOR_IDS } from '../templates/ShowHolo';
 import { BAND_COLORS, BAND_COLOR_IDS } from '../templates/WristBand';
 import { ORDER_COLORS, ORDER_COLOR_IDS } from '../templates/FoodOrder';
 import { COLORS, FONTS } from '../theme';
-import { CocochiColor, ConcertDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, FourcutHouseColor, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, SpendingDesign, TicketColor } from '../types';
+import { CocochiColor, ConcertDesign, DailyDesign, ExerciseDesign, ExerciseType, FoodColor, FoodDesign, FourcutDesign, FourcutHouseColor, GridColor, HouseColor, MusicDesign, PaperTheme, ShowDesign, SpendingDesign, TicketColor } from '../types';
 import { ProductPreview } from './ProductPreview';
 
 /** 모양을 고른 다음 그 모양의 색을 고르는 동그라미 줄 */
@@ -856,8 +856,84 @@ export function FourcutDesignPicker({
         />
       )}
       {design === 'house' && <Text style={styles.hint}>지붕마다 무늬가 달라요. 넣은 사진 장수만큼 창틀이 나뉘고, 뒤집으면 그날의 일기가 떠요</Text>}
-      {design === 'card' && <Text style={styles.hint}>등급은 뽑을 때 무작위로 정해져요 (C · B · A · S · SS · R)</Text>}
-      {design === 'cocochi' && <Text style={styles.hint}>네컷 중 첫 사진이 작은 화면에 들어가요. 뒤집으면 그날의 일기가 떠요</Text>}
+      {design === 'card' && <Text style={styles.hint}>사진 한 장이 카드 그림이 돼요. 등급은 뽑을 때 무작위로 정해져요 (C · B · A · S · SS · R)</Text>}
+      {design === 'cocochi' && <Text style={styles.hint}>사진 한 장이 작은 화면에 들어가요. 뒤집으면 그날의 일기가 떠요</Text>}
+
+      <ProductPreview
+        product={preview?.product ?? null}
+        onClose={() => setPreview(null)}
+        onBought={() => {
+          if (preview) onChange(preview.id);
+          setPreview(null);
+        }}
+      />
+    </View>
+  );
+}
+
+/** 일상 모양: 사진 한 장 그대로(이어 붙는 일상) / 인생네컷의 코코몬 카드·코코치를 빌려 쓴다 (같은 상품을 사면 둘 다 열린다) */
+export function DailyDesignPicker({
+  value,
+  onChange,
+  cocochiColor,
+  onColor,
+}: {
+  value: DailyDesign | undefined;
+  onChange: (design: DailyDesign) => void;
+  cocochiColor?: CocochiColor;
+  onColor: (color: CocochiColor) => void;
+}) {
+  const { owned, allOpen } = useShop();
+  const [preview, setPreview] = useState<{ id: 'card' | 'cocochi'; product: PreviewProduct } | null>(null);
+  const borrowed = FOURCUT_DESIGNS.filter((d) => d.id === 'card' || d.id === 'cocochi');
+  const options: { id: DailyDesign; name: string; price: number }[] = [{ id: 'story', name: '사진 한 장', price: 0 }, ...borrowed.map((d) => ({ id: d.id as DailyDesign, name: d.name, price: d.price }))];
+  const design = value ?? 'story';
+  const locked = (id: DailyDesign) => id !== 'story' && !fourcutDesignUnlocked(id, owned);
+
+  const choose = (id: DailyDesign) => {
+    if (!locked(id)) return onChange(id);
+    setPreview({ id: id as 'card' | 'cocochi', product: fourcutDesignProductById(id as 'card' | 'cocochi') });
+  };
+
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.label}>일상 모양</Text>
+      <View style={styles.row}>
+        {options.map((o) => {
+          const on = design === o.id;
+          const lock = locked(o.id);
+          return (
+            <Pressable key={o.id} onPress={() => choose(o.id)} style={[styles.option, on && styles.optionOn]} accessibilityLabel={`${o.name}${lock ? ' (잠김)' : ''}`}>
+              <View style={lock && { opacity: 0.55 }}>
+                {o.id === 'story' ? (
+                  <Svg width={44} height={44 * 1.3} viewBox="0 0 40 52">
+                    <Rect x={6} y={4} width={28} height={44} rx={2} fill="#fff" stroke={COLORS.line} strokeWidth={0.8} />
+                    <Rect x={9} y={7} width={22} height={28} fill="#cfd8e3" />
+                    <Path d="M9 35 L17 24 L23 31 L27 27 L31 33 V35 Z" fill="#9fb2c6" />
+                    <Rect x={10} y={39} width={14} height={2} fill="#d8d8dc" />
+                  </Svg>
+                ) : (
+                  <FourcutDesignSwatch design={o.id} color={cocochiColor} />
+                )}
+              </View>
+              <Text style={[styles.name, on && { color: COLORS.orange }]} numberOfLines={1}>
+                {lock ? '🔒 ' : ''}
+                {o.name}
+              </Text>
+              {lock && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
+            </Pressable>
+          );
+        })}
+      </View>
+      {design === 'cocochi' && (
+        <ColorDots
+          colors={COCOCHI_COLOR_IDS.map((id) => ({ id, name: COCOCHI_COLORS[id].name, swatch: COCOCHI_COLORS[id].shell }))}
+          value={cocochiColor ?? 'mint'}
+          onPick={onColor}
+        />
+      )}
+      {design === 'card' && <Text style={styles.hint}>등급은 뽑을 때 무작위로 정해져요 (C · B · A · S · SS · R). 한 줄은 카드 아래에 적혀요</Text>}
+      {design === 'cocochi' && <Text style={styles.hint}>사진이 작은 화면에 들어가요. 뒤집으면 한 줄이 떠요</Text>}
 
       <ProductPreview
         product={preview?.product ?? null}

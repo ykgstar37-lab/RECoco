@@ -56,14 +56,33 @@ export function FourcutBack(p: FourcutFace) {
   return <FourcutNoteBack {...p} />;
 }
 
+/** 일상을 코코몬 카드·코코치로 그릴 때: 사진 한 장짜리 인생네컷으로 옮겨 같은 양식을 쓴다 (한 줄 → 일기) */
+const borrowsFourcut = (r: DailyRecord) => r.design === 'card' || r.design === 'cocochi';
+function dailyAsFourcut(r: DailyRecord): FourcutRecord {
+  return {
+    ...r,
+    kind: 'fourcut',
+    withWhom: '',
+    diary: r.memo,
+    source: 'photos',
+    frameImage: null,
+    photos: [r.photo, null, null, null],
+    layout: 'strip',
+    frame: 'white',
+    sourceUrl: '',
+    design: r.design === 'card' ? 'card' : 'cocochi',
+  };
+}
+
 /** 탭해서 뒤집히는 기록 (인생네컷 · 일상). 코코몬 카드는 뒷면이 없다 */
 export type FlippableRecord = FourcutRecord | DailyRecord;
 
-export const isFlippable = (r: RecoRecord): r is FlippableRecord => r.kind === 'daily' || (r.kind === 'fourcut' && r.design !== 'card');
+export const isFlippable = (r: RecoRecord): r is FlippableRecord => (r.kind === 'daily' || r.kind === 'fourcut') && r.design !== 'card';
 
 /** 뒤집은 면 */
 export function RecordBack({ record, width, connected }: { record: FlippableRecord; width: number; connected?: boolean }) {
-  if (record.kind === 'daily') return <DailyBack record={record} width={width} connected={connected} />;
+  if (record.kind === 'daily')
+    return borrowsFourcut(record) ? <FourcutBack record={dailyAsFourcut(record)} width={width} connected={connected} /> : <DailyBack record={record} width={width} connected={connected} />;
   return <FourcutBack record={record} width={width} connected={connected} />;
 }
 
@@ -110,7 +129,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
     case 'music':
       return record.design === 'list' ? layoutMusicList(record) : layoutMusicAlbum(record);
     case 'daily':
-      return layoutDaily(record);
+      return borrowsFourcut(record) ? layoutOf(dailyAsFourcut(record)) : layoutDaily(record);
   }
 }
 
@@ -190,7 +209,7 @@ export const RecordPaper = memo(function RecordPaper({ record, width, connected 
     case 'music':
       return record.design === 'list' ? <MusicList record={record} width={width} connected={connected} /> : <MusicAlbum record={record} width={width} connected={connected} />;
     case 'daily':
-      return <DailyStory record={record} width={width} connected={connected} />;
+      return borrowsFourcut(record) ? <FourcutFront record={dailyAsFourcut(record)} width={width} connected={connected} /> : <DailyStory record={record} width={width} connected={connected} />;
   }
 });
 

@@ -196,7 +196,7 @@ export function fourcutDesignProduct(d: FourcutDesignItem): PreviewProduct {
     productId: d.productId,
     price: d.price,
     tags: d.kinds.map((k) => KIND_LABEL[k]),
-    help: '사진과 글은 예시예요. 내 네컷 사진으로 채워져요.',
+    help: d.id === 'house' ? '사진과 글은 예시예요. 내 네컷 사진으로 채워져요.' : '사진과 글은 예시예요. 내 사진 한 장으로 채워져요.',
   };
 
   if (d.id === 'cocochi') {

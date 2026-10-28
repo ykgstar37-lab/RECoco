@@ -25,11 +25,13 @@ import { categoryUnlocked, useShop } from '../lib/shop';
 import { STATUSES, STATUS_COLORS } from '../lib/subgroups';
 import { EXERCISE_TYPES, USES_DISTANCE } from '../templates/ExerciseSlip';
 import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
-import { ConcertDesignPicker, ExerciseDesignPicker, FoodDesignPicker, FourcutDesignPicker, MusicDesignPicker, ShowDesignPicker, SpendingDesignPicker, ThemePicker } from './ThemePicker';
+import { houseCellAspect } from '../templates/FourcutHouse';
+import { ConcertDesignPicker, DailyDesignPicker, ExerciseDesignPicker, FoodDesignPicker, FourcutDesignPicker, MusicDesignPicker, ShowDesignPicker, SpendingDesignPicker, ThemePicker } from './ThemePicker';
 import { SHOW_TYPES } from '../templates/ShowTicket';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
+  CocochiColor,
   ConcertRecord,
   DailyRecord,
   FoodMenu,
@@ -373,6 +375,8 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
   const [exercise, setExercise] = useState(emptyExercise);
   const [music, setMusic] = useState(emptyMusic);
   const [daily, setDaily] = useState(emptyDaily);
+  /** 사진 한 장만 쓰는 네컷 모양 (코코몬 카드·코코치) */
+  const singleShot = fourcut.design === 'card' || fourcut.design === 'cocochi';
   const [foodSmsOpen, setFoodSmsOpen] = useState(false);
   const { owned } = useShop();
   const [qrOpen, setQrOpen] = useState(false);
@@ -390,7 +394,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
   const cropping = cropQueue[0] ?? null;
   const nextCrop = () => setCropQueue((q) => q.slice(1));
   /** 사진 한 장 칸: 이 기록(모양)의 칸 비율로 자르기 화면을 연다. force 면 비율이 맞아도 연다 */
-  const askCrop = (draft: { kind: RecordKind; design?: string; printFilter?: boolean }, photo: Photo, apply: (p: Photo) => void, force = false) => {
+  const askCrop = (draft: { kind: RecordKind; design?: string; printFilter?: boolean; cocochiColor?: CocochiColor }, photo: Photo, apply: (p: Photo) => void, force = false) => {
     const slot = slotOf(draft);
     if (!slot) return;
     const aspect = slotAspect(slot, photo);
@@ -406,6 +410,36 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
     setCropQueue((q) => [
       ...q,
       ...jobs.map((j, k) => ({ photo: j.photo, aspect: j.aspect, free: false, apply: (p: Photo) => applyAt(j.i, p), step: jobs.length > 1 ? `${k + 1}/${jobs.length}` : undefined })),
+    ]);
+  };
+  /**
+   * 하우스네컷: 네컷 완성본 한 장을 네 창에 한 컷씩 나눠 넣는다.
+   * 같은 사진을 네 번 자르는데, 위에서부터 1/4씩 잘라 둔 자리에서 시작해 조금만 맞추면 되게 한다
+   */
+  const splitIntoHouse = (src: Photo) => {
+    const a = houseCellAspect(4);
+    const full = { ...src, crop: null };
+    const quarter = (i: number): PhotoCrop => {
+      const qh = full.height / 4;
+      let w = full.width;
+      let h = w * a;
+      if (h > qh) {
+        h = qh;
+        w = h / a;
+      }
+      return { x: (full.width - w) / 2, y: i * qh + (qh - h) / 2, width: w, height: h };
+    };
+    const four = [0, 1, 2, 3].map((i) => ({ ...full, crop: quarter(i) }));
+    setFourcut((f) => ({ ...f, source: 'photos', photos: four }));
+    setCropQueue((q) => [
+      ...q,
+      ...four.map((photo, i) => ({
+        photo,
+        aspect: a,
+        free: false,
+        apply: (p: Photo) => setFourcut((f) => ({ ...f, photos: f.photos.map((x, j) => (j === i ? p : x)) })),
+        step: `${i + 1}/4`,
+      })),
     ]);
   };
   // 앨범에서 고른 사진을 앱 폴더로 옮기는 데 시간이 걸려서, 그동안 칸 위에 도는 표시를 띄운다
@@ -601,7 +635,9 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
         return setError('QR로 사진을 가져오거나, "사진 4장 고르기"로 바꿔주세요.');
       }
       if (fourcut.source === 'photos' && !fourcut.photos.some(Boolean)) return setError('사진을 한 장 이상 골라주세요.');
-      record = { ...base, ...fourcut } as FourcutRecord;
+      // 코코몬 카드·코코치는 첫 사진 한 장만 남긴다
+      const photos = singleShot ? [fourcut.photos.find(Boolean) ?? null, null, null, null] : fourcut.photos;
+      record = { ...base, ...fourcut, photos } as FourcutRecord;
     }
     onSubmit(record);
     reset();
@@ -1179,6 +1215,24 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
 
             {kind === 'fourcut' && (
               <>
+                {/* 코코몬 카드·코코치는 사진 한 장만 쓴다 (모양을 먼저 골라야 칸 수가 정해져서 맨 위로 올림) */}
+                <FourcutDesignPicker
+                  value={fourcut.design}
+                  onChange={(design) =>
+                    setFourcut((f) => ({
+                      ...f,
+                      design,
+                      cocochiColor: f.cocochiColor ?? 'mint',
+                      houseColor: f.houseColor ?? 'pink',
+                      // 한 장짜리 모양으로 바꾸면 첫 사진만 남긴다
+                      photos: design === 'card' || design === 'cocochi' ? [f.photos.find(Boolean) ?? null, null, null, null] : f.photos,
+                    }))
+                  }
+                  cocochiColor={fourcut.cocochiColor}
+                  onColor={(cocochiColor) => setFourcut((f) => ({ ...f, cocochiColor }))}
+                  houseColor={fourcut.houseColor}
+                  onHouseColor={(houseColor) => setFourcut((f) => ({ ...f, houseColor }))}
+                />
                 <Label text="앞면 사진" />
                 <View style={styles.segment}>
                   {Platform.OS !== 'web' && (
@@ -1187,7 +1241,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     </Pressable>
                   )}
                   <Pressable onPress={() => setFourcut({ ...fourcut, source: 'photos' })} style={[styles.seg, fourcut.source === 'photos' && styles.segOn]}>
-                    <Text style={[styles.segText, fourcut.source === 'photos' && styles.segTextOn]}>사진 4장 고르기</Text>
+                    <Text style={[styles.segText, fourcut.source === 'photos' && styles.segTextOn]}>{singleShot ? '사진 1장 고르기' : '사진 4장 고르기'}</Text>
                   </Pressable>
                 </View>
                 {fourcut.source === 'qr' ? (
@@ -1202,7 +1256,24 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     <Pressable onPress={() => setQrOpen(true)} style={styles.qrBtn}>
                       <Text style={styles.qrBtnText}>{fourcut.frameImage ? '다른 사진으로 바꾸기' : 'QR 스캔하기'}</Text>
                     </Pressable>
+                    {fourcut.design === 'house' && !!fourcut.frameImage && (
+                      <Pressable onPress={() => splitIntoHouse(fourcut.frameImage!)} hitSlop={6} style={styles.cropLink}>
+                        <Text style={styles.cropLinkText}>네 컷을 창마다 따로 자르기</Text>
+                      </Pressable>
+                    )}
                   </View>
+                ) : singleShot ? (
+                  <>
+                    <Label text="사진 (한 장이 카드·화면에 들어가요)" />
+                    <PhotoSlots
+                      photos={fourcut.photos.slice(0, 1)}
+                      onChange={(photos) => setFourcut((f) => ({ ...f, photos: [photos[0] ?? null, null, null, null] }))}
+                      onPicked={(photos) =>
+                        askCropMany(fourcut, [photos[0] ?? null, null, null, null], [0], (_, p) => setFourcut((f) => ({ ...f, photos: [p, null, null, null] })))
+                      }
+                      onCrop={() => askCropMany(fourcut, fourcut.photos, [0], (_, p) => setFourcut((f) => ({ ...f, photos: [p, null, null, null] })), true)}
+                    />
+                  </>
                 ) : (
                   <>
                     <Label text="레이아웃" />
@@ -1238,6 +1309,12 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                       }
                       onCrop={(i) => askCropMany(fourcut, fourcut.photos, [i], (k, p) => setFourcut((f) => ({ ...f, photos: f.photos.map((x, j) => (j === k ? p : x)) })), true)}
                     />
+                    {/* 하우스네컷에 네컷 완성본 한 장만 넣었으면: 통째로 두거나, 네 창에 한 컷씩 나눠 자른다 */}
+                    {fourcut.design === 'house' && fourcut.photos.filter(Boolean).length === 1 && (
+                      <Pressable onPress={() => splitIntoHouse(fourcut.photos.find(Boolean)!)} hitSlop={6} style={styles.cropLink}>
+                        <Text style={styles.cropLinkText}>네컷 완성본이면: 네 컷을 창마다 따로 자르기</Text>
+                      </Pressable>
+                    )}
                     <Label text="프레임" />
                     <View style={styles.row}>
                       {FRAMES.map((f) => (
@@ -1253,14 +1330,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </>
                 )}
                 <Label text="뒷면 — 오늘의 하루" />
-                <FourcutDesignPicker
-                  value={fourcut.design}
-                  onChange={(design) => setFourcut((f) => ({ ...f, design, cocochiColor: f.cocochiColor ?? 'mint', houseColor: f.houseColor ?? 'pink' }))}
-                  cocochiColor={fourcut.cocochiColor}
-                  onColor={(cocochiColor) => setFourcut((f) => ({ ...f, cocochiColor }))}
-                  houseColor={fourcut.houseColor}
-                  onHouseColor={(houseColor) => setFourcut((f) => ({ ...f, houseColor }))}
-                />
                 {/* 코코몬 카드·코코치·하우스네컷는 뒷면을 제 모양대로 그리므로 뒷면 종이를 고르지 않는다 */}
                 {fourcut.design !== 'card' && fourcut.design !== 'cocochi' && fourcut.design !== 'house' && (
                   <ThemePicker
@@ -1756,6 +1825,19 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     <Text style={styles.cropLinkText}>{daily.photo.crop ? '자른 자리 다시 맞추기' : '칸에 맞게 자르기'}</Text>
                   </Pressable>
                 )}
+                <DailyDesignPicker
+                  value={daily.design}
+                  onChange={(design) => {
+                    setDaily((d) => ({ ...d, design, cocochiColor: d.cocochiColor ?? 'mint' }));
+                    // 모양마다 사진 칸 비율이 달라서 새 칸에 맞춰 다시 자른다
+                    if (design !== (daily.design ?? 'story') && daily.photo) askCrop({ ...daily, design }, daily.photo, (q) => setDaily((x) => ({ ...x, photo: q })));
+                  }}
+                  cocochiColor={daily.cocochiColor}
+                  onColor={(cocochiColor) => {
+                    setDaily((d) => ({ ...d, cocochiColor }));
+                    if (daily.photo) askCrop({ ...daily, cocochiColor }, daily.photo, (q) => setDaily((x) => ({ ...x, photo: q })));
+                  }}
+                />
                 <Label text="소분류" />
                 <DailyTagPicker value={daily.tag} onChange={(tag) => setDaily((d) => ({ ...d, tag }))} />
                 <Label text="뒷면 — 탭하면 사진이 옅어지고 이 글이 떠요" />

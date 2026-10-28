@@ -31,7 +31,10 @@ export interface PhotoSlot {
   max: number;
 }
 
-type Draft = Pick<RecoRecord, 'kind'> & { design?: string; printFilter?: boolean };
+type Draft = Pick<RecoRecord, 'kind'> & { design?: string; printFilter?: boolean; cocochiColor?: CocochiColor };
+
+/** 비율이 하나로 정해진 칸 (코코몬 카드·코코치 화면) */
+const fixed = (aspect: number): PhotoSlot => ({ w: 1, min: aspect, max: aspect });
 
 /** 사진 한 장 칸이 있는 기록의 칸. 사진이 안 들어가는 모양(팔찌·가로 흰 무지 등)이면 null */
 export function slotOf(r: Draft): PhotoSlot | null {
@@ -56,6 +59,9 @@ export function slotOf(r: Draft): PhotoSlot | null {
     case 'music':
       return r.design === 'list' ? MUSIC_LIST : MUSIC_ALBUM;
     case 'daily':
+      // 코코몬 카드·코코치를 빌려 쓰면 그 사진 칸 비율로
+      if (r.design === 'card') return fixed(cocomonArtAspect());
+      if (r.design === 'cocochi') return fixed(cocochiScreenAspect(r.cocochiColor ?? 'mint'));
       return DAILY;
     case 'spending':
       // 사진 영수증: 배경 / 흑백 프린트(글자 아래 사진)
