@@ -463,6 +463,11 @@ export function HomeScreen() {
           return added.length;
         }}
         onBought={addOwned}
+        onTryBackupAsk={() => {
+          tick();
+          setSettingsOpen(false);
+          setAskBackup(`영수증이 ${records.length}장 모였어!\n백업 파일 만들어 둘까?`);
+        }}
       />
       <ProductPreview
         product={dailyPreview ? categoryProduct('daily') : null}

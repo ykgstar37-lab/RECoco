@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,10 +24,13 @@ interface Props {
   /** 백업에서 불러온 기록 (합쳐진 뒤 새로 더해진 장수를 돌려준다) */
   onImport: (records: RecoRecord[]) => number;
   onBought: (productId: string) => void;
+  /** 숨은 확인용: 버전 줄을 5번 연달아 누르면 홈 코코가 백업을 물어본다 */
+  onTryBackupAsk: () => void;
 }
 
 /** 환경설정: 진동, 내 기록·백업, 구매 복원(유료화 뒤에만), 버그 신고, 정보 */
-export function Settings({ visible, records, onClose, onImport, onBought }: Props) {
+export function Settings({ visible, records, onClose, onImport, onBought, onTryBackupAsk }: Props) {
+  const versionTaps = useRef<number[]>([]);
   const [haptics, setHapticsOn] = useState(true);
   const [notice, setNotice] = useState('');
   const [backupNotice, setBackupNotice] = useState('');
@@ -189,10 +192,20 @@ export function Settings({ visible, records, onClose, onImport, onBought }: Prop
               <Text style={styles.rowValue}>›</Text>
             </Pressable>
             <View style={styles.divider} />
-            <View style={styles.row}>
+            <Pressable
+              onPress={() => {
+                // 2초 안에 5번 누르면 설정을 닫고 홈에서 코코가 백업을 물어본다
+                const now = Date.now();
+                versionTaps.current = [...versionTaps.current.filter((t) => now - t < 2000), now];
+                if (versionTaps.current.length >= 5) {
+                  versionTaps.current = [];
+                  onTryBackupAsk();
+                }
+              }}
+              style={styles.row}>
               <Text style={styles.rowLabel}>버전</Text>
               <Text style={styles.rowValue}>{APP_VERSION}</Text>
-            </View>
+            </Pressable>
             <Text style={styles.help}>
               책 정보: 카카오 · 영화 정보: TMDB (This product uses the TMDB API but is not endorsed or certified by TMDB.){'\n'}글꼴: Pretendard, 나눔글꼴 (SIL Open Font
               License)
