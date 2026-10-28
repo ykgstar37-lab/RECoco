@@ -1,5 +1,5 @@
 // 인생네컷 유료 테마 "코코몬 카드": 네컷 사진 한 장을 수집 카드로 뽑는다
-// 카드 틀은 design/tools/make_cards.js 가 만든 그림(assets/cards/*.webp)을 그대로 쓰고,
+// 카드 틀은 design/tools/make_cards.js 가 만든 그림(assets/cards/*.jpg)을 그대로 쓰고,
 // 사진과 글자만 그 위에 얹는다. 등급은 고를 수 없고 기록 id 로 정해진다 (열 때마다 바뀌지 않는다)
 import type { ComponentProps } from 'react';
 import Svg, { ClipPath, Defs, G, Image, Path, Rect, Text } from 'react-native-svg';
@@ -23,13 +23,13 @@ const INK = '#1c1a22';
  * 등급 (weight 합 100). 카드 틀 그림이 등급마다 하나씩 있다.
  * foot 은 그림에 굳어 있는 "RECoco ★ 날짜" 를 덮을 자리 (카드마다 다르다)
  */
-export const MONSTER_RANKS: Record<MonsterRank, { name: string; tag: string; weight: number; frame: number; logo: number; foot: { x: number; w: number; y: number } }> = {
-  c: { name: '흔함', tag: 'C', weight: 40, frame: asset(require('../../assets/cards/C.jpg')), logo: asset(require('../../assets/cards/logo-C.png')), foot: { x: 354, w: 224, y: 740 } },
-  b: { name: '보통', tag: 'B', weight: 28, frame: asset(require('../../assets/cards/B.jpg')), logo: asset(require('../../assets/cards/logo-B.png')), foot: { x: 311, w: 240, y: 734 } },
-  a: { name: '좋음', tag: 'A', weight: 18, frame: asset(require('../../assets/cards/A.jpg')), logo: asset(require('../../assets/cards/logo-A.png')), foot: { x: 216, w: 200, y: 754 } },
-  s: { name: '아주 좋음', tag: 'S', weight: 9, frame: asset(require('../../assets/cards/S.jpg')), logo: asset(require('../../assets/cards/logo-S.png')), foot: { x: 367, w: 206, y: 731 } },
-  ss: { name: '최고', tag: 'SS', weight: 4, frame: asset(require('../../assets/cards/SS.jpg')), logo: asset(require('../../assets/cards/logo-SS.png')), foot: { x: 216, w: 182, y: 751 } },
-  r: { name: '무지개', tag: 'R', weight: 1, frame: asset(require('../../assets/cards/R.jpg')), logo: asset(require('../../assets/cards/logo-R.png')), foot: { x: 213, w: 184, y: 748 } },
+export const MONSTER_RANKS: Record<MonsterRank, { name: string; tag: string; weight: number; frame: number; win: number; foot: { x: number; w: number; y: number } }> = {
+  c: { name: '흔함', tag: 'C', weight: 40, frame: asset(require('../../assets/cards/C.jpg')), win: asset(require('../../assets/cards/win-C.png')), foot: { x: 354, w: 224, y: 740 } },
+  b: { name: '보통', tag: 'B', weight: 28, frame: asset(require('../../assets/cards/B.jpg')), win: asset(require('../../assets/cards/win-B.png')), foot: { x: 311, w: 240, y: 734 } },
+  a: { name: '좋음', tag: 'A', weight: 18, frame: asset(require('../../assets/cards/A.jpg')), win: asset(require('../../assets/cards/win-A.png')), foot: { x: 216, w: 200, y: 754 } },
+  s: { name: '아주 좋음', tag: 'S', weight: 9, frame: asset(require('../../assets/cards/S.jpg')), win: asset(require('../../assets/cards/win-S.png')), foot: { x: 367, w: 206, y: 731 } },
+  ss: { name: '최고', tag: 'SS', weight: 4, frame: asset(require('../../assets/cards/SS.jpg')), win: asset(require('../../assets/cards/win-SS.png')), foot: { x: 216, w: 182, y: 751 } },
+  r: { name: '무지개', tag: 'R', weight: 1, frame: asset(require('../../assets/cards/R.jpg')), win: asset(require('../../assets/cards/win-R.png')), foot: { x: 213, w: 184, y: 748 } },
 };
 
 export const MONSTER_RANK_IDS = Object.keys(MONSTER_RANKS) as MonsterRank[];
@@ -146,10 +146,14 @@ const SPOT: Record<MonsterRank, Spot> = {
   },
 };
 
-const INSET = 9; // 사진을 창 안쪽으로 물리는 정도 (원본 px)
+/**
+ * 사진 창 덮개(win-*.png)가 창보다 넓게 오려진 정도 (원본 px). design/tools/make_card_windows.js 의 PAD 와 같아야 한다.
+ * 사진은 이 넓은 칸을 채우고 덮개 아래에 깔린다 — 창에 걸친 별·로고는 사진 위로, 테두리와 사진 사이 틈은 없게
+ */
+const WIN_PAD = 24;
+const winBox = (win: Spot['win']) => ({ x: win.x0 - WIN_PAD, y: win.topL - WIN_PAD, w: win.x1 - win.x0 + WIN_PAD * 2, h: win.bottom - win.topL + WIN_PAD * 2 });
 /** 제목: 사진 창 바로 위에 붙인다 (A 카드 간격 기준) */
 const TITLE = { cx: PW / 2, gap: 3, w: 420 };
-const LOGO = { x: 360, y: 798, w: 368, h: 134 };
 /** 설명 칸: 틀에 있는 칸을 덮고 어느 카드에서나 같은 크기로 (카드 좌표) */
 const PANEL = { x: 30, y: 596, w: 548, h: 140, pad: 22, line: 32 };
 /** 아래 날짜 판 (카드 좌표, 모든 카드 공통) */
@@ -167,9 +171,8 @@ const artOf = (r: FourcutRecord) => r.photos.find(Boolean) ?? r.frameImage;
  */
 export const cocomonArtAspect = () => {
   const list = Object.values(SPOT).map(({ crop, win }) => {
-    const w = ((win.x1 - win.x0) * PW) / crop.w;
-    const h = ((win.bottom - win.topL) * PH) / crop.h;
-    return h / w;
+    const box = winBox(win);
+    return (box.h * PH) / crop.h / ((box.w * PW) / crop.w);
   });
   return list.reduce((a, b) => a + b, 0) / list.length;
 };
@@ -180,24 +183,6 @@ export function layoutFourcutCard(_r: FourcutRecord): TemplateLayout {
 
 const cardPath = (connected: boolean) =>
   connected ? `M0,0 H${PW} V${PH} H0 Z` : `M16,0 H${PW - 16} Q${PW},0 ${PW},16 V${PH - 16} Q${PW},${PH} ${PW - 16},${PH} H16 Q0,${PH} 0,${PH - 16} V16 Q0,0 16,0 Z`;
-
-/** 사진이 들어갈 창 (오른쪽 위가 한 번 꺾인 모양). 원본 좌표를 받아 카드 좌표로 옮긴다 */
-const windowPath = (win: Spot['win'], X: (v: number) => number, Y: (v: number) => number) => {
-  // 은색 테두리를 덮지 않게 살짝 안쪽으로
-  const x = X(win.x0 + INSET);
-  const x2 = X(win.x1 - INSET);
-  const yL = Y(win.topL + INSET);
-  const yR = Y(win.topR + INSET);
-  const yB = Y(win.bottom - INSET);
-  const nf = X(win.notchFrom);
-  const nt = X(win.notchTo);
-  const r = 12;
-  return (
-    `M${x + r},${yL} H${nf} L${nt},${yR} H${x2 - r} Q${x2},${yR} ${x2},${yR + r}` +
-    ` V${yB - r} Q${x2},${yB} ${x2 - r},${yB} H${x + r} Q${x},${yB} ${x},${yB - r}` +
-    ` V${yL + r} Q${x},${yL} ${x + r},${yL} Z`
-  );
-};
 
 export function FourcutCard({ record: r, width, connected = false }: { record: FourcutRecord; width: number; connected?: boolean }) {
   const L = layoutFourcutCard(r);
@@ -210,6 +195,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const k = (kx + ky) / 2; // 글자·로고처럼 비율을 지켜야 하는 것
   const X = (v: number) => Math.round((v - crop.x) * kx * 10) / 10;
   const Y = (v: number) => Math.round((v - crop.y) * ky * 10) / 10;
+  const box = winBox(win);
   const shape = cardPath(connected);
   const id = `cocomon-${r.id}`;
   const art = artOf(r);
@@ -231,7 +217,7 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
             <Path d={shape} />
           </ClipPath>
           <ClipPath id={`${id}-win`}>
-            <Path d={windowPath(win, X, Y)} />
+            <Rect x={X(box.x)} y={Y(box.y)} width={box.w * kx} height={box.h * ky} />
           </ClipPath>
         </Defs>
 
@@ -240,23 +226,18 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
           <Image href={info.frame} x={X(0)} y={Y(0)} width={SHEET.w * kx} height={SHEET.h * ky} preserveAspectRatio="none" />
         </G>
 
-        {/* 사진 (틀 위에 얹어 창을 채운다) */}
+        {/* 사진: 창보다 조금 넓게 깔고, 창 자리만 뚫린 덮개를 위에 얹는다 */}
         {art && (
-          <Image
-            href={{ uri: art.uri }}
-            {...coverRect(art, {
-              x: X(win.x0 + INSET),
-              y: Y(win.topL + INSET),
-              width: X(win.x1 - INSET) - X(win.x0 + INSET),
-              height: Y(win.bottom - INSET) - Y(win.topL + INSET),
-            })}
-            preserveAspectRatio="none"
-            clipPath={`url(#${id}-win)`}
-          />
+          <G>
+            <Image
+              href={{ uri: art.uri }}
+              {...coverRect(art, { x: X(box.x), y: Y(box.y), width: box.w * kx, height: box.h * ky })}
+              preserveAspectRatio="none"
+              clipPath={`url(#${id}-win)`}
+            />
+            <Image href={info.win} x={X(box.x)} y={Y(box.y)} width={box.w * kx} height={box.h * ky} preserveAspectRatio="none" />
+          </G>
         )}
-
-        {/* 사진에 가린 로고를 다시 얹는다 */}
-        {art && <Image href={info.logo} x={X(LOGO.x)} y={Y(LOGO.y)} width={LOGO.w * kx} height={LOGO.h * ky} preserveAspectRatio="xMidYMid meet" />}
 
         {/* 제목 (카드마다 무늬가 있어서 옅은 판을 깔고 쓴다) */}
         <Rect x={TITLE.cx - title.text.length * title.size * 0.32 - 16} y={titleY - title.size - 3} width={title.text.length * title.size * 0.64 + 32} height={title.size + 15} rx={(title.size + 15) / 2} fill="#fff" opacity={0.78} />
