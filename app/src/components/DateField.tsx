@@ -112,20 +112,25 @@ function Calendar({ month, selected, onMonth, onPick }: { month: Date; selected:
         ))}
       </View>
 
-      <View style={styles.grid}>
-        {cells.map((d, i) => {
-          if (!d) return <View key={`e${i}`} style={styles.cell} />;
-          const key = toKey(d);
-          const on = key === selected;
-          const isToday = key === todayKey;
-          return (
-            <Pressable key={key} onPress={() => onPick(d)} style={styles.cell}>
-              <View style={[styles.day, isToday && styles.dayToday, on && styles.dayOn]}>
-                <Text style={[styles.dayText, d.getDay() === 0 && { color: COLORS.danger }, on && styles.dayTextOn]}>{d.getDate()}</Text>
-              </View>
-            </Pressable>
-          );
-        })}
+      {/* 한 주씩 줄로 나눠 그린다 — 폭을 100/7% 로 잡고 감싸면 반올림 때문에 한 줄에 6칸만 들어가 요일이 밀렸다 */}
+      <View>
+        {Array.from({ length: cells.length / 7 }, (_, row) => (
+          <View key={row} style={styles.weekRow}>
+            {cells.slice(row * 7, row * 7 + 7).map((d, i) => {
+              if (!d) return <View key={`e${i}`} style={styles.cell} />;
+              const key = toKey(d);
+              const on = key === selected;
+              const isToday = key === todayKey;
+              return (
+                <Pressable key={key} onPress={() => onPick(d)} style={styles.cell}>
+                  <View style={[styles.day, isToday && styles.dayToday, on && styles.dayOn]}>
+                    <Text style={[styles.dayText, d.getDay() === 0 && { color: COLORS.danger }, on && styles.dayTextOn]}>{d.getDate()}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
       </View>
 
       <View style={styles.quick}>
@@ -177,8 +182,8 @@ const styles = StyleSheet.create({
   month: { color: COLORS.ink, fontSize: 16, fontFamily: FONTS.sansHeavy },
   week: { flexDirection: 'row' },
   weekText: { flex: 1, textAlign: 'center', color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sansBold },
-  grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  cell: { width: `${100 / 7}%`, height: 38, alignItems: 'center', justifyContent: 'center' },
+  weekRow: { flexDirection: 'row' },
+  cell: { flex: 1, height: 38, alignItems: 'center', justifyContent: 'center' },
   day: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   dayToday: { borderWidth: 1.5, borderColor: COLORS.orange },
   dayOn: { backgroundColor: COLORS.orange, borderColor: COLORS.orange },

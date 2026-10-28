@@ -21,6 +21,9 @@ export const PAID_SINCE: string | null = null;
 /** 유료화 판의 iOS 빌드 번호. 이보다 작은 빌드로 처음 받은 사람은 계속 전부 무료 (유료화 전에는 null) */
 export const PAID_FROM_BUILD: number | null = null;
 
+/** 코코몬 카드 등급을 기록할 때 직접 고를 수 있게 (스토어 미리보기 캡처용). 다 찍으면 false 로 — 원래는 뽑을 때 무작위 */
+export const PICK_COCOMON_RANK = true;
+
 /** 이 사람이 돈 없이 받을 수 있는지 */
 export function opensAll(since: string | null, firstBuild: number | null) {
   if (FREE_FOR_ALL) return true;

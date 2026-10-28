@@ -21,10 +21,12 @@ import { fillRect } from '../lib/photoCrop';
 import { downloadPhoto, pickPhotos } from '../lib/photos';
 import { MultiDraft, fitsAspect, isFreeSlot, multiAspect, slotAspect, slotOf } from '../lib/photoSlots';
 import { BookHit, MovieHit, canSearchBooks, canSearchMovies, movieDetail, searchMovies } from '../lib/search';
+import { PICK_COCOMON_RANK } from '../lib/launch';
 import { categoryUnlocked, useShop } from '../lib/shop';
 import { STATUSES, STATUS_COLORS } from '../lib/subgroups';
 import { EXERCISE_TYPES, USES_DISTANCE } from '../templates/ExerciseSlip';
 import { FOOD_TYPES, REVISIT } from '../templates/FoodOrder';
+import { MONSTER_RANKS, MONSTER_RANK_IDS } from '../templates/FourcutCard';
 import { houseCellAspect } from '../templates/FourcutHouse';
 import { ConcertDesignPicker, DailyDesignPicker, ExerciseDesignPicker, FoodDesignPicker, FourcutDesignPicker, MusicDesignPicker, ShowDesignPicker, SpendingDesignPicker, ThemePicker } from './ThemePicker';
 import { SHOW_TYPES } from '../templates/ShowTicket';
@@ -32,6 +34,7 @@ import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
 import {
   CocochiColor,
+  MonsterRank,
   ConcertRecord,
   DailyRecord,
   FoodMenu,
@@ -1233,6 +1236,9 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   houseColor={fourcut.houseColor}
                   onHouseColor={(houseColor) => setFourcut((f) => ({ ...f, houseColor }))}
                 />
+                {PICK_COCOMON_RANK && fourcut.design === 'card' && (
+                  <RankPicker value={fourcut.monsterRank} onChange={(monsterRank) => setFourcut((f) => ({ ...f, monsterRank }))} />
+                )}
                 <Label text="앞면 사진" />
                 <View style={styles.segment}>
                   {Platform.OS !== 'web' && (
@@ -1276,30 +1282,35 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   </>
                 ) : (
                   <>
-                    <Label text="레이아웃" />
-                    <View style={styles.row}>
-                      {LAYOUTS.map((l) => {
-                        const on = fourcut.layout === l.key;
-                        const boxH = 58;
-                        const boxW = Math.min(boxH * l.ratio, 76);
-                        const h = boxW / l.ratio;
-                        return (
-                          <Pressable key={l.key} onPress={() => setFourcut({ ...fourcut, layout: l.key })} style={[styles.layoutChip, on && styles.layoutChipOn]}>
-                            <View style={{ height: boxH, justifyContent: 'center' }}>
-                              <View style={[styles.layoutCard, { width: boxW, height: h }]}>
-                                {l.cells.map(([x, y, w, ch], i) => (
-                                  <View
-                                    key={i}
-                                    style={[styles.layoutCell, on && styles.layoutCellOn, { left: x * boxW, top: y * h, width: w * boxW, height: ch * h }]}
-                                  />
-                                ))}
-                              </View>
-                            </View>
-                            <Text style={styles.layoutText}>{l.label}</Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
+                    {/* 하우스네컷은 창 배치가 정해져 있고 색은 위에서 지붕 색으로 고르니 레이아웃·프레임을 감춘다 */}
+                    {fourcut.design !== 'house' && (
+                      <>
+                        <Label text="레이아웃" />
+                        <View style={styles.row}>
+                          {LAYOUTS.map((l) => {
+                            const on = fourcut.layout === l.key;
+                            const boxH = 58;
+                            const boxW = Math.min(boxH * l.ratio, 76);
+                            const h = boxW / l.ratio;
+                            return (
+                              <Pressable key={l.key} onPress={() => setFourcut({ ...fourcut, layout: l.key })} style={[styles.layoutChip, on && styles.layoutChipOn]}>
+                                <View style={{ height: boxH, justifyContent: 'center' }}>
+                                  <View style={[styles.layoutCard, { width: boxW, height: h }]}>
+                                    {l.cells.map(([x, y, w, ch], i) => (
+                                      <View
+                                        key={i}
+                                        style={[styles.layoutCell, on && styles.layoutCellOn, { left: x * boxW, top: y * h, width: w * boxW, height: ch * h }]}
+                                      />
+                                    ))}
+                                  </View>
+                                </View>
+                                <Text style={styles.layoutText}>{l.label}</Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </>
+                    )}
                     <Label text="사진 (칸 순서대로 들어가요)" />
                     <PhotoSlots
                       photos={fourcut.photos}
@@ -1315,18 +1326,22 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                         <Text style={styles.cropLinkText}>네컷 완성본이면: 네 컷을 창마다 따로 자르기</Text>
                       </Pressable>
                     )}
-                    <Label text="프레임" />
-                    <View style={styles.row}>
-                      {FRAMES.map((f) => (
-                        <Pressable
-                          key={f.key}
-                          onPress={() => setFourcut({ ...fourcut, frame: f.key })}
-                          style={[styles.frameChip, fourcut.frame === f.key && styles.frameChipOn]}>
-                          <View style={[styles.frameDot, { backgroundColor: f.color }]} />
-                          <Text style={styles.segText}>{f.label}</Text>
-                        </Pressable>
-                      ))}
-                    </View>
+                    {fourcut.design !== 'house' && (
+                      <>
+                        <Label text="프레임" />
+                        <View style={styles.row}>
+                          {FRAMES.map((f) => (
+                            <Pressable
+                              key={f.key}
+                              onPress={() => setFourcut({ ...fourcut, frame: f.key })}
+                              style={[styles.frameChip, fourcut.frame === f.key && styles.frameChipOn]}>
+                              <View style={[styles.frameDot, { backgroundColor: f.color }]} />
+                              <Text style={styles.segText}>{f.label}</Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </>
+                    )}
                   </>
                 )}
                 <Label text="뒷면 — 오늘의 하루" />
@@ -1838,6 +1853,9 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     if (daily.photo) askCrop({ ...daily, cocochiColor }, daily.photo, (q) => setDaily((x) => ({ ...x, photo: q })));
                   }}
                 />
+                {PICK_COCOMON_RANK && daily.design === 'card' && (
+                  <RankPicker value={daily.monsterRank} onChange={(monsterRank) => setDaily((d) => ({ ...d, monsterRank }))} />
+                )}
                 <Label text="소분류" />
                 <DailyTagPicker value={daily.tag} onChange={(tag) => setDaily((d) => ({ ...d, tag }))} />
                 <Label text="뒷면 — 탭하면 사진이 옅어지고 이 글이 떠요" />
@@ -2165,6 +2183,23 @@ function PhotoSlots({
 function MissingKey({ what }: { what: string }) {
   if (!__DEV__) return null;
   return <Text style={styles.missingKey}>개발 안내: {what} 키가 없어요. app/.env.local 을 넣은 뒤 개발 서버를 껐다 켜주세요 (npx expo start --clear).</Text>;
+}
+
+/** 코코몬 카드 등급 직접 고르기 (스토어 미리보기 캡처용, lib/launch 의 PICK_COCOMON_RANK) */
+function RankPicker({ value, onChange }: { value?: MonsterRank; onChange: (rank: MonsterRank | undefined) => void }) {
+  const options: { key?: MonsterRank; label: string }[] = [{ label: '무작위' }, ...MONSTER_RANK_IDS.map((key) => ({ key, label: MONSTER_RANKS[key].tag }))];
+  return (
+    <>
+      <Label text="카드 등급" />
+      <View style={styles.row}>
+        {options.map((o) => (
+          <Pressable key={o.label} onPress={() => onChange(o.key)} style={[styles.frameChip, value === o.key && styles.frameChipOn]}>
+            <Text style={styles.segText}>{o.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </>
+  );
 }
 
 function Label({ text }: { text: string }) {

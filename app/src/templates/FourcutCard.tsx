@@ -6,7 +6,7 @@ import Svg, { ClipPath, Defs, G, Image, Path, Rect, Text } from 'react-native-sv
 
 import { coverRect } from '../lib/photoCrop';
 import { seededRandom } from '../lib/format';
-import { fitLine, fitLines } from '../lib/text';
+import { fitLine, fitLines, measure } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { FourcutRecord, MonsterRank } from '../types';
 import { PaperShadow, TemplateLayout } from './shared';
@@ -57,7 +57,7 @@ const FORTUNES = [
 ];
 
 /** 기록 하나가 어떤 등급으로 뽑혔는지 · 능력치와 운세 (id 로 정해진다) */
-export function monsterOf(r: Pick<FourcutRecord, 'id'>) {
+export function monsterOf(r: Pick<FourcutRecord, 'id' | 'monsterRank'>) {
   const rnd = seededRandom(`${r.id}-cocomon`);
   let roll = rnd() * 100;
   let rank: MonsterRank = 'c';
@@ -68,6 +68,8 @@ export function monsterOf(r: Pick<FourcutRecord, 'id'>) {
       break;
     }
   }
+  // 등급을 정해 뒀으면 그 등급으로 (능력치·운세는 그대로 id 로 뽑는다)
+  if (r.monsterRank) rank = r.monsterRank;
   const info = MONSTER_RANKS[rank];
   const [leftName, rightName] = STAT_PAIRS[Math.floor(rnd() * STAT_PAIRS.length)];
   // 귀한 카드일수록 숫자가 높다
@@ -153,9 +155,21 @@ const SPOT: Record<MonsterRank, Spot> = {
 const WIN_PAD = 24;
 const winBox = (win: Spot['win']) => ({ x: win.x0 - WIN_PAD, y: win.topL - WIN_PAD, w: win.x1 - win.x0 + WIN_PAD * 2, h: win.bottom - win.topL + WIN_PAD * 2 });
 /** 설명 칸: 틀에 있는 칸을 덮고 어느 카드에서나 같은 크기로 (카드 좌표). 맨 윗줄에 제목, 그 아래 설명 */
-const PANEL = { x: 30, y: 596, w: 548, h: 140, pad: 22, line: 27, titleGap: 31 };
+const PANEL = { x: 30, y: 596, w: 548, h: 140, pad: 22, line: 25 };
+/** 오늘의 운세 줄: 연두 판 위에 네잎클로버 + 흰 글씨 */
+const LUCK = { h: 26, pad: 12, clover: 22, size: 14, fill: '#5fae2e' };
 /** 아래 날짜 판 (카드 좌표, 모든 카드 공통) */
 const FOOT = { w: 218, h: 32 };
+
+/** 네잎클로버 (운세 줄 앞) */
+const Clover = ({ x, y }: { x: number; y: number }) => (
+  <G transform={`translate(${x} ${y}) rotate(45) scale(0.95)`}>
+    <Path d="M0,0 Q4,5 2,10" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" fill="none" transform="rotate(-45)" />
+    {[0, 90, 180, 270].map((a) => (
+      <Path key={a} transform={`rotate(${a})`} d="M0,-0.8 C-1,-2.6 -5.4,-3.4 -4.6,-6.6 C-4,-9 -1,-8.8 0,-6.8 C1,-8.8 4,-9 4.6,-6.6 C5.4,-3.4 1,-2.6 0,-0.8 Z" fill="#fff" />
+    ))}
+  </G>
+);
 
 type TProps = ComponentProps<typeof Text> & { f?: keyof typeof FONTS };
 const T = ({ f = 'sans', ...p }: TProps) => <Text fill={INK} fontFamily={FONTS[f]} {...p} />;
@@ -198,12 +212,17 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const id = `cocomon-${r.id}`;
   const art = artOf(r);
   const title = fitLine(r.title.trim() || '이름 없는 하루', PANEL.w - PANEL.pad * 2, 20, 14, 'sansHeavy');
-  const desc = fitLines(`${fortune} ${r.diary.trim()}`.trim(), PANEL.w - PANEL.pad * 2, 17, 13, 3, 'sans');
+  const luck = fitLine(fortune, PANEL.w - PANEL.pad * 2 - LUCK.pad * 2 - LUCK.clover, LUCK.size, 11, 'sansBold');
+  const luckW = measure(luck.text, luck.size, 'sansBold') + LUCK.pad * 2 + LUCK.clover;
+  const diary = r.diary.trim();
+  const desc = diary ? fitLines(diary, PANEL.w - PANEL.pad * 2, 16, 12, 2, 'sans') : { lines: [] as string[], size: 16 };
   // 날짜 판은 어느 카드에서나 같은 크기로, 카드 밖으로 나가지 않게 살짝 당긴다
-  // 제목 + 설명 글 덩어리를 칸 한가운데에 (줄 수가 달라도 위아래 여백이 같게)
-  const span = PANEL.titleGap + (desc.lines.length - 1) * PANEL.line;
-  const titleY = PANEL.y + (PANEL.h - span) / 2 + title.size * 0.36;
-  const descTop = titleY + PANEL.titleGap;
+  // 제목 · 운세 · 일기 덩어리를 칸 한가운데에 (일기 줄 수가 달라도 위아래 여백이 같게)
+  const blockH = title.size + 8 + LUCK.h + (desc.lines.length ? 8 + desc.lines.length * PANEL.line : 0);
+  const blockTop = PANEL.y + (PANEL.h - blockH) / 2;
+  const titleY = blockTop + title.size * 0.84;
+  const luckY = blockTop + title.size + 8;
+  const descTop = luckY + LUCK.h + 8 + PANEL.line * 0.72;
   const footY = (Y(foot.y0) + Y(foot.y1)) / 2;
   const footX = Math.min(Math.max((X(foot.x0) + X(foot.x1)) / 2, FOOT.w / 2 + 18), PW - FOOT.w / 2 - 18);
 
@@ -250,6 +269,11 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
           </G>
         )}
         <T f="sansHeavy" x={PANEL.x + PANEL.w / 2} y={titleY} fontSize={title.size} textAnchor="middle" children={title.text} />
+        <G transform={`translate(${PANEL.x + (PANEL.w - luckW) / 2} ${luckY})`}>
+          <Rect width={luckW} height={LUCK.h} rx={LUCK.h / 2} fill={LUCK.fill} />
+          <Clover x={LUCK.pad + 8} y={LUCK.h / 2} />
+          <T f="sansBold" x={LUCK.pad + LUCK.clover} y={LUCK.h / 2 + luck.size * 0.36} fontSize={luck.size} fill="#fff" children={luck.text} />
+        </G>
         {desc.lines.map((line, i) => (
           <T key={i} x={PANEL.x + PANEL.pad} y={descTop + i * PANEL.line} fontSize={desc.size} children={line} />
         ))}

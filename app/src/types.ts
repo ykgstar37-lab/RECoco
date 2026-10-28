@@ -146,6 +146,7 @@ export interface FourcutRecord extends BaseRecord {
   theme?: PaperTheme; // 뒷면 종이 (없으면 기본 크림 줄노트)
   themeColor?: GridColor; // 모눈종이 격자 색
   design?: FourcutDesign; // 없으면 네컷 사진 그대로
+  monsterRank?: MonsterRank; // 코코몬 카드 등급을 정해 둔 것 (없으면 id 로 뽑힌다)
   cocochiColor?: CocochiColor; // 코코치 껍데기 색
   houseColor?: FourcutHouseColor; // 하우스네컷 지붕
 }
@@ -342,6 +343,7 @@ export interface DailyRecord extends BaseRecord {
   memo: string;
   place: string;
   design?: DailyDesign; // 없으면 사진 한 장 그대로 (이어 붙는 일상)
+  monsterRank?: MonsterRank; // 코코몬 카드 등급을 정해 둔 것 (없으면 id 로 뽑힌다)
   cocochiColor?: CocochiColor; // 코코치 껍데기 색
 }
 
