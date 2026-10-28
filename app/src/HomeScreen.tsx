@@ -32,12 +32,44 @@ import { Photo, RecoRecord, RecordKind } from './types';
 const LOGO_WHITE = require('../assets/logo/recoco-logo-white.png');
 
 const HEADLINE_H = 70; // 대사 두 줄 높이
-const ASK_H = 52; // 백업을 물을 때 대사 아래 버튼 줄
+const ASK_H = 150; // 백업을 물을 때는 대사 대신 말풍선 (글 두 줄 + 버튼 줄 + 꼬리)
 const MIN_TOP_GAP = 36; // 상단 바와 대사 사이 최소 여백
 const COCO_TOP_EMPTY = 34 / 320; // 코코 그림에서 꼭지 위쪽 빈 공간 비율 (모자를 쓰면 더 줄어듦)
 
 // 코코를 누를 때마다 바뀌는 한마디
 const POKES = ['간지러워!', '말랑말랑~', '헤헤 또 눌러봐', '영수증 뽑아줄까?', '기록은 내가 챙길게', '만두 아니고 코코야!'];
+
+const TYPE_MS = 45; // 대사 한 글자가 나오는 간격
+
+/** 코코가 말하듯 한 글자씩 보여준다 (몇 글자째까지 보였는지). 대사가 바뀌면 처음부터 */
+function useTyped(text: string) {
+  const [shown, setShown] = useState(0);
+  const total = Array.from(text).length;
+  useEffect(() => {
+    setShown(0);
+    if (!total) return;
+    const timer = setInterval(() => setShown((n) => (n + 1 >= total ? (clearInterval(timer), total) : n + 1)), TYPE_MS);
+    return () => clearInterval(timer);
+  }, [text, total]);
+  // 글자가 하나 나올 때마다 톡 (띄어쓰기·줄바꿈은 조용히, 설정에서 진동을 끄면 없음)
+  useEffect(() => {
+    const ch = Array.from(text)[shown - 1];
+    if (ch && ch.trim()) tick();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown]);
+  return { shown, done: shown >= total };
+}
+
+/** 아직 안 나온 글자는 투명하게 두어 가운데 정렬된 줄이 글자마다 흔들리지 않게 */
+function TypedText({ text, shown, style }: { text: string; shown: number; style: object }) {
+  const chars = Array.from(text);
+  return (
+    <Text style={style}>
+      {chars.slice(0, shown).join('')}
+      <Text style={{ color: 'transparent' }}>{chars.slice(shown).join('')}</Text>
+    </Text>
+  );
+}
 
 /** 메인: 한 화면에 코코 + 주간 도장 + 기록 버튼. 영수증 목록은 따로 올라오는 화면 */
 export function HomeScreen() {
@@ -214,9 +246,10 @@ export function HomeScreen() {
                 : todayCount > 0
                   ? `오늘 벌써\n${todayCount}장이나 남겼어!`
                   : '오늘 하루도\n영수증으로 남겨볼까?';
-  // 백업을 물을 때만 대사 아래에 버튼 줄이 붙는다
+  // 백업을 물을 때만 대사가 버튼 달린 말풍선이 된다
   const asking = !!askBackup && headline === askBackup;
-  const headlineH = HEADLINE_H + (asking ? ASK_H : 0);
+  const headlineH = asking ? ASK_H : HEADLINE_H;
+  const typed = useTyped(headline);
 
   // 모자를 쓰면 그림 위쪽 빈 공간이 줄어든다
   const topEmpty = outfit ? Math.min(COCO_TOP_EMPTY, OUTFIT_TOP[outfit] / 320) : COCO_TOP_EMPTY;
@@ -305,21 +338,28 @@ export function HomeScreen() {
       <View style={styles.stage} onLayout={(e) => setStage(e.nativeEvent.layout)}>
         {/* 한 줄 대사여도 코코 바로 위에 붙도록 아래 정렬 */}
         <View style={[styles.headlineBox, { height: headlineH, marginBottom: hug }]}>
-          <Text style={styles.headline}>{headline}</Text>
-          {asking && (
-            <Animated.View entering={FadeIn.duration(200)} style={styles.askRow}>
-              <Pressable onPress={makeBackup} style={({ pressed }) => [styles.askBtn, styles.askBtnMain, pressed && { opacity: 0.85 }]}>
-                <Text style={[styles.askBtnText, { color: COLORS.orange }]}>백업하기</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  tick();
-                  setAskBackup(null);
-                }}
-                style={({ pressed }) => [styles.askBtn, pressed && { opacity: 0.85 }]}>
-                <Text style={styles.askBtnText}>30일 뒤에</Text>
-              </Pressable>
+          {asking ? (
+            <Animated.View entering={FadeIn.duration(200)} style={styles.bubble}>
+              <TypedText text={headline} shown={typed.shown} style={styles.bubbleText} />
+              {/* 버튼은 자리만 잡아 두고, 말을 다 한 뒤에 보인다 */}
+              <View style={[styles.askRow, !typed.done && { opacity: 0 }]} pointerEvents={typed.done ? 'auto' : 'none'}>
+                <Pressable onPress={makeBackup} style={({ pressed }) => [styles.askBtn, styles.askBtnMain, pressed && { opacity: 0.85 }]}>
+                  <Text style={[styles.askBtnText, { color: '#fff' }]}>백업하기</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    tick();
+                    setAskBackup(null);
+                  }}
+                  style={({ pressed }) => [styles.askBtn, pressed && { opacity: 0.85 }]}>
+                  <Text style={styles.askBtnText}>30일 뒤에</Text>
+                </Pressable>
+              </View>
+              {/* 꼬리: 코코 쪽으로 내려가는 작은 마름모 */}
+              <View style={styles.bubbleTail} />
             </Animated.View>
+          ) : (
+            <TypedText text={headline} shown={typed.shown} style={styles.headline} />
           )}
         </View>
         {cocoSize > 0 && (
@@ -511,10 +551,35 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.sansHeavy,
   },
   headlineBox: { justifyContent: 'flex-end', zIndex: 1 },
+  bubble: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    paddingHorizontal: 22,
+    paddingTop: 16,
+    paddingBottom: 16,
+    marginBottom: 12, // 꼬리 자리
+    alignItems: 'center',
+    shadowColor: '#7a2a00',
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  bubbleText: { color: COLORS.ink, fontSize: 19, lineHeight: 27, textAlign: 'center', fontFamily: FONTS.sansHeavy },
+  bubbleTail: {
+    position: 'absolute',
+    bottom: -8,
+    alignSelf: 'center',
+    width: 18,
+    height: 18,
+    borderRadius: 3,
+    backgroundColor: '#fff',
+    transform: [{ rotate: '45deg' }],
+  },
   askRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 12 },
-  askBtn: { height: 40, paddingHorizontal: 18, borderRadius: 999, justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.22)' },
-  askBtnMain: { backgroundColor: '#fff' },
-  askBtnText: { color: '#fff', fontSize: 15, fontFamily: FONTS.sansBold },
+  askBtn: { height: 38, paddingHorizontal: 18, borderRadius: 999, justifyContent: 'center', backgroundColor: COLORS.orangeSoft },
+  askBtnMain: { backgroundColor: COLORS.orange },
+  askBtnText: { color: COLORS.orange, fontSize: 15, fontFamily: FONTS.sansBold },
   // 코코가 남는 세로 공간을 전부 차지한다
   stage: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 6, marginHorizontal: -40 },
   saveWarn: {

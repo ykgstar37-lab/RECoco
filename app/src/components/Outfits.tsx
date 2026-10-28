@@ -157,6 +157,17 @@ function Hat({ id }: { id: OutfitId }) {
           <Circle cx={0} cy={-112} r={11} fill="#f2c14e" />
         </G>
       );
+    case 'glasses':
+      // 빨간 뿔테: 타원 알 두 개 + 콧대만 (안경다리·경첩 없음). 코코 눈(158,190)·(242,190) 위에 얹는다
+      return (
+        <G>
+          <Path d="M188,179 Q200,170 212,179" stroke="#c9331d" strokeWidth={8} strokeLinecap="round" fill="none" />
+          <Ellipse cx={154} cy={190} rx={33} ry={25} fill="none" stroke="#e2402a" strokeWidth={9} />
+          <Ellipse cx={246} cy={190} rx={33} ry={25} fill="none" stroke="#e2402a" strokeWidth={9} />
+          <Path d="M132,177 Q144,169 162,170" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
+          <Path d="M224,177 Q236,169 254,170" stroke="#ff8a70" strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.9} />
+        </G>
+      );
     case 'headphones':
       // 에어팟 맥스 느낌: 얇은 프레임 + 메쉬 캐노피 + 둥근 사각 이어컵
       return (
