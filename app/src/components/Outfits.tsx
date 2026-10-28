@@ -10,7 +10,7 @@ const FIT: Record<OutfitId, { from: [number, number]; to: [number, number]; k: n
   cat: { from: [0, 0], to: [0, 0], k: 1, top: 50 },
   dog: { from: [0, 0], to: [0, 0], k: 1, top: 86 },
   straw: { from: [225, 114], to: [203, 104], k: 1.25, top: 9 },
-  beret: { from: [225, 104], to: [200, 142], k: 1.4, top: 24 },
+  beret: { from: [200, 140], to: [200, 148], k: 1.1, top: 31 },
   crown: { from: [225, 104], to: [203, 146], k: 1.35, top: 16 },
   party: { from: [0, 0], to: [234, 87], k: 1, r: 9, top: -35 },
   headphones: { from: [0, 0], to: [0, 0], k: 1, top: 40 },
@@ -127,11 +127,21 @@ function Hat({ id }: { id: OutfitId }) {
         </G>
       );
     case 'beret':
+      // 장난꾸러기: 초록·노랑·파랑 조각 모자 + 꼭대기 빨간 프로펠러 (id 는 예전 베레모 자리 그대로 — 산 사람·입은 옷이 이어지게)
       return (
         <G>
-          <Path d="M226,36 C222,22 236,16 242,30 Z" fill="#b8403c" />
-          <Path d="M118,106 C96,70 148,32 230,32 C314,32 354,70 324,106 C282,90 168,88 118,106 Z" fill="#d9534f" />
-          <Path d="M122,104 C170,88 280,88 322,104" stroke="#b8403c" strokeWidth={6} strokeLinecap="round" fill="none" />
+          <Path d="M80,140 C80,40 320,40 320,140 C250,128 150,128 80,140 Z" fill="#3fae4f" />
+          <Path d="M200,65 C226,78 244,105 248,132 C215,130 175,130 142,133 C150,105 172,78 200,65 Z" fill="#f7d32e" />
+          <Path d="M200,65 C260,65 320,90 320,140 C300,136 270,133 248,132 C244,105 226,78 200,65 Z" fill="#2f6fd6" />
+          <Path d="M84,138 C150,126 250,126 316,138" stroke="#000" strokeOpacity={0.14} strokeWidth={7} strokeLinecap="round" fill="none" />
+          <Circle cx={116} cy={108} r={3.5} fill="#000" opacity={0.22} />
+          <Circle cx={194} cy={96} r={3.5} fill="#000" opacity={0.18} />
+          <Circle cx={278} cy={104} r={3.5} fill="#000" opacity={0.22} />
+          <Rect x={196} y={44} width={8} height={20} rx={3} fill="#d8322b" />
+          <Ellipse cx={200} cy={64} rx={11} ry={6} fill="#f4f1ec" />
+          <Ellipse cx={170} cy={44} rx={30} ry={7.5} fill="#e0302a" transform="rotate(-7 170 44)" />
+          <Ellipse cx={230} cy={44} rx={30} ry={7.5} fill="#e0302a" transform="rotate(7 230 44)" />
+          <Circle cx={200} cy={45} r={7} fill="#f4f1ec" />
         </G>
       );
     case 'crown':

@@ -37,7 +37,7 @@ export const OUTFITS: OutfitItem[] = [
   { id: 'heart', name: '하트 꼬랑지', records: 6 },
   { id: 'straw', name: '밀짚모자', records: 10 },
   { id: 'glasses', name: '빨간 안경', records: 15 },
-  { id: 'beret', name: '베레모', records: 21 },
+  { id: 'beret', name: '장난꾸러기', records: 21 },
   { id: 'party', name: '파티 고깔', records: 28 },
   { id: 'headphones', name: '헤드폰', records: 36 },
   { id: 'cat', name: '고양이', records: 45 },
