@@ -219,20 +219,22 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
   const desc = diary ? fitLines(diary, PANEL.w - PANEL.pad * 2, 16, 12, 2, 'sans') : { lines: [] as string[], size: 16 };
   // 날짜 판은 어느 카드에서나 같은 크기로, 카드 밖으로 나가지 않게 살짝 당긴다
   // 제목 · 일기 · 운세 덩어리를 칸 한가운데에 (일기 줄 수가 달라도 위아래 여백이 같게)
-  const blockH = title.size + 8 + LUCK.h + (desc.lines.length ? 8 + desc.lines.length * PANEL.line : 0);
+  // 어디서·누구랑: 운세 바로 위에 작게 (핀은 장소가 있을 때만)
+  const where = [r.place.trim(), r.withWhom.trim() && `${withParticle(r.withWhom.trim())} 함께`].filter(Boolean).join(' · ');
+  const pinW = r.place.trim() ? 15 : 0;
+  const whereText = where ? fitLine(where, PANEL.w - PANEL.pad * 2 - pinW, 13, 11, 'sans') : null;
+  const whereW = whereText ? measure(whereText.text, whereText.size, 'sans') + pinW : 0;
+  const WHERE_H = 22;
+  const blockH = title.size + 6 + (desc.lines.length ? desc.lines.length * PANEL.line + 4 : 0) + (whereText ? WHERE_H : 0) + 4 + LUCK.h;
   const blockTop = PANEL.y + (PANEL.h - blockH) / 2;
   const titleY = blockTop + title.size * 0.84;
-  // 순서: 제목 → 일기 → 맨 아래 운세
-  const descTop = blockTop + title.size + 8 + PANEL.line * 0.72;
+  // 순서: 제목 → 일기 → 어디서·누구랑 → 맨 아래 운세
+  const descTop = blockTop + title.size + 6 + PANEL.line * 0.72;
   const luckY = blockTop + blockH - LUCK.h;
+  const whereY = luckY - 4 - WHERE_H / 2 + 4.5;
+  const whereLeft = PANEL.x + (PANEL.w - whereW) / 2;
   const footY = (Y(foot.y0) + Y(foot.y1)) / 2;
   const footX = Math.min(Math.max((X(foot.x0) + X(foot.x1)) / 2, FOOT.w / 2 + 18), PW - FOOT.w / 2 - 18);
-  // 어디서·누구랑: 날짜 판 왼쪽에 같은 모양의 작은 판으로 (핀은 장소가 있을 때만)
-  const where = [r.place.trim(), r.withWhom.trim() && `${withParticle(r.withWhom.trim())} 함께`].filter(Boolean).join(' · ');
-  const pinW = r.place.trim() ? 16 : 0;
-  const whereRight = footX - FOOT.w / 2 - 8;
-  const whereText = where ? fitLine(where, whereRight - 18 - 28 - pinW, 14, 11, 'sansBold') : null;
-  const whereW = whereText ? measure(whereText.text, whereText.size, 'sansBold') + 28 + pinW : 0;
 
   return (
     <Svg width={width} height={(width * L.height) / L.width} viewBox={`0 0 ${L.width} ${L.height}`}>
@@ -285,16 +287,15 @@ export function FourcutCard({ record: r, width, connected = false }: { record: F
         {desc.lines.map((line, i) => (
           <T key={i} x={PANEL.x + PANEL.pad} y={descTop + i * PANEL.line} fontSize={desc.size} children={line} />
         ))}
+        {whereText && (
+          <G opacity={0.75}>
+            {!!pinW && <Pin x={whereLeft} y={whereY + 1.5} size={14} fill={INK} />}
+            <T x={whereLeft + pinW} y={whereY} fontSize={whereText.size} children={whereText.text} />
+          </G>
+        )}
 
         {/* 아래: 그림에 굳어 있는 날짜를 덮고 이 기록의 날짜를 쓴다 (판 크기는 카드마다 같게) */}
         <Rect x={footX - FOOT.w / 2} y={footY - FOOT.h / 2} width={FOOT.w} height={FOOT.h} rx={FOOT.h / 2} fill="#fff" />
-        {whereText && (
-          <G>
-            <Rect x={whereRight - whereW} y={footY - FOOT.h / 2} width={whereW} height={FOOT.h} rx={FOOT.h / 2} fill="#fff" />
-            {!!pinW && <Pin x={whereRight - whereW + 14} y={footY + 7} size={15} fill={INK} />}
-            <T f="sansBold" x={whereRight - whereW + 14 + pinW} y={footY + 5} fontSize={whereText.size} children={whereText.text} />
-          </G>
-        )}
         <T f="sansBold" x={footX} y={footY + 5} fontSize={14} textAnchor="middle" children={`${BRAND.en} ★ ${r.date.replace(/-/g, '.')}`} />
       </G>
     </Svg>
