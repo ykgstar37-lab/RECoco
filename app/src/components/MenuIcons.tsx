@@ -101,3 +101,43 @@ export function GearIcon({ color, size = 24 }: IconProps) {
     </Svg>
   );
 }
+
+/** 공유: 위로 나가는 화살표 + 열린 상자 */
+export function ShareIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12,14.2 V3.4 M7.9,7.3 L12,3.2 L16.1,7.3" stroke={color} strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <Path d="M8.6,10.2 H6.8 Q5.2,10.2 5.2,11.8 V19.6 Q5.2,21.2 6.8,21.2 H17.2 Q18.8,21.2 18.8,19.6 V11.8 Q18.8,10.2 17.2,10.2 H15.4" stroke={color} strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </Svg>
+  );
+}
+
+/** 앨범에 저장: 아래로 내려오는 화살표 + 받침 */
+export function SaveIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12,3.4 V14.6 M7.6,10.4 L12,14.8 L16.4,10.4" stroke={color} strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <Path d="M4.6,15.4 V18.6 Q4.6,20.6 6.6,20.6 H17.4 Q19.4,20.6 19.4,18.6 V15.4" stroke={color} strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </Svg>
+  );
+}
+
+/** 고치기: 연필 */
+export function PencilIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M15.6,4.4 Q16.9,3.1 18.2,4.4 L19.6,5.8 Q20.9,7.1 19.6,8.4 L9.2,18.8 L4.4,19.6 L5.2,14.8 Z" fill={color} />
+      <Path d="M13.9,6.1 L17.9,10.1" stroke="#fff" strokeWidth={1.3} fill="none" />
+    </Svg>
+  );
+}
+
+/** 버리기: 휴지통 */
+export function TrashIcon({ color, size = 24 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M4.2,6.6 H19.8 M9.4,6.4 V4.9 Q9.4,3.6 10.7,3.6 H13.3 Q14.6,3.6 14.6,4.9 V6.4" stroke={color} strokeWidth={2} strokeLinecap="round" fill="none" />
+      <Path d="M6,8.6 H18 L17,19.4 Q16.85,21 15.2,21 H8.8 Q7.15,21 7,19.4 Z" fill={color} />
+    </Svg>
+  );
+}

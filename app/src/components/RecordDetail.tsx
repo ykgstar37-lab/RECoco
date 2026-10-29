@@ -8,6 +8,7 @@ import { KIND_LABEL, RecordBack, RecordPaper, isFlippable, sizeOf } from '../tem
 import { BRAND, COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { CocoArt } from './Coco';
+import { PencilIcon, SaveIcon, ShareIcon, TrashIcon } from './MenuIcons';
 import { ModalSafeArea } from './ModalSafeArea';
 import { RecordForm } from './RecordForm';
 
@@ -104,10 +105,10 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
         </ScrollView>
 
         <View style={styles.actions}>
-          <Action label="공유" disabled={busy} onPress={() => run(() => shareCard(cardRef), '')} />
-          <Action label="앨범에 저장" disabled={busy} onPress={() => run(() => saveCard(cardRef), '앨범에 저장했어요')} />
-          <Action label="고치기" disabled={busy} onPress={() => setEditing(true)} />
-          <Action label="버리기" disabled={busy} danger onPress={() => setConfirmDelete(true)} />
+          <Action label="공유" Icon={ShareIcon} disabled={busy} onPress={() => run(() => shareCard(cardRef), '')} />
+          <Action label="앨범에 저장" Icon={SaveIcon} disabled={busy} onPress={() => run(() => saveCard(cardRef), '앨범에 저장했어요')} />
+          <Action label="고치기" Icon={PencilIcon} disabled={busy} onPress={() => setEditing(true)} />
+          <Action label="버리기" Icon={TrashIcon} disabled={busy} danger onPress={() => setConfirmDelete(true)} />
         </View>
 
         {confirmDelete && (
@@ -152,13 +153,28 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   );
 }
 
-function Action({ label, onPress, danger, disabled }: { label: string; onPress: () => void; danger?: boolean; disabled?: boolean }) {
+/** 아래 버튼 — 글씨 대신 아이콘 (이름은 읽어 주기용으로 남긴다) */
+function Action({
+  label,
+  Icon,
+  onPress,
+  danger,
+  disabled,
+}: {
+  label: string;
+  Icon: (p: { color: string; size?: number }) => React.JSX.Element;
+  onPress: () => void;
+  danger?: boolean;
+  disabled?: boolean;
+}) {
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
       style={({ pressed }) => [styles.action, danger && styles.actionDanger, (pressed || disabled) && { opacity: 0.7 }]}>
-      <Text style={[styles.actionText, danger && styles.actionTextDanger]}>{label}</Text>
+      <Icon color={danger ? '#fff' : COLORS.orange} size={24} />
     </Pressable>
   );
 }
@@ -182,8 +198,6 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
   action: { flex: 1, backgroundColor: '#fff', borderRadius: 16, paddingVertical: 14, alignItems: 'center' },
   actionDanger: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  actionText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
-  actionTextDanger: { color: '#fff' },
   toast: {
     position: 'absolute',
     alignSelf: 'center',
