@@ -5,8 +5,8 @@
 //  - 기록 내용이 바뀌면(고치기) 다시 굽는다. 안 쓰는 그림은 지운다
 // 화면 오른쪽 바깥에 그린다 — 찍기는 그 뷰만 따로 그려서 화면 밖이어도 된다.
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { requireOptionalNativeModule } from 'expo';
 import { Directory, File } from 'expo-file-system';
-import { widgetsDirectory } from 'expo-widgets';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
@@ -14,7 +14,6 @@ import { captureRef } from 'react-native-view-shot';
 import { initWidgetPicks, useWidgetPicks } from '../lib/widgetPicks';
 import { RecordPaper } from '../templates';
 import type { RecoRecord } from '../types';
-import { RollWidget, SmallWidget } from '../widgets/RecordWidgets';
 
 /** 최근 기록 몇 장까지 */
 const RECENT = 12;
@@ -26,6 +25,22 @@ const SETTLE_MS = 700;
 const MANIFEST_KEY = 'recoco.widget.shots.v1';
 
 type Manifest = Record<string, { key: string; uri: string }>;
+
+// 위젯 모듈이 없는 옛 빌드(OTA 로 이 코드만 받은 앱)에서는 아무것도 안 한다 — 불러오기만 해도 꺼지니까 미리 확인하고 늦게 부른다
+type WidgetsApi = { dir: string; widgets: { updateSnapshot(props: object): void }[] };
+const api: WidgetsApi | null = (() => {
+  if (!requireOptionalNativeModule('ExpoWidgets')) return null;
+  try {
+    const { widgetsDirectory } = require('expo-widgets') as typeof import('expo-widgets');
+    const { RollWidget, SmallWidget } = require('../widgets/RecordWidgets') as typeof import('../widgets/RecordWidgets');
+    return { dir: widgetsDirectory, widgets: [SmallWidget, RollWidget] };
+  } catch {
+    return null;
+  }
+})();
+
+/** 이 앱에 위젯 기능이 들어 있는지 (새 빌드부터) */
+export const hasWidgets = !!api;
 
 /** 기록 내용이 바뀌었는지 보는 짧은 지문 */
 function keyOf(r: RecoRecord) {
@@ -76,7 +91,7 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
           width: SHOT_W,
           height: Math.round((SHOT_W * size.height) / size.width),
         });
-        const dir = new Directory(widgetsDirectory);
+        const dir = new Directory(api!.dir);
         if (!dir.exists) dir.create({ intermediates: true, idempotent: true });
         const dest = new File(dir, `${job.id}-${key}.png`);
         if (dest.exists) dest.delete();
@@ -126,12 +141,11 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
     if (sig === pushed.current) return;
     pushed.current = sig;
     try {
-      SmallWidget.updateSnapshot(props);
-      RollWidget.updateSnapshot(props);
+      api?.widgets.forEach((w) => w.updateSnapshot(props));
     } catch {}
   }, [manifest, job, wanted, recent, picked]);
 
-  if (!job) return null;
+  if (!api || !job) return null;
   return (
     <View style={styles.stage} pointerEvents="none">
       {/* 바탕 없이 영수증만 — 위젯의 투명 모드에서 모양 그대로 보이게 */}

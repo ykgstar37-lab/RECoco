@@ -1,11 +1,12 @@
 // 홈 화면 위젯에 '고른 기록' 으로 띄울 기록 id. 크게 보기의 '위젯에 넣기' 로 넣고 뺀다.
 // 그림을 굽고 위젯에 넘기는 건 components/WidgetShots.ios.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { requireOptionalNativeModule } from 'expo';
 import { useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
 
-/** 위젯은 iOS 만 (expo-widgets) */
-export const widgetsAvailable = Platform.OS === 'ios';
+/** 위젯은 iOS 만 (expo-widgets). 위젯 모듈이 든 새 빌드에서만 — OTA 로 코드만 받은 옛 빌드에서는 버튼도 숨긴다 */
+export const widgetsAvailable = Platform.OS === 'ios' && !!requireOptionalNativeModule('ExpoWidgets');
 
 const KEY = 'recoco.widget.picked.v1';
 /** 너무 많으면 굽는 데 오래 걸리고 공용 폴더도 커진다 */
