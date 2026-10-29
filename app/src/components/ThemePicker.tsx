@@ -129,7 +129,7 @@ interface Props {
 
 /** 기록 폼의 종이 고르기: 산 테마는 바로 고르고, 안 산 테마는 미리보기에서 사기 */
 export function ThemePicker({ label, base, value, color, onChange }: Props) {
-  const { owned, allOpen } = useShop();
+  const { owned, canClaim } = useShop();
   const [preview, setPreview] = useState<{ id: PaperTheme; product: PreviewProduct } | null>(null);
 
   const pick = (id: PaperTheme | undefined) => onChange(id, id === 'grid' ? (themeColors(id).some((c) => c.id === color) ? color : 'green') : undefined);
@@ -233,9 +233,9 @@ export function FoodDesignPicker({
   /** 모양을 고르면 그 모양에서 쓸 수 있는 색도 같이 정해서 준다 */
   onChange: (design: FoodDesign, color: FoodColor) => void;
 }) {
-  const { owned, allOpen } = useShop();
+  const { owned, canClaim } = useShop();
   const [preview, setPreview] = useState<{ id: FoodDesign; product: PreviewProduct } | null>(null);
-  const options: { id: FoodDesign; name: string; price: number }[] = [...FREE_FOOD_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOOD_DESIGNS];
+  const options: { id: FoodDesign; name: string; price: number; productId?: string }[] = [...FREE_FOOD_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOOD_DESIGNS];
   // 예전 '단색 주문서' 기록은 주문서 + 먹색으로 보여준다
   const design = value === 'plain' ? 'order' : (value ?? 'order');
   const shown = value === 'plain' && !color ? 'ink' : color;
@@ -263,7 +263,7 @@ export function FoodDesignPicker({
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
+              {locked && <Text style={styles.price}>{canClaim(o.productId) ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
@@ -363,9 +363,9 @@ export function ConcertDesignPicker({
   color: TicketColor | undefined;
   onChange: (design: ConcertDesign, color: TicketColor | undefined) => void;
 }) {
-  const { owned, allOpen } = useShop();
+  const { owned, canClaim } = useShop();
   const [preview, setPreview] = useState<{ id: ConcertDesign; product: PreviewProduct } | null>(null);
-  const options: { id: ConcertDesign; name: string; price: number }[] = [...FREE_CONCERT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...CONCERT_DESIGNS];
+  const options: { id: ConcertDesign; name: string; price: number; productId?: string }[] = [...FREE_CONCERT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...CONCERT_DESIGNS];
   const design = value ?? 'ticket';
 
   const pick = (id: ConcertDesign) => onChange(id, pickTicketColor(id, color));
@@ -391,7 +391,7 @@ export function ConcertDesignPicker({
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
+              {locked && <Text style={styles.price}>{canClaim(o.productId) ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
@@ -477,9 +477,9 @@ export function ShowDesignPicker({
   color: TicketColor | undefined;
   onChange: (design: ShowDesign, color: TicketColor | undefined) => void;
 }) {
-  const { owned, allOpen } = useShop();
+  const { owned, canClaim } = useShop();
   const [preview, setPreview] = useState<{ id: ShowDesign; product: PreviewProduct } | null>(null);
-  const options: { id: ShowDesign; name: string; price: number }[] = [...FREE_SHOW_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SHOW_DESIGNS];
+  const options: { id: ShowDesign; name: string; price: number; productId?: string }[] = [...FREE_SHOW_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SHOW_DESIGNS];
   // 'ticket' 은 레트로의 예전 이름
   const design = value === 'ticket' ? 'retro' : (value ?? 'plain');
 
@@ -506,7 +506,7 @@ export function ShowDesignPicker({
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
+              {locked && <Text style={styles.price}>{canClaim(o.productId) ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
@@ -576,10 +576,10 @@ export function SpendingDesignSwatch({ design, size = 44 }: { design: SpendingDe
 
 /** 소비 폼의 모양 고르기: 종이 영수증(무료) + 사진 영수증(유료 테마, 안 샀으면 미리보기에서 사기). 사진 영수증이면 종이 고르기 대신 사진을 넣는다 */
 export function SpendingDesignPicker({ value, onChange }: { value: SpendingDesign | undefined; onChange: (design: SpendingDesign) => void }) {
-  const { owned, allOpen } = useShop();
+  const { owned, canClaim } = useShop();
   const [preview, setPreview] = useState<{ id: SpendingDesign; product: PreviewProduct } | null>(null);
   const design = value ?? 'paper';
-  const options: { id: SpendingDesign; name: string; price: number }[] = [...FREE_SPENDING_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SPENDING_DESIGNS];
+  const options: { id: SpendingDesign; name: string; price: number; productId?: string }[] = [...FREE_SPENDING_DESIGNS.map((d) => ({ ...d, price: 0 })), ...SPENDING_DESIGNS];
 
   const choose = (id: SpendingDesign) => {
     if (spendingDesignUnlocked(id, owned)) return onChange(id);
@@ -602,7 +602,7 @@ export function SpendingDesignPicker({ value, onChange }: { value: SpendingDesig
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
+              {locked && <Text style={styles.price}>{canClaim(o.productId) ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
@@ -810,9 +810,9 @@ export function FourcutDesignPicker({
   houseColor?: FourcutHouseColor;
   onHouseColor?: (color: FourcutHouseColor) => void;
 }) {
-  const { owned, allOpen } = useShop();
+  const { owned, canClaim } = useShop();
   const [preview, setPreview] = useState<{ id: FourcutDesign; product: PreviewProduct } | null>(null);
-  const options: { id: FourcutDesign; name: string; price: number }[] = [...FREE_FOURCUT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOURCUT_DESIGNS];
+  const options: { id: FourcutDesign; name: string; price: number; productId?: string }[] = [...FREE_FOURCUT_DESIGNS.map((d) => ({ ...d, price: 0 })), ...FOURCUT_DESIGNS];
   const design = value ?? 'strip';
 
   const choose = (id: FourcutDesign) => {
@@ -836,7 +836,7 @@ export function FourcutDesignPicker({
                 {locked ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {locked && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
+              {locked && <Text style={styles.price}>{canClaim(o.productId) ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}
@@ -883,10 +883,10 @@ export function DailyDesignPicker({
   cocochiColor?: CocochiColor;
   onColor: (color: CocochiColor) => void;
 }) {
-  const { owned, allOpen } = useShop();
+  const { owned, canClaim } = useShop();
   const [preview, setPreview] = useState<{ id: 'card' | 'cocochi'; product: PreviewProduct } | null>(null);
   const borrowed = FOURCUT_DESIGNS.filter((d) => d.id === 'card' || d.id === 'cocochi');
-  const options: { id: DailyDesign; name: string; price: number }[] = [{ id: 'story', name: '사진 한 장', price: 0 }, ...borrowed.map((d) => ({ id: d.id as DailyDesign, name: d.name, price: d.price }))];
+  const options: { id: DailyDesign; name: string; price: number; productId?: string }[] = [{ id: 'story', name: '사진 한 장', price: 0 }, ...borrowed.map((d) => ({ id: d.id as DailyDesign, name: d.name, price: d.price, productId: d.productId }))];
   const design = value ?? 'story';
   const locked = (id: DailyDesign) => id !== 'story' && !fourcutDesignUnlocked(id, owned);
 
@@ -920,7 +920,7 @@ export function DailyDesignPicker({
                 {lock ? '🔒 ' : ''}
                 {o.name}
               </Text>
-              {lock && <Text style={styles.price}>{allOpen ? '무료' : `${won(o.price)}원`}</Text>}
+              {lock && <Text style={styles.price}>{canClaim(o.productId) ? '무료' : `${won(o.price)}원`}</Text>}
             </Pressable>
           );
         })}

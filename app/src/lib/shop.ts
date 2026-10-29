@@ -5,7 +5,7 @@ import { useSyncExternalStore } from 'react';
 
 import { PurchaseCancelled, buyProduct, canBuy, ownedProductIds, startBilling } from './billing';
 import { firstBuildIOS } from './appTransaction';
-import { FREE_FOR_ALL, opensAll } from './launch';
+import { FREE_FOR_ALL, freeFor, opensAll } from './launch';
 import { markFirstRun } from './since';
 
 import type { OutfitId } from '../components/Outfits';
@@ -232,8 +232,10 @@ export interface ShopState {
   purchased: string[];
   /** 상점에서 '무료로 받기'로 받은 productId */
   claimed: string[];
-  /** 돈 없이 받을 수 있는 사람인지 (v1.0 전부 · 유료화 전부터 쓰던 사람, lib/launch.ts) */
+  /** 무료판부터 쓰던 사람인지 (v1.0 은 전부, lib/launch.ts) */
   allOpen: boolean;
+  /** 이 상품을 돈 없이 받을 수 있는지 — 무료판 사용자도 유료화 뒤 새 상품은 산다 */
+  canClaim: (productId: string | undefined) => boolean;
   outfit: OutfitId | null; // 입고 있는 옷
 }
 
@@ -245,6 +247,7 @@ const withAccess = (purchased: string[], claimed: string[], allOpen: boolean, ou
   purchased,
   claimed,
   allOpen,
+  canClaim: (productId) => freeFor(allOpen, productId),
   outfit,
   owned: [...new Set([...purchased, ...claimed])],
 });
@@ -298,9 +301,9 @@ export function addOwned(productId: string) {
   emit();
 }
 
-/** 무료로 받기 (결제 없이). 돈 없이 받을 수 있는 사람만 */
+/** 무료로 받기 (결제 없이). 돈 없이 받을 수 있는 상품만 */
 export function claim(productId: string) {
-  if (!state.allOpen || state.claimed.includes(productId)) return;
+  if (!state.canClaim(productId) || state.claimed.includes(productId)) return;
   state = withAccess(state.purchased, [...state.claimed, productId], state.allOpen, state.outfit);
   AsyncStorage.setItem(CLAIMED_KEY, JSON.stringify(state.claimed)).catch(() => {});
   emit();
@@ -315,7 +318,7 @@ export function wearOutfit(outfit: OutfitId | null) {
 /** 사고 나서 상태에 반영까지 */
 export async function buy(productId: string) {
   // 무료로 받을 수 있는 사람은 결제창 없이 바로 받는다
-  if (state.allOpen) return claim(productId);
+  if (state.canClaim(productId)) return claim(productId);
   addOwned(await purchase(productId));
 }
 
