@@ -32,6 +32,13 @@ export function useWidgetPicks() {
   );
 }
 
+// 위젯 그림 굽기·넘기기가 어디까지 됐는지 (크게 보기의 ＋ 를 길게 누르면 보인다 — 기기에서 위젯이 빌 때 원인 찾기용)
+let status = '아직 위젯에 넘긴 적 없어요';
+export const setWidgetStatus = (s: string) => {
+  status = s;
+};
+export const widgetStatus = () => status;
+
 /** 넣었으면 빼고, 없으면 맨 뒤에 넣는다. 꽉 찼으면 false */
 export function togglePick(id: string): boolean {
   if (picks.includes(id)) picks = picks.filter((p) => p !== id);

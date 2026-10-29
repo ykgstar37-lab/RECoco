@@ -3,7 +3,7 @@ import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWind
 import Animated, { FadeInUp, FadeOut } from 'react-native-reanimated';
 
 import { canCapture, saveCard, shareCard } from '../lib/share';
-import { MAX_PICKS, togglePick, useWidgetPicks, widgetsAvailable } from '../lib/widgetPicks';
+import { MAX_PICKS, togglePick, useWidgetPicks, widgetStatus, widgetsAvailable } from '../lib/widgetPicks';
 import { KIND_LABEL, RecordBack, RecordPaper, isFlippable, sizeOf } from '../templates';
 import { BRAND, COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
@@ -29,9 +29,9 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const picks = useWidgetPicks();
 
-  const show = (msg: string) => {
+  const show = (msg: string, ms = 1800) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 1800);
+    setTimeout(() => setToast(null), ms);
   };
 
   const run = async (job: () => Promise<void>, done: string) => {
@@ -56,7 +56,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   const inWidget = picks.includes(record.id);
   const toggleWidget = () => {
     if (!togglePick(record.id)) return show(`위젯에는 ${MAX_PICKS}장까지 넣을 수 있어요`);
-    show(inWidget ? '위젯에서 뺐어요' : '위젯에 넣었어요 · 위젯을 길게 눌러 "고른 기록"으로');
+    show(inWidget ? '위젯에서 뺐어요' : '위젯 목록에 넣었어요 · 홈 화면 위젯을 길게 눌러 골라 보세요', 2600);
   };
 
   return (
@@ -69,8 +69,20 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
           <Text style={styles.topTitle}>
             {record.date.replace(/-/g, '.')} · {KIND_LABEL[record.kind]}
           </Text>
-          {/* 제목을 가운데 두려고 닫기 버튼만큼 비워둔 자리 (버튼 아님) */}
-          <View style={styles.topSpacer} />
+          {/* 홈 화면 위젯의 '고른 기록' 목록에 넣고 빼기 (iOS). 길게 누르면 위젯 상태 — 위젯이 빌 때 원인 찾기용 */}
+          {widgetsAvailable ? (
+            <Pressable
+              onPress={toggleWidget}
+              onLongPress={() => show(widgetStatus(), 5000)}
+              hitSlop={10}
+              style={[styles.iconBtn, inWidget && styles.iconBtnOn]}
+              accessibilityLabel={inWidget ? '위젯 목록에서 빼기' : '위젯 목록에 넣기'}>
+              <Text style={[styles.iconText, styles.plusText, inWidget && styles.iconTextOn]}>{inWidget ? '✓' : '＋'}</Text>
+            </Pressable>
+          ) : (
+            // 제목을 가운데 두려고 닫기 버튼만큼 비워둔 자리 (버튼 아님)
+            <View style={styles.topSpacer} />
+          )}
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -89,12 +101,6 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
             </Pressable>
           )}
 
-          {/* 홈 화면 위젯의 '고른 기록' 에 넣고 빼기 (iOS) */}
-          {widgetsAvailable && (
-            <Pressable onPress={toggleWidget} style={[styles.widgetPill, inWidget && styles.widgetPillOn]}>
-              <Text style={[styles.widgetText, inWidget && styles.widgetTextOn]}>{inWidget ? '✓ 위젯에 있어요' : '＋ 위젯에 넣기'}</Text>
-            </Pressable>
-          )}
         </ScrollView>
 
         <View style={styles.actions}>
@@ -161,8 +167,11 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.orange },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 8 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)' },
+  iconBtnOn: { backgroundColor: '#fff' },
   topSpacer: { width: 40, height: 40 },
   iconText: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
+  plusText: { fontSize: 20 },
+  iconTextOn: { color: COLORS.orange, fontSize: 18 },
   topTitle: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   scroll: { alignItems: 'center', paddingVertical: 12, paddingBottom: 40 },
   card: { backgroundColor: COLORS.orange, alignItems: 'center', paddingHorizontal: 12, paddingTop: 20, paddingBottom: 16 },
@@ -170,10 +179,6 @@ const styles = StyleSheet.create({
   markText: { color: '#fff', fontSize: 13, fontFamily: FONTS.sansHeavy },
   flip: { marginTop: 6, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999, backgroundColor: '#fff' },
   flipText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
-  widgetPill: { marginTop: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999, borderWidth: 1.5, borderColor: '#fff' },
-  widgetPillOn: { backgroundColor: '#fff' },
-  widgetText: { color: '#fff', fontSize: 14, fontFamily: FONTS.sansBold },
-  widgetTextOn: { color: COLORS.orange },
   actions: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
   action: { flex: 1, backgroundColor: '#fff', borderRadius: 16, paddingVertical: 14, alignItems: 'center' },
   actionDanger: { backgroundColor: 'rgba(255,255,255,0.2)' },
