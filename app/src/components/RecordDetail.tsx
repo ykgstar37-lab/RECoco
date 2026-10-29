@@ -3,6 +3,7 @@ import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWind
 import Animated, { FadeInUp, FadeOut } from 'react-native-reanimated';
 
 import { canCapture, saveCard, shareCard } from '../lib/share';
+import { MAX_PICKS, togglePick, useWidgetPicks, widgetsAvailable } from '../lib/widgetPicks';
 import { KIND_LABEL, RecordBack, RecordPaper, isFlippable, sizeOf } from '../templates';
 import { BRAND, COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
@@ -26,6 +27,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const picks = useWidgetPicks();
 
   const show = (msg: string) => {
     setToast(msg);
@@ -51,6 +53,11 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   const { width } = sizeOf(record, rollW);
   // 인생네컷·일상은 뒤집어 볼 수 있다 (코코몬 카드는 뒷면이 없다)
   const flippable = isFlippable(record);
+  const inWidget = picks.includes(record.id);
+  const toggleWidget = () => {
+    if (!togglePick(record.id)) return show(`위젯에는 ${MAX_PICKS}장까지 넣을 수 있어요`);
+    show(inWidget ? '위젯에서 뺐어요' : '위젯에 넣었어요 · 위젯을 길게 눌러 "고른 기록"으로');
+  };
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
@@ -79,6 +86,13 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
           {flippable && (
             <Pressable onPress={() => setBack((b) => !b)} style={styles.flip}>
               <Text style={styles.flipText}>{back ? '앞면 보기' : '뒷면 보기 (오늘의 하루)'}</Text>
+            </Pressable>
+          )}
+
+          {/* 홈 화면 위젯의 '고른 기록' 에 넣고 빼기 (iOS) */}
+          {widgetsAvailable && (
+            <Pressable onPress={toggleWidget} style={[styles.widgetPill, inWidget && styles.widgetPillOn]}>
+              <Text style={[styles.widgetText, inWidget && styles.widgetTextOn]}>{inWidget ? '✓ 위젯에 있어요' : '＋ 위젯에 넣기'}</Text>
             </Pressable>
           )}
         </ScrollView>
@@ -156,6 +170,10 @@ const styles = StyleSheet.create({
   markText: { color: '#fff', fontSize: 13, fontFamily: FONTS.sansHeavy },
   flip: { marginTop: 6, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999, backgroundColor: '#fff' },
   flipText: { color: COLORS.orange, fontSize: 14, fontFamily: FONTS.sansBold },
+  widgetPill: { marginTop: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999, borderWidth: 1.5, borderColor: '#fff' },
+  widgetPillOn: { backgroundColor: '#fff' },
+  widgetText: { color: '#fff', fontSize: 14, fontFamily: FONTS.sansBold },
+  widgetTextOn: { color: COLORS.orange },
   actions: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
   action: { flex: 1, backgroundColor: '#fff', borderRadius: 16, paddingVertical: 14, alignItems: 'center' },
   actionDanger: { backgroundColor: 'rgba(255,255,255,0.2)' },

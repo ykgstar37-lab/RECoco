@@ -17,6 +17,7 @@ import { RollScreen } from './components/RollScreen';
 import { Settings } from './components/Settings';
 import { Shop } from './components/Shop';
 import { WeekStamps, dateKey } from './components/WeekStamps';
+import { WidgetShots } from './components/WidgetShots';
 import { exportBackup } from './lib/backup';
 import { backupAsk, markBackedUp } from './lib/backupNudge';
 import { loadHaptics, tick } from './lib/haptics';
@@ -263,6 +264,8 @@ export function HomeScreen() {
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom + 8 }]}>
       <StatusBar style="light" />
+      {/* 홈 화면 위젯에 띄울 기록 그림을 화면 밖에서 굽는다 (iOS) */}
+      <WidgetShots records={records} />
 
       <View style={styles.header}>
         <View>
