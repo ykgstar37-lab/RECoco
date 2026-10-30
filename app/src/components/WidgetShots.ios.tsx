@@ -175,7 +175,10 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
     pushed.current = sig;
     try {
       api.widgets.forEach((w) => w.updateSnapshot(props));
-      if (!failed.current) setWidgetStatus(`위젯에 넘김: ${props.picked.length}장${left ? ` · ${left}장 굽는 중` : ''}`);
+      const bgText = [bg.small && '작은', bg.large && '큰'].filter(Boolean).join('·');
+      const at = new Date().toTimeString().slice(0, 8);
+      if (!failed.current)
+        setWidgetStatus(`${at} 위젯에 넘김: ${props.picked.length}장${left ? ` · ${left}장 굽는 중` : ''}${bgText ? ` · 배경 ${bgText}` : ''}${calib ? ' · 하얀 판' : ''}`);
     } catch (e) {
       setWidgetStatus(`위젯에 넘기기 실패: ${errText(e)}`);
     }

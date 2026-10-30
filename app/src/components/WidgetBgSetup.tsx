@@ -4,14 +4,14 @@
 import { Directory, File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 
 import { withBusy } from '../lib/busy';
 import { setWidgetBg, setWidgetCalib, useWidgetBg, useWidgetCalib, type WidgetBg } from '../lib/widgetBg';
 import { FIND_PANELS_JS } from '../lib/widgetPanels';
-import { widgetsAvailable } from '../lib/widgetPicks';
+import { widgetStatus, widgetsAvailable } from '../lib/widgetPicks';
 import { COLORS, FONTS } from '../theme';
 import { LoadingOverlay } from './Loading';
 
@@ -163,6 +163,14 @@ export function WidgetBgSetup({ visible, onClose }: { visible: boolean; onClose:
           <Text style={styles.help}>
             배경화면을 바꾸거나 위젯을 다른 자리로 옮기면 다시 맞춰 주세요. 같은 크기 위젯이 여러 개면 모두 같은 그림이 깔려요. 투명·색조 모양에서는 깔지 않아요.
           </Text>
+          {/* 잘라 둔 그림과 위젯에 넘긴 상태 — 위젯에 안 뜰 때 어디서 막혔는지 보려고 */}
+          {(bg.small || bg.large) && (
+            <View style={styles.previewRow}>
+              {bg.small && <Image source={{ uri: bg.small }} style={styles.previewSmall} />}
+              {bg.large && <Image source={{ uri: bg.large }} style={styles.previewLarge} />}
+            </View>
+          )}
+          {!!notice && <Text style={styles.help}>위젯 상태: {widgetStatus()}</Text>}
           {(bg.small || bg.large) && (
             <Pressable onPress={clearBg} hitSlop={8} style={styles.sub}>
               <Text style={styles.subText}>맞춘 배경 지우기</Text>
@@ -212,5 +220,8 @@ const styles = StyleSheet.create({
   help: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
   sub: { alignSelf: 'center', paddingVertical: 6 },
   subText: { color: COLORS.sub, fontSize: 14, fontFamily: FONTS.sansBold, textDecorationLine: 'underline' },
+  previewRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-end', justifyContent: 'center' },
+  previewSmall: { width: 80, height: 80, borderRadius: 16 },
+  previewLarge: { width: 160, height: 167, borderRadius: 20 },
   hidden: { position: 'absolute', width: 1, height: 1, opacity: 0 },
 });
