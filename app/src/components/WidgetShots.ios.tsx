@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
-import { initWidgetPicks, setWidgetStatus, useWidgetPicks } from '../lib/widgetPicks';
+import { initWidgetPicks, setWidgetStatus, useWidgetPicks, widgetStatus } from '../lib/widgetPicks';
 import { KIND_LABEL, RecordPaper } from '../templates';
 import { COLORS } from '../theme';
 import type { RecoRecord } from '../types';
@@ -173,7 +173,8 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
       recent: recent.map(uriOf).filter((u) => !!u),
       picked: picked.map((r) => ({ id: r.id, title: labelOf(r), uri: uriOf(r) })).filter((p) => !!p.uri),
       index: 0,
-      status: left ? `기록 그림을 만드는 중이에요 (${left}장 남음)` : '',
+      // 못 구운 게 있으면 그 까닭을 빈 위젯에 그대로 띄운다 (기기에서 원인 찾기용)
+      status: left ? `기록 그림을 만드는 중이에요 (${left}장 남음)` : failed.current ? widgetStatus() : '',
     };
     const sig = JSON.stringify(props);
     if (sig === pushed.current) return;

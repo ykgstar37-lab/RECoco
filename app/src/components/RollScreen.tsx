@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { Easing, FadeIn, LinearTransition, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,16 +43,25 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
   const drag = useSharedValue(screenH); // 시트가 아래로 내려간 거리
-  // 영수증은 무거워서 시트가 다 올라온 뒤에 그린다 — 같이 그리면 올라오는 동안 버벅인다.
-  // 처음엔 화면에 보일 만큼만, 조금 뒤 나머지. 그리기 전까지는 RECoco 글자가 튄다
+  // 영수증은 무거워서 처음 열 때는 시트가 다 올라온 뒤에 그린다 — 같이 그리면 올라오는 동안 버벅인다.
+  // 처음엔 화면에 보일 만큼만, 조금 뒤 나머지. 그리기 전까지는 RECoco 글자가 튄다.
+  // 한 번 그린 뒤로는 닫아도 지우지 않고 화면 아래에 숨겨 둔다 (Modal 이 아니라서) — 다시 열면 바로 보인다
   const [shown, setShown] = useState(0);
+  const [mounted, setMounted] = useState(visible);
+  const scrollRef = useRef<ScrollView>(null);
 
-  // 열 때마다 카테고리는 '전체'부터, 시트는 아래에서 올라온다
+  // 닫히면 다음에 열 때를 위해 카테고리는 '전체', 맨 위로 (시트가 내려간 뒤라 버벅임이 안 보인다)
   useEffect(() => {
-    if (!visible) return;
+    if (visible) return;
     setKind(null);
     setTag(null);
-    setShown(0);
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [visible]);
+
+  // 열 때마다 시트는 아래에서 올라온다
+  useEffect(() => {
+    if (!visible) return;
+    setMounted(true);
     drag.value = screenH;
     drag.value = withTiming(
       0,
@@ -61,9 +70,19 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
         easing: Easing.out(Easing.cubic),
       },
       (finished) => {
-        if (finished) scheduleOnRN(setShown, FIRST_BATCH);
+        if (finished) scheduleOnRN(firstBatch);
       },
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+  const firstBatch = () => setShown((n) => n || FIRST_BATCH);
+  useEffect(() => {
+    if (!visible) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      close();
+      return true;
+    });
+    return () => sub.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
   useEffect(() => {
@@ -116,9 +135,10 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   const title = date ? `${Number(date.slice(5, 7))}월 ${Number(date.slice(8))}일` : kindLabel ? `${kindLabel} 영수증` : '나의 영수증';
   const countLabel = `${date && kindLabel ? `${kindLabel} ` : ''}${groups.length && tag ? `${tag} ` : ''}${list.length}장`;
 
+  if (!mounted) return null;
   return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={() => close()}>
-      {/* Modal 안에서도 제스처(펼치기·뒤집기·끌어내리기)가 동작하도록 */}
+    // 닫혀 있을 때는 시트가 화면 아래로 내려가 있고 손가락도 그냥 통과한다
+    <View style={StyleSheet.absoluteFill} pointerEvents={visible ? 'box-none' : 'none'}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => close()} accessibilityLabel="닫기" />
@@ -188,7 +208,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
             </ScrollView>
           )}
 
-          <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          <ScrollView ref={scrollRef} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
             {shown === 0 && (
               <View style={styles.loading}>
                 <LoadingWord />
@@ -253,7 +273,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
           }}
         />
       </GestureHandlerRootView>
-    </Modal>
+    </View>
   );
 }
 
