@@ -9,11 +9,9 @@ import { loadHaptics, setHaptics } from '../lib/haptics';
 import { FREE_FOR_ALL } from '../lib/launch';
 import { purchaseErrorMessage, restorePurchases } from '../lib/shop';
 import { APP_VERSION } from '../lib/support';
-import { widgetsAvailable } from '../lib/widgetPicks';
 import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { BugReport } from './BugReport';
-import { WidgetBgSetup } from './WidgetBgSetup';
 import { dateKey } from './WeekStamps';
 
 /** 스토어 등록 정보에 적은 것과 같은 주소 (landing/privacy.html 을 Cloudflare Pages 프로젝트 recoco 로 올림) */
@@ -38,7 +36,6 @@ export function Settings({ visible, records, onClose, onImport, onBought, onTryB
   const [backupNotice, setBackupNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [bugOpen, setBugOpen] = useState(false);
-  const [widgetBgOpen, setWidgetBgOpen] = useState(false);
   const [lastBackup, setLastBackup] = useState<string | null>(null);
 
   useEffect(() => {
@@ -118,16 +115,6 @@ export function Settings({ visible, records, onClose, onImport, onBought, onTryB
               />
             </View>
           </Group>
-
-          {widgetsAvailable && (
-            <Group title="위젯">
-              <Pressable onPress={() => setWidgetBgOpen(true)} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}>
-                <Text style={styles.rowLabel}>위젯 배경 맞추기</Text>
-                <Text style={styles.rowValue}>›</Text>
-              </Pressable>
-              <Text style={styles.help}>홈 화면 배경화면을 위젯 바탕에 맞춰 깔아, 흰 판 없이 영수증만 떠 있는 것처럼 보이게 해요.</Text>
-            </Group>
-          )}
 
           <Group title="내 기록">
             <View style={styles.row}>
@@ -226,7 +213,6 @@ export function Settings({ visible, records, onClose, onImport, onBought, onTryB
           </Group>
         </ScrollView>
         <BugReport visible={bugOpen} recordCount={records.length} onClose={() => setBugOpen(false)} />
-        <WidgetBgSetup visible={widgetBgOpen} onClose={() => setWidgetBgOpen(false)} />
       </SafeAreaView>
     </Modal>
   );

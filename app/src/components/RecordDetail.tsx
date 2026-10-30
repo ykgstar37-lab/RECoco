@@ -1,11 +1,10 @@
 import { useRef, useState } from 'react';
-import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut, FlipInEasyY } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { bump } from '../lib/haptics';
 import { canCapture, saveCard, shareCard } from '../lib/share';
-import { MAX_PICKS, defaultPickName, setPickName, togglePick, useWidgetPickNames, useWidgetPicks, widgetStatus, widgetsAvailable } from '../lib/widgetPicks';
 import { KIND_LABEL, RecordBack, RecordPaper, isFlippable, sizeOf } from '../templates';
 import { BRAND, COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
@@ -37,8 +36,6 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [menu, setMenu] = useState(false);
   const [areaH, setAreaH] = useState(0);
-  const picks = useWidgetPicks();
-  const pickNames = useWidgetPickNames();
 
   const show = (msg: string, ms = 1800) => {
     setToast(msg);
@@ -67,35 +64,6 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   const width = Math.max(base.width, Math.min(rollW * 0.94, fitW));
   // 인생네컷·일상은 뒤집어 볼 수 있다 (코코몬 카드는 뒷면이 없다)
   const flippable = isFlippable(record);
-  const inWidget = picks.includes(record.id);
-  // 위젯 편집에서 이 이름으로 고른다 — 날짜만으로는 같은 날 기록끼리 헷갈려서 넣을 때 직접 붙인다 (iOS 만이라 Alert.prompt)
-  const askName = (title: string, then: (name: string) => void) =>
-    Alert.prompt(
-      title,
-      '홈 화면 위젯을 길게 눌러 편집할 때 이 이름으로 골라요.',
-      [
-        { text: '취소', style: 'cancel' },
-        { text: '확인', onPress: (text?: string) => then(text?.trim() || defaultPickName(record)) },
-      ],
-      'plain-text',
-      pickNames[record.id] || defaultPickName(record),
-    );
-  const toggleWidget = () => {
-    if (inWidget) {
-      togglePick(record.id);
-      return show('위젯에서 뺐어요');
-    }
-    askName('위젯에 넣을 이름', (name) => {
-      if (!togglePick(record.id)) return show(`위젯에는 ${MAX_PICKS}장까지 넣을 수 있어요`);
-      setPickName(record.id, name);
-      show(`'${name}' 으로 위젯 목록에 넣었어요 · 홈 화면 위젯을 길게 눌러 골라 보세요`, 2600);
-    });
-  };
-  const renameWidget = () =>
-    askName('위젯 이름 바꾸기', (name) => {
-      setPickName(record.id, name);
-      show('이름을 바꿨어요');
-    });
   const flipCard = () => {
     bump();
     setBack((b) => !b);
@@ -140,7 +108,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
           <Action label="버리기" Icon={TrashIcon} disabled={busy} danger onPress={() => setConfirmDelete(true)} />
         </View>
 
-        {/* ⋯ 메뉴: 공유하기 · 위젯 목록 (iOS) */}
+        {/* ⋯ 메뉴: 공유하기 */}
         {menu && (
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenu(false)}>
             <Animated.View entering={FadeIn.duration(120)} style={[styles.menu, { top: insets.top + 60 }]}>
@@ -152,31 +120,6 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
                   run(() => shareCard(cardRef), '');
                 }}
               />
-              {/* 위젯 목록에 넣고 빼기. 길게 누르면 위젯 상태 — 위젯이 빌 때 원인 찾기용 */}
-              {widgetsAvailable && (
-                <MenuItem
-                  label={inWidget ? '위젯 목록에서 빼기' : '위젯 목록에 넣기'}
-                  icon={<Text style={styles.menuGlyph}>{inWidget ? '✓' : '＋'}</Text>}
-                  onPress={() => {
-                    setMenu(false);
-                    toggleWidget();
-                  }}
-                  onLongPress={() => {
-                    setMenu(false);
-                    show(widgetStatus(), 5000);
-                  }}
-                />
-              )}
-              {widgetsAvailable && inWidget && (
-                <MenuItem
-                  label="위젯 이름 바꾸기"
-                  icon={<PencilIcon color={COLORS.ink} size={20} />}
-                  onPress={() => {
-                    setMenu(false);
-                    renameWidget();
-                  }}
-                />
-              )}
             </Animated.View>
           </Pressable>
         )}
@@ -224,9 +167,9 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   );
 }
 
-function MenuItem({ label, icon, onPress, onLongPress }: { label: string; icon: React.ReactNode; onPress: () => void; onLongPress?: () => void }) {
+function MenuItem({ label, icon, onPress }: { label: string; icon: React.ReactNode; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} onLongPress={onLongPress} style={({ pressed }) => [styles.menuItem, pressed && { backgroundColor: COLORS.surface }]}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.menuItem, pressed && { backgroundColor: COLORS.surface }]}>
       <View style={styles.menuIcon}>{icon}</View>
       <Text style={styles.menuText}>{label}</Text>
     </Pressable>
@@ -284,7 +227,6 @@ const styles = StyleSheet.create({
   },
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12 },
   menuIcon: { width: 22, alignItems: 'center' },
-  menuGlyph: { color: COLORS.ink, fontSize: 18, fontFamily: FONTS.sansBold },
   menuText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
   actions: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
   action: { flex: 1, backgroundColor: '#fff', borderRadius: 16, paddingVertical: 14, alignItems: 'center' },
