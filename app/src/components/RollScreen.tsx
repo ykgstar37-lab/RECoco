@@ -13,6 +13,7 @@ import { subgroupColor, subgroupOf, subgroupsIn } from '../lib/subgroups';
 import { CATEGORIES } from './CategoryPicker';
 import { FlipCard } from './FlipCard';
 import { FoldableReceipt } from './FoldableReceipt';
+import { LoadingWord } from './Loading';
 import { ReceiptStack } from './ReceiptStack';
 import { RecordDetail } from './RecordDetail';
 
@@ -43,7 +44,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   const { height: screenH } = useWindowDimensions();
   const drag = useSharedValue(screenH); // 시트가 아래로 내려간 거리
   // 영수증은 무거워서 시트가 다 올라온 뒤에 그린다 — 같이 그리면 올라오는 동안 버벅인다.
-  // 처음엔 화면에 보일 만큼만, 조금 뒤 나머지
+  // 처음엔 화면에 보일 만큼만, 조금 뒤 나머지. 그리기 전까지는 RECoco 글자가 튄다
   const [shown, setShown] = useState(0);
 
   // 열 때마다 카테고리는 '전체'부터, 시트는 아래에서 올라온다
@@ -188,6 +189,11 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
           )}
 
           <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+            {shown === 0 && (
+              <View style={styles.loading}>
+                <LoadingWord />
+              </View>
+            )}
             {shown > 0 && list.length === 0 && (
               <Text style={styles.empty}>{kindLabel ? `아직 뽑은 ${kindLabel} 영수증이 없어요.` : '아직 뽑은 영수증이 없어요.'}</Text>
             )}
@@ -202,7 +208,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
               return (
                 <Animated.View
                   key={record.id}
-                  entering={FadeIn.duration(200)}
+                  entering={FadeIn.duration(140)}
                   layout={LinearTransition.springify().damping(18)}
                   style={[styles.item, connected && { marginTop: -overlap }]}>
                   {connected ? (
@@ -341,6 +347,7 @@ const styles = StyleSheet.create({
   tabCount: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans },
   tabTextOn: { color: '#fff' },
   list: { alignItems: 'center', paddingBottom: 110 },
+  loading: { paddingTop: 120 },
   item: { alignItems: 'center', width: '100%', paddingHorizontal: 22 },
   seam: { position: 'absolute', top: -2, left: 0, right: 0, alignItems: 'center', zIndex: 2 },
   seamFirst: { position: 'relative', top: 0, paddingTop: 14, paddingBottom: 6 },

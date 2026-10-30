@@ -1,7 +1,7 @@
 // 기다리는 동안 화면을 흰색으로 흐리게 덮고 가운데에 주황 표시를 돌린다 (글 안내 없이).
 // 덮는 동안에는 아래를 못 누른다 — 사진이 다 들어오기 전에 '뽑기' 를 누르는 일 등을 막는다.
 // Modal 은 따로 떠서 그 안에도 하나씩 둬야 보인다 (RecordForm, RecordDetail, QrImport).
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
@@ -19,22 +19,16 @@ import Animated, {
 import { useBusy } from '../lib/busy';
 import { BRAND, COLORS, FONTS } from '../theme';
 
-/** 'ring': 작은 주황 고리 / 'word': RECoco 글자가 한 자씩 커졌다 작아진다 / 'both': 뜰 때마다 번갈아 (기기에서 둘을 견줘 보기용, 고르면 하나로) */
-const MARK: 'ring' | 'word' | 'both' = 'both';
-let shows = 0;
+/** 'ring': 작은 주황 고리 / 'word': RECoco 글자가 한 자씩 커졌다 작아진다 */
+const MARK: 'ring' | 'word' = 'word';
 
 /** visible 을 안 주면 lib/busy 의 withBusy 를 따른다 */
 export function LoadingOverlay({ visible }: { visible?: boolean }) {
   const busy = useBusy();
   if (!(visible ?? busy)) return null;
-  return <Overlay />;
-}
-
-function Overlay() {
-  const [word] = useState(() => (MARK === 'both' ? shows++ % 2 === 1 : MARK === 'word'));
   return (
     <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)} style={styles.overlay} accessibilityLabel="불러오는 중">
-      {word ? <LoadingWord /> : <LoadingRing />}
+      {MARK === 'word' ? <LoadingWord /> : <LoadingRing />}
     </Animated.View>
   );
 }
