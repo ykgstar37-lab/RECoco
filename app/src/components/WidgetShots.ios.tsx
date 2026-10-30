@@ -13,8 +13,8 @@ import { StyleSheet, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
 import { initWidgetBg, useWidgetBg, useWidgetCalib } from '../lib/widgetBg';
-import { initWidgetPicks, setWidgetStatus, useWidgetPicks, widgetStatus } from '../lib/widgetPicks';
-import { KIND_LABEL, RecordPaper } from '../templates';
+import { defaultPickName, initWidgetPicks, setWidgetStatus, useWidgetPickNames, useWidgetPicks, widgetStatus } from '../lib/widgetPicks';
+import { RecordPaper } from '../templates';
 import { COLORS } from '../theme';
 import type { RecoRecord } from '../types';
 import type { WidgetProps } from '../widgets/RecordWidgets';
@@ -55,13 +55,6 @@ function keyOf(r: RecoRecord) {
   return (h >>> 0).toString(36);
 }
 
-/** 위젯 편집의 기록 목록에 뜨는 이름 — '10.27 인생네컷 · 제목' */
-function labelOf(r: RecoRecord) {
-  const o = r as unknown as Record<string, unknown>;
-  const name = ['title', 'place', 'store'].map((k) => o[k]).find((v): v is string => typeof v === 'string' && !!v.trim());
-  return `${r.date.slice(5).replace('-', '.')} ${KIND_LABEL[r.kind]}${name ? ` · ${name.trim()}` : ''}`;
-}
-
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 function withTimeout<T>(p: Promise<T>, ms: number) {
@@ -70,6 +63,7 @@ function withTimeout<T>(p: Promise<T>, ms: number) {
 
 export function WidgetShots({ records }: { records: RecoRecord[] }) {
   const picks = useWidgetPicks();
+  const names = useWidgetPickNames();
   const bg = useWidgetBg();
   const calib = useWidgetCalib();
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -169,7 +163,7 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
       return m && m.key === keyOf(r) ? m.uri : '';
     };
     const props: WidgetProps = {
-      picked: picked.map((r) => ({ id: r.id, title: labelOf(r), uri: uriOf(r) })).filter((p) => !!p.uri),
+      picked: picked.map((r) => ({ id: r.id, title: names[r.id] || defaultPickName(r), uri: uriOf(r) })).filter((p) => !!p.uri),
       index: 0,
       // 못 구운 게 있으면 그 까닭을 빈 위젯에 그대로 띄운다 (기기에서 원인 찾기용)
       status: left ? `기록 그림을 만드는 중이에요 (${left}장 남음)` : failed.current ? widgetStatus() : '',
@@ -185,7 +179,7 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
     } catch (e) {
       setWidgetStatus(`위젯에 넘기기 실패: ${errText(e)}`);
     }
-  }, [manifest, left, picked, bg, calib]);
+  }, [manifest, left, picked, names, bg, calib]);
 
   if (!api || !job) return null;
   return (

@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut, FlipInEasyY } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { bump } from '../lib/haptics';
 import { canCapture, saveCard, shareCard } from '../lib/share';
-import { MAX_PICKS, togglePick, useWidgetPicks, widgetStatus, widgetsAvailable } from '../lib/widgetPicks';
+import { MAX_PICKS, defaultPickName, setPickName, togglePick, useWidgetPickNames, useWidgetPicks, widgetStatus, widgetsAvailable } from '../lib/widgetPicks';
 import { KIND_LABEL, RecordBack, RecordPaper, isFlippable, sizeOf } from '../templates';
 import { BRAND, COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
@@ -38,6 +38,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   const [menu, setMenu] = useState(false);
   const [areaH, setAreaH] = useState(0);
   const picks = useWidgetPicks();
+  const pickNames = useWidgetPickNames();
 
   const show = (msg: string, ms = 1800) => {
     setToast(msg);
@@ -67,10 +68,34 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
   // 인생네컷·일상은 뒤집어 볼 수 있다 (코코몬 카드는 뒷면이 없다)
   const flippable = isFlippable(record);
   const inWidget = picks.includes(record.id);
+  // 위젯 편집에서 이 이름으로 고른다 — 날짜만으로는 같은 날 기록끼리 헷갈려서 넣을 때 직접 붙인다 (iOS 만이라 Alert.prompt)
+  const askName = (title: string, then: (name: string) => void) =>
+    Alert.prompt(
+      title,
+      '홈 화면 위젯을 길게 눌러 편집할 때 이 이름으로 골라요.',
+      [
+        { text: '취소', style: 'cancel' },
+        { text: '확인', onPress: (text?: string) => then(text?.trim() || defaultPickName(record)) },
+      ],
+      'plain-text',
+      pickNames[record.id] || defaultPickName(record),
+    );
   const toggleWidget = () => {
-    if (!togglePick(record.id)) return show(`위젯에는 ${MAX_PICKS}장까지 넣을 수 있어요`);
-    show(inWidget ? '위젯에서 뺐어요' : '위젯 목록에 넣었어요 · 홈 화면 위젯을 길게 눌러 골라 보세요', 2600);
+    if (inWidget) {
+      togglePick(record.id);
+      return show('위젯에서 뺐어요');
+    }
+    askName('위젯에 넣을 이름', (name) => {
+      if (!togglePick(record.id)) return show(`위젯에는 ${MAX_PICKS}장까지 넣을 수 있어요`);
+      setPickName(record.id, name);
+      show(`'${name}' 으로 위젯 목록에 넣었어요 · 홈 화면 위젯을 길게 눌러 골라 보세요`, 2600);
+    });
   };
+  const renameWidget = () =>
+    askName('위젯 이름 바꾸기', (name) => {
+      setPickName(record.id, name);
+      show('이름을 바꿨어요');
+    });
   const flipCard = () => {
     bump();
     setBack((b) => !b);
@@ -139,6 +164,16 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
                   onLongPress={() => {
                     setMenu(false);
                     show(widgetStatus(), 5000);
+                  }}
+                />
+              )}
+              {widgetsAvailable && inWidget && (
+                <MenuItem
+                  label="위젯 이름 바꾸기"
+                  icon={<PencilIcon color={COLORS.ink} size={20} />}
+                  onPress={() => {
+                    setMenu(false);
+                    renameWidget();
                   }}
                 />
               )}
