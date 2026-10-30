@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
+import { initWidgetBg, useWidgetBg, useWidgetCalib } from '../lib/widgetBg';
 import { initWidgetPicks, setWidgetStatus, useWidgetPicks, widgetStatus } from '../lib/widgetPicks';
 import { KIND_LABEL, RecordPaper } from '../templates';
 import { COLORS } from '../theme';
@@ -73,6 +74,8 @@ function withTimeout<T>(p: Promise<T>, ms: number) {
 
 export function WidgetShots({ records }: { records: RecoRecord[] }) {
   const picks = useWidgetPicks();
+  const bg = useWidgetBg();
+  const calib = useWidgetCalib();
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
   const ref = useRef<View>(null);
@@ -82,6 +85,7 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
   useEffect(() => {
     if (!api) return;
     initWidgetPicks().catch(() => {});
+    initWidgetBg().catch(() => {});
     AsyncStorage.getItem(MANIFEST_KEY)
       .then((raw) => setManifest(raw ? (JSON.parse(raw) as Manifest) : {}))
       .catch(() => setManifest({}));
@@ -175,6 +179,8 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
       index: 0,
       // 못 구운 게 있으면 그 까닭을 빈 위젯에 그대로 띄운다 (기기에서 원인 찾기용)
       status: left ? `기록 그림을 만드는 중이에요 (${left}장 남음)` : failed.current ? widgetStatus() : '',
+      bg,
+      calib,
     };
     const sig = JSON.stringify(props);
     if (sig === pushed.current) return;
@@ -185,7 +191,7 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
     } catch (e) {
       setWidgetStatus(`위젯에 넘기기 실패: ${errText(e)}`);
     }
-  }, [manifest, left, recent, picked]);
+  }, [manifest, left, recent, picked, bg, calib]);
 
   if (!api || !job) return null;
   return (
