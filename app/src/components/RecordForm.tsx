@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
-  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -15,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg from 'react-native-svg';
 
+import { withBusy, useBusy } from '../lib/busy';
 import { newId, nowTime, today, won } from '../lib/format';
 import { cropIfCoupon } from '../lib/giftPhoto';
 import { fillRect } from '../lib/photoCrop';
@@ -32,6 +32,7 @@ import { ConcertDesignPicker, DailyDesignPicker, ExerciseDesignPicker, FoodDesig
 import { SHOW_TYPES } from '../templates/ShowTicket';
 import { MOVIE_PAPERS } from '../templates/MovieTicket';
 import { COLORS, FONTS } from '../theme';
+import { LoadingOverlay } from './Loading';
 import {
   CocochiColor,
   MonsterRank,
@@ -445,16 +446,11 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
       })),
     ]);
   };
-  // 앨범에서 고른 사진을 앱 폴더로 옮기는 데 시간이 걸려서, 그동안 칸 위에 도는 표시를 띄운다
-  const [photoBusy, setPhotoBusy] = useState(false);
+  // 앨범에서 고른 사진을 앱 폴더로 옮기는 데 시간이 걸려서, 그동안 화면을 덮고 도는 표시를 띄운다 (LoadingOverlay)
+  const photoBusy = useBusy();
   const withPhotoBusy = async (job: () => Promise<void>) => {
     if (photoBusy) return;
-    setPhotoBusy(true);
-    try {
-      await job();
-    } finally {
-      setPhotoBusy(false);
-    }
+    await withBusy(job);
   };
   const [bookingOpen, setBookingOpen] = useState(false);
   const [error, setError] = useState('');
@@ -722,7 +718,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     ) : (
                       <Text style={styles.slotText}>+{'\n'}표지</Text>
                     )}
-                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>
                     {reading.cover ? '영수증 왼쪽에 표지가 찍혀요.\n눌러서 다른 사진으로 바꿀 수 있어요.' : '책을 검색하거나 바코드로 찾으면 표지가 자동으로 들어가요.\n직접 사진을 골라도 돼요.'}
@@ -1106,7 +1101,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                         ) : (
                           <Text style={styles.slotText}>+</Text>
                         )}
-                        {photoBusy && <PhotoBusy />}
                       </Pressable>
                       <Text style={styles.coverHelp}>{spending.printFilter ? '흰 종이 글 아래에\n흑백 프린트로 붙어요.' : '영수증 크기로 꽉 깔리고,\n그 위에 흰 글씨로 적혀요.'}</Text>
                     </View>
@@ -1455,7 +1449,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
-                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   {!!gift.photo && !!giftCrop && (
                     <Pressable
@@ -1599,7 +1592,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
-                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>
                     {food.design === 'photo'
@@ -1714,7 +1706,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
-                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>입장권 가운데에 들어가요.{'\n'}없으면 종류에 맞는 그림이 그려져요.</Text>
                 </View>
@@ -1782,7 +1773,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
-                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>티켓 가운데에 들어가요.{'\n'}팔찌 모양에는 사진이 들어가지 않아요.</Text>
                 </View>
@@ -1830,7 +1820,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
-                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>
                     사진첩에서 아무 사진이나 한 장.{'\n'}폭에 맞춰 그대로 붙고,{'\n'}모으면 줄줄이 이어져요.{'\n'}사진첩에서 공유 → 레코코로도 돼요.
@@ -1975,7 +1964,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
-                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>{exercise.design === 'card' ? '기록 뒤에 배경으로 꽉 깔려요.\n세로 사진이 잘 어울려요.' : '기록표 가운데에 들어가요.'}</Text>
                 </View>
@@ -2072,7 +2060,6 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     ) : (
                       <Text style={styles.slotText}>+</Text>
                     )}
-                    {photoBusy && <PhotoBusy />}
                   </Pressable>
                   <Text style={styles.coverHelp}>앨범 카드에 크게 들어가요.</Text>
                 </View>
@@ -2114,21 +2101,13 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
             nextCrop();
           }}
         />
+        <LoadingOverlay />
       </SafeAreaView>
     </Modal>
   );
 }
 
 /** 사진 칸: 빈 칸을 누르면 남은 칸 수만큼 한 번에 고를 수 있다 */
-/** 고른 사진을 앱 폴더로 옮기는 동안 칸 위에 덮어두는 표시 */
-function PhotoBusy() {
-  return (
-    <View style={[StyleSheet.absoluteFill, styles.photoBusy]}>
-      <ActivityIndicator color={COLORS.orange} />
-    </View>
-  );
-}
-
 function PhotoSlots({
   photos,
   onChange,
@@ -2142,22 +2121,18 @@ function PhotoSlots({
   /** 이 칸 사진을 다시 자르기 */
   onCrop?: (index: number) => void;
 }) {
-  // 지금 채워지는 중인 칸들 (그 칸에만 도는 표시를 띄운다)
-  const [filling, setFilling] = useState<number[]>([]);
+  // 앨범을 열 때부터 덮어 둔다 — 앨범이 닫힌 뒤 iOS 가 사진을 바꾸는 동안이 제일 길어서 (LoadingOverlay)
+  const busy = useBusy();
   const pick = async (index: number) => {
-    if (filling.length) return;
+    if (busy) return;
     const empty = photos.map((p, i) => (p ? -1 : i)).filter((i) => i >= 0);
     const targets = photos[index] ? [index] : [index, ...empty.filter((i) => i !== index)];
-    try {
-      const picked = await pickPhotos(targets.length, (n) => setFilling(targets.slice(0, n)));
-      if (!picked.length) return;
-      const next = [...photos];
-      picked.forEach((p, k) => (next[targets[k]] = p));
-      onChange(next);
-      onPicked?.(next, targets.slice(0, picked.length));
-    } finally {
-      setFilling([]);
-    }
+    const picked = await withBusy(() => pickPhotos(targets.length));
+    if (!picked.length) return;
+    const next = [...photos];
+    picked.forEach((p, k) => (next[targets[k]] = p));
+    onChange(next);
+    onPicked?.(next, targets.slice(0, picked.length));
   };
   return (
     <View style={styles.slots}>
@@ -2481,7 +2456,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  photoBusy: { backgroundColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center' },
   missingKey: { color: COLORS.danger, fontSize: 12, fontFamily: FONTS.sans, lineHeight: 18 },
   qrBox: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 14, gap: 12, alignItems: 'center' },
   qrHint: { color: COLORS.sub, fontSize: 13, fontFamily: FONTS.sans, textAlign: 'center', lineHeight: 20 },

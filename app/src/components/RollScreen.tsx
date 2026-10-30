@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { Easing, LinearTransition, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, LinearTransition, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -29,6 +29,9 @@ interface Props {
   onDelete: (record: RecoRecord) => void;
 }
 
+/** 시트가 다 올라오자마자 그리는 영수증 수 (화면에 보이는 만큼) */
+const FIRST_BATCH = 4;
+
 /** 모아둔 영수증을 세로로 길게 이어서 보는 화면 */
 export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd, onSave, onDelete }: Props) {
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -39,19 +42,34 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
   const drag = useSharedValue(screenH); // 시트가 아래로 내려간 거리
+  // 영수증은 무거워서 시트가 다 올라온 뒤에 그린다 — 같이 그리면 올라오는 동안 버벅인다.
+  // 처음엔 화면에 보일 만큼만, 조금 뒤 나머지
+  const [shown, setShown] = useState(0);
 
   // 열 때마다 카테고리는 '전체'부터, 시트는 아래에서 올라온다
   useEffect(() => {
     if (!visible) return;
     setKind(null);
     setTag(null);
+    setShown(0);
     drag.value = screenH;
-    drag.value = withTiming(0, {
-      duration: 320,
-      easing: Easing.out(Easing.cubic),
-    });
+    drag.value = withTiming(
+      0,
+      {
+        duration: 320,
+        easing: Easing.out(Easing.cubic),
+      },
+      (finished) => {
+        if (finished) scheduleOnRN(setShown, FIRST_BATCH);
+      },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
+  useEffect(() => {
+    if (shown !== FIRST_BATCH) return;
+    const t = setTimeout(() => setShown(Infinity), 150);
+    return () => clearTimeout(t);
+  }, [shown]);
 
   const close = (then: () => void = onClose) => {
     drag.value = withTiming(screenH, { duration: 240, easing: Easing.in(Easing.cubic) }, (finished) => {
@@ -170,10 +188,10 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
           )}
 
           <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-            {list.length === 0 && (
+            {shown > 0 && list.length === 0 && (
               <Text style={styles.empty}>{kindLabel ? `아직 뽑은 ${kindLabel} 영수증이 없어요.` : '아직 뽑은 영수증이 없어요.'}</Text>
             )}
-            {list.map((record, i) => {
+            {list.slice(0, shown).map((record, i) => {
               // 카테고리를 골랐을 때는 영수증끼리 딱 붙여 하나의 긴 롤처럼 잇는다
               const connected = !!kind;
               const prev = list[i - 1];
@@ -184,6 +202,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
               return (
                 <Animated.View
                   key={record.id}
+                  entering={FadeIn.duration(200)}
                   layout={LinearTransition.springify().damping(18)}
                   style={[styles.item, connected && { marginTop: -overlap }]}>
                   {connected ? (

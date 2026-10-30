@@ -10,6 +10,7 @@ import { KIND_LABEL, RecordBack, RecordPaper, isFlippable, sizeOf } from '../tem
 import { BRAND, COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 import { CocoArt } from './Coco';
+import { LoadingOverlay } from './Loading';
 import { DotsIcon, PencilIcon, SaveIcon, ShareIcon, TrashIcon } from './MenuIcons';
 import { ModalSafeArea } from './ModalSafeArea';
 import { RecordForm } from './RecordForm';
@@ -182,6 +183,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
             setTimeout(() => show('고쳤어요'), Platform.OS === 'ios' ? 450 : 50);
           }}
         />
+        <LoadingOverlay visible={busy} />
       </ModalSafeArea>
     </Modal>
   );

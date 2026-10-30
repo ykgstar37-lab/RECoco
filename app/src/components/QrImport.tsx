@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 
+import { withBusy } from '../lib/busy';
 import { downloadPhoto, pickPhotos, saveBase64Photo } from '../lib/photos';
 import { COLORS, FONTS } from '../theme';
 import { Photo } from '../types';
 import { KEYBOARD_DONE_ID, KeyboardDone } from './KeyboardDone';
+import { LoadingOverlay } from './Loading';
 import { ModalSafeArea } from './ModalSafeArea';
 
 interface Props {
@@ -232,7 +234,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
   };
 
   const fromGallery = async () => {
-    const [photo] = await pickPhotos(1);
+    const [photo] = await withBusy(() => pickPhotos(1));
     if (photo) receive(photo, url);
   };
 
@@ -411,6 +413,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
           </View>
         )}
         <KeyboardDone />
+        <LoadingOverlay />
       </ModalSafeArea>
     </Modal>
   );
