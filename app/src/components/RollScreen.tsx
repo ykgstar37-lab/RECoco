@@ -137,8 +137,9 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
 
   if (!mounted) return null;
   return (
-    // 닫혀 있을 때는 시트가 화면 아래로 내려가 있고 손가락도 그냥 통과한다
-    <View style={StyleSheet.absoluteFill} pointerEvents={visible ? 'box-none' : 'none'}>
+    // 닫혀 있을 때는 시트가 화면 아래로 내려가 있고 손가락도 그냥 통과한다.
+    // 홈의 ＋ 버튼(zIndex 7)·코코 말풍선보다 위에 오도록 zIndex 를 더 크게
+    <View style={[StyleSheet.absoluteFill, styles.layer]} pointerEvents={visible ? 'box-none' : 'none'}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => close()} accessibilityLabel="닫기" />
@@ -295,6 +296,7 @@ const styles = StyleSheet.create({
   tagText: { color: COLORS.ink, fontSize: 13, fontFamily: FONTS.sansBold },
   tagTextOn: { color: '#fff' },
   tagCount: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans },
+  layer: { zIndex: 20, elevation: 20 },
   backdrop: { backgroundColor: 'rgba(40,20,0,0.35)' },
   sheet: {
     flex: 1,
