@@ -210,11 +210,6 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
           )}
 
           <ScrollView ref={scrollRef} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-            {shown === 0 && (
-              <View style={styles.loading}>
-                <LoadingWord />
-              </View>
-            )}
             {shown > 0 && list.length === 0 && (
               <Text style={styles.empty}>{kindLabel ? `아직 뽑은 ${kindLabel} 영수증이 없어요.` : '아직 뽑은 영수증이 없어요.'}</Text>
             )}
@@ -259,6 +254,13 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
               );
             })}
           </ScrollView>
+
+          {/* 영수증을 그리기 전: 흰 시트 한가운데에서 RECoco 글자가 튄다 */}
+          {shown === 0 && (
+            <View style={[StyleSheet.absoluteFill, styles.loading]} pointerEvents="none">
+              <LoadingWord />
+            </View>
+          )}
 
           {/* 오른쪽 아래: 카테고리를 골랐을 때만 그 영수증 더미를 작게 띄운다 */}
           {kind && <ReceiptStack key={`${kind}-${date}-${tag}`} records={list} bottom={insets.bottom + 16} onOpen={open} />}
@@ -369,7 +371,7 @@ const styles = StyleSheet.create({
   tabCount: { color: COLORS.sub, fontSize: 12, fontFamily: FONTS.sans },
   tabTextOn: { color: '#fff' },
   list: { alignItems: 'center', paddingBottom: 110 },
-  loading: { paddingTop: 120 },
+  loading: { alignItems: 'center', justifyContent: 'center' },
   item: { alignItems: 'center', width: '100%', paddingHorizontal: 22 },
   seam: { position: 'absolute', top: -2, left: 0, right: 0, alignItems: 'center', zIndex: 2 },
   seamFirst: { position: 'relative', top: 0, paddingTop: 14, paddingBottom: 6 },
