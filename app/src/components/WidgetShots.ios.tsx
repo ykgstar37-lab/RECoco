@@ -1,7 +1,7 @@
 // 홈 화면 위젯에 띄울 기록 그림을 굽는다 (iOS).
 // 위젯은 앱의 양식 코드를 못 돌리므로, 앱이 영수증을 화면 뒤에 몰래 그려 PNG 로 찍고
 // 앱·위젯 공용 폴더(widgetsDirectory)에 넣은 뒤 그 경로를 위젯에 넘긴다.
-//  - 최근 기록 RECENT 장 + 크게 보기에서 '위젯에 넣기' 한 기록
+//  - 크게 보기 ⋯ 에서 '위젯 목록에 넣기' 한 기록만
 //  - 기록 내용이 바뀌면(고치기) 다시 굽는다. 안 쓰는 그림은 지운다
 //  - 한 장 구울 때마다 위젯에 바로 넘긴다 (다 굽기 전에도 뜨게)
 // 화면 안(왼쪽 위)에 그리고 같은 주황 판으로 덮는다 — 홈은 overflow: hidden 이라 화면 밖에 그리면 잘려서 못 찍는다.
@@ -19,8 +19,6 @@ import { COLORS } from '../theme';
 import type { RecoRecord } from '../types';
 import type { WidgetProps } from '../widgets/RecordWidgets';
 
-/** 최근 기록 몇 장까지 */
-const RECENT = 12;
 /** 그릴 폭(pt)과 구운 그림 폭(px) — 위젯 메모리(약 30MB)를 넘지 않게 작게 */
 const DRAW_W = 320;
 const SHOT_W = 600;
@@ -64,8 +62,6 @@ function labelOf(r: RecoRecord) {
   return `${r.date.slice(5).replace('-', '.')} ${KIND_LABEL[r.kind]}${name ? ` · ${name.trim()}` : ''}`;
 }
 
-const byNewest = (a: RecoRecord, b: RecoRecord) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt);
-
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 function withTimeout<T>(p: Promise<T>, ms: number) {
@@ -91,13 +87,12 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
       .catch(() => setManifest({}));
   }, []);
 
-  const recent = useMemo(() => [...records].sort(byNewest).slice(0, RECENT), [records]);
   const picked = useMemo(() => picks.map((id) => records.find((r) => r.id === id)).filter((r): r is RecoRecord => !!r), [picks, records]);
   const wanted = useMemo(() => {
     const map = new Map<string, RecoRecord>();
-    for (const r of [...recent, ...picked]) map.set(r.id, r);
+    for (const r of picked) map.set(r.id, r);
     return [...map.values()];
-  }, [recent, picked]);
+  }, [picked]);
 
   // 다음에 구울 기록 (없거나 내용이 바뀐 것)
   const job = manifest ? wanted.find((r) => manifest[r.id]?.key !== keyOf(r)) : undefined;
@@ -174,7 +169,6 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
       return m && m.key === keyOf(r) ? m.uri : '';
     };
     const props: WidgetProps = {
-      recent: recent.map(uriOf).filter((u) => !!u),
       picked: picked.map((r) => ({ id: r.id, title: labelOf(r), uri: uriOf(r) })).filter((p) => !!p.uri),
       index: 0,
       // 못 구운 게 있으면 그 까닭을 빈 위젯에 그대로 띄운다 (기기에서 원인 찾기용)
@@ -187,11 +181,11 @@ export function WidgetShots({ records }: { records: RecoRecord[] }) {
     pushed.current = sig;
     try {
       api.widgets.forEach((w) => w.updateSnapshot(props));
-      if (!failed.current) setWidgetStatus(`위젯에 넘김: 최근 ${props.recent.length}장 · 고른 ${props.picked.length}장${left ? ` · ${left}장 굽는 중` : ''}`);
+      if (!failed.current) setWidgetStatus(`위젯에 넘김: ${props.picked.length}장${left ? ` · ${left}장 굽는 중` : ''}`);
     } catch (e) {
       setWidgetStatus(`위젯에 넘기기 실패: ${errText(e)}`);
     }
-  }, [manifest, left, recent, picked, bg, calib]);
+  }, [manifest, left, picked, bg, calib]);
 
   if (!api || !job) return null;
   return (

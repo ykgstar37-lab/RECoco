@@ -5,7 +5,7 @@
 // 이름은 app.json 의 expo-widgets 설정 widgets[].name 과 같아야 한다.
 //  - RecocoSmall: 작은 위젯 한 장. 위젯 편집에서 '고른 기록' 중 한 장을 직접 고른다 (record — plugins/withWidgetRecordPicker.js)
 //  - RecocoRoll : 큰 위젯. ▲▼ 로 넘기고 위에 다음 장이 걸쳐 보인다
-// 길게 눌러 '위젯 편집' 에서 최근 기록 / 앱에서 고른 기록 중 고른다 (source).
+// 위젯에는 크게 보기 ⋯ 에서 '위젯 목록에 넣기' 한 기록만 뜬다. (위젯 편집의 '보여줄 기록'(source)은 11번 빌드에 남아 있지만 안 쓴다)
 // 바탕은 투명 — 홈 화면을 '투명(Clear)' 모양으로 두면 영수증만 배경화면 위에 뜬다 (기본 모양에서는 iOS 가 흰 판을 깐다).
 // 기본 모양에서는 '위젯 배경 맞추기'(lib/widgetBg.ts)로 잘라 둔 배경화면 조각(props.bg)을 맨 밑에 깔아 투명한 것처럼 보이게 한다.
 // 그림은 fullColor 로 — 투명·색조 모양에서도 영수증 색을 그대로 둔다.
@@ -35,8 +35,6 @@ export interface PickedShot {
 }
 
 export interface WidgetProps {
-  /** 최근 기록 그림 (최신이 앞) */
-  recent: string[];
   /** 크게 보기에서 '위젯에 넣기' 한 기록 (넣은 순서). 위젯 편집의 기록 목록도 여기서 읽는다 */
   picked: PickedShot[];
   /** 큰 위젯에서 지금 보는 자리 (▲▼ 로 바뀐다) */
@@ -55,9 +53,8 @@ export type WidgetConfig = { source: 'recent' | 'picked'; record?: string };
 const RecocoSmall = (props: WidgetProps, env: WidgetEnvironment<WidgetConfig>) => {
   'widget';
   const picked = props.picked || [];
-  const usePicked = env.configuration?.source === 'picked';
-  const chosen = usePicked ? picked.find((p) => p.id === env.configuration?.record) || picked[0] : undefined;
-  const uri = usePicked ? (chosen ? chosen.uri : undefined) : (props.recent || [])[0];
+  const chosen = picked.find((p) => p.id === env.configuration?.record) || picked[0];
+  const uri = chosen ? chosen.uri : undefined;
   if (props.calib)
     return (
       <ZStack modifiers={[containerBackground('#ffffff', 'widget'), frame({ maxWidth: 4000, maxHeight: 4000 })]}>
@@ -72,7 +69,7 @@ const RecocoSmall = (props: WidgetProps, env: WidgetEnvironment<WidgetConfig>) =
     <VStack spacing={4} modifiers={[padding({ all: 12 })]}>
       <Text modifiers={[font({ size: 14, weight: 'bold' }), foregroundStyle('#ff7a2f')]}>레코코</Text>
       <Text modifiers={[font({ size: 12 }), foregroundStyle(bgUri ? '#ffffff' : { type: 'hierarchical', style: 'secondary' })]}>
-        {props.status || (usePicked ? '기록 크게 보기에서 ＋ 를 눌러 넣어 보세요' : '기록을 남기면 여기에 떠요')}
+        {props.status || '기록 크게 보기 ⋯ 에서 위젯 목록에 넣어 보세요'}
       </Text>
     </VStack>
   ) : (
@@ -93,7 +90,7 @@ const RecocoSmall = (props: WidgetProps, env: WidgetEnvironment<WidgetConfig>) =
 
 const RecocoRoll = (props: WidgetProps, env: WidgetEnvironment<WidgetConfig>) => {
   'widget';
-  const list = env.configuration?.source === 'picked' ? (props.picked || []).map((p) => p.uri) : props.recent || [];
+  const list = (props.picked || []).map((p) => p.uri);
   if (props.calib)
     return (
       <ZStack modifiers={[containerBackground('#ffffff', 'widget'), frame({ maxWidth: 4000, maxHeight: 4000 })]}>
@@ -116,8 +113,7 @@ const RecocoRoll = (props: WidgetProps, env: WidgetEnvironment<WidgetConfig>) =>
       <VStack spacing={6} modifiers={[padding({ all: 20 })]}>
         <Text modifiers={[font({ size: 17, weight: 'bold' }), foregroundStyle('#ff7a2f')]}>레코코</Text>
         <Text modifiers={[font({ size: 14 }), foregroundStyle(bgUri ? '#ffffff' : { type: 'hierarchical', style: 'secondary' })]}>
-          {props.status ||
-            (env.configuration?.source === 'picked' ? '기록 크게 보기에서 ＋ 를 눌러 넣은 기록이 여기에 줄줄이 떠요' : '기록을 남기면 여기에 줄줄이 떠요')}
+          {props.status || '기록 크게 보기 ⋯ 에서 위젯 목록에 넣은 기록이 여기에 줄줄이 떠요'}
         </Text>
       </VStack>,
     );
