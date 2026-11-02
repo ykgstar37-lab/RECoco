@@ -354,6 +354,21 @@ interface ItemDraft {
   time?: string;
 }
 
+/** 네컷 완성본이 1×4 세로 띠인지 (가로/세로가 0.5 아래). 아니면 2×2 로 본다 */
+const isStrip = (p: Photo) => p.width / p.height < 0.5;
+
+/** 네컷 완성본에서 i번째 컷 자리 (띠면 위에서부터, 2×2 면 왼쪽 위부터), 칸 비율 a(세로/가로)에 맞춰 가운데로 */
+function cutOf(p: Photo, i: number, a: number): PhotoCrop {
+  const strip = isStrip(p);
+  const cw = strip ? p.width : p.width / 2;
+  const ch = strip ? p.height / 4 : p.height / 2;
+  const cx = strip ? 0 : (i % 2) * cw;
+  const cy = strip ? i * ch : Math.floor(i / 2) * ch;
+  const w = Math.min(cw, ch / a);
+  const h = w * a;
+  return { x: cx + (cw - w) / 2, y: cy + (ch - h) / 2, width: w, height: h };
+}
+
 export function RecordForm({ visible, records = [], initialKind, sharedPhoto, editing, onClose, onSubmit }: Props) {
   const [kind, setKind] = useState<RecordKind>(initialKind ?? 'reading');
   const [reading, setReading] = useState(emptyReading);
@@ -423,17 +438,7 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
   const splitIntoHouse = (src: Photo) => {
     const a = houseCellAspect(4);
     const full = { ...src, crop: null };
-    const quarter = (i: number): PhotoCrop => {
-      const qh = full.height / 4;
-      let w = full.width;
-      let h = w * a;
-      if (h > qh) {
-        h = qh;
-        w = h / a;
-      }
-      return { x: (full.width - w) / 2, y: i * qh + (qh - h) / 2, width: w, height: h };
-    };
-    const four = [0, 1, 2, 3].map((i) => ({ ...full, crop: quarter(i) }));
+    const four = [0, 1, 2, 3].map((i) => ({ ...full, crop: cutOf(full, i, a) }));
     setFourcut((f) => ({ ...f, source: 'photos', photos: four }));
     setCropQueue((q) => [
       ...q,
@@ -1368,7 +1373,16 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                   onClose={() => setQrOpen(false)}
                   onPicked={(photo, url) => {
                     setQrOpen(false);
-                    setFourcut((f) => ({ ...f, source: 'qr', frameImage: photo, sourceUrl: url }));
+                    if (fourcut.design === 'house' && !isStrip(photo)) {
+                      // 하우스네컷 창은 세로 띠 모양이라 2×2 완성본은 통째로 못 넣는다 → 바로 창마다 한 컷씩 자르기로
+                      setFourcut((f) => ({ ...f, sourceUrl: url }));
+                      return splitIntoHouse(photo);
+                    }
+                    if (!singleShot) return setFourcut((f) => ({ ...f, source: 'qr', frameImage: photo, sourceUrl: url }));
+                    // 코코몬 카드·코코치는 한 장만 들어가서 완성본 통째로는 어색하다 → 네 컷 중 한 컷을 잘라 쓴다 (첫 컷에서 시작)
+                    const top = { ...photo, crop: cutOf(photo, 0, multiAspect(fourcut, [photo, null, null, null], 0) ?? 1) };
+                    setFourcut((f) => ({ ...f, source: 'photos', photos: [top, null, null, null], sourceUrl: url }));
+                    askCropMany(fourcut, [top, null, null, null], [0], (_, p) => setFourcut((f) => ({ ...f, photos: [p, null, null, null] })), true);
                   }}
                 />
               </>
