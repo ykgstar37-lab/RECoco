@@ -1,7 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { File } from 'expo-file-system';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 
 import { withBusy } from '../lib/busy';
@@ -165,6 +165,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
   }, [step, url]);
 
   const openUrl = (raw: string) => {
+    Keyboard.dismiss();
     const u = raw.trim();
     if (!/^https?:\/\//i.test(u)) {
       setMessage('사진 페이지 링크(QR)가 아니에요. 포토부스 QR을 다시 비춰주세요.');
@@ -288,7 +289,8 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
         </View>
 
         {step === 'scan' && (
-          <View style={{ flex: 1 }}>
+          // 링크 칸이 맨 아래라 키보드에 가려지지 않게 밀어 올린다
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             {!permission?.granted ? (
               <View style={styles.center}>
                 <Text style={styles.body}>포토부스 QR을 찍으려면 카메라 권한이 필요해요.</Text>
@@ -297,7 +299,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
                 </Pressable>
               </View>
             ) : (
-              <View style={styles.cameraBox}>
+              <View style={styles.cameraBox} onTouchStart={Keyboard.dismiss}>
                 <CameraView
                   style={StyleSheet.absoluteFill}
                   barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
@@ -324,6 +326,9 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
                   placeholderTextColor={COLORS.placeholder}
                   autoCapitalize="none"
                   autoCorrect={false}
+                  keyboardType="url"
+                  returnKeyType="go"
+                  onSubmitEditing={() => openUrl(typed)}
                 />
                 <Pressable style={styles.smallBtn} onPress={() => openUrl(typed)}>
                   <Text style={styles.primaryText}>열기</Text>
@@ -333,7 +338,7 @@ export function QrImport({ visible, onClose, onPicked }: Props) {
                 <Text style={styles.link}>QR이 만료됐나요? 갤러리에서 사진 고르기 →</Text>
               </Pressable>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         )}
 
         {step === 'page' && (
