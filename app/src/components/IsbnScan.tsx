@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { bump } from '../lib/haptics';
 import { BookHit, bookByIsbn, isIsbn13 } from '../lib/search';
@@ -73,81 +73,85 @@ export function IsbnScan({ visible, onClose, onFound }: Props) {
           <View style={{ width: 32 }} />
         </View>
 
-        {!permission?.granted ? (
-          <View style={styles.center}>
-            <Text style={styles.body}>책 바코드를 찍으려면 카메라 권한이 필요해요.</Text>
-            <Pressable style={styles.primary} onPress={requestPermission}>
-              <Text style={styles.primaryText}>카메라 허용하기</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <View style={styles.cameraBox}>
-            <CameraView
-              style={StyleSheet.absoluteFill}
-              barcodeScannerSettings={{ barcodeTypes: ['ean13'] }}
-              onBarcodeScanned={book ? undefined : (r) => lookup(r.data)}
-            />
-            <View pointerEvents="none" style={styles.aim} />
-            <Text style={styles.aimText}>책 뒷표지의 바코드를 네모 안에 맞춰주세요</Text>
-          </View>
-        )}
-
-        <View style={styles.panel}>
-          {busy && (
-            <View style={styles.row}>
-              <ActivityIndicator color={COLORS.orange} />
-              <Text style={styles.body}>책을 찾는 중…</Text>
-            </View>
-          )}
-          {book && (
-            <View style={styles.card}>
-              {book.thumbnail ? <Image source={{ uri: book.thumbnail }} style={styles.cover} /> : <View style={styles.cover} />}
-              <View style={{ flex: 1, gap: 3 }}>
-                <Text style={styles.bookTitle} numberOfLines={2}>
-                  {book.title}
-                </Text>
-                <Text style={styles.bookSub} numberOfLines={2}>
-                  {[book.author, book.publisher, book.year].filter(Boolean).join(' · ')}
-                </Text>
-              </View>
-            </View>
-          )}
-          {book ? (
-            <View style={styles.row}>
-              <Pressable style={[styles.secondary, { flex: 1 }]} onPress={rescan}>
-                <Text style={styles.secondaryText}>다시 찍기</Text>
-              </Pressable>
-              <Pressable style={[styles.primary, { flex: 2 }]} onPress={() => onFound(book)}>
-                <Text style={styles.primaryText}>이 책으로 채우기</Text>
+        {/* 숫자 칸이 맨 아래라 키보드에 가려지지 않게 밀어 올린다 */}
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          {!permission?.granted ? (
+            <View style={styles.center}>
+              <Text style={styles.body}>책 바코드를 찍으려면 카메라 권한이 필요해요.</Text>
+              <Pressable style={styles.primary} onPress={requestPermission}>
+                <Text style={styles.primaryText}>카메라 허용하기</Text>
               </Pressable>
             </View>
           ) : (
-            <>
-              {!!message && <Text style={styles.warn}>{message}</Text>}
-              <Text style={styles.label}>바코드가 안 읽히면 숫자를 직접 입력</Text>
+            <View style={styles.cameraBox} onTouchStart={Keyboard.dismiss}>
+              <CameraView
+                style={StyleSheet.absoluteFill}
+                barcodeScannerSettings={{ barcodeTypes: ['ean13'] }}
+                onBarcodeScanned={book ? undefined : (r) => lookup(r.data)}
+              />
+              <View pointerEvents="none" style={styles.aim} />
+              <Text style={styles.aimText}>책 뒷표지의 바코드를 네모 안에 맞춰주세요</Text>
+            </View>
+          )}
+
+          <View style={styles.panel}>
+            {busy && (
               <View style={styles.row}>
-                <TextInput
-                  inputAccessoryViewID={KEYBOARD_DONE_ID}
-                  style={styles.input}
-                  value={typed}
-                  onChangeText={setTyped}
-                  placeholder="978…"
-                  placeholderTextColor={COLORS.placeholder}
-                  keyboardType="number-pad"
-                  maxLength={17}
-                />
-                <Pressable
-                  style={styles.smallBtn}
-                  onPress={() => {
-                    lastCode.current = '';
-                    lookup(typed);
-                  }}>
-                  <Text style={styles.primaryText}>찾기</Text>
+                <ActivityIndicator color={COLORS.orange} />
+                <Text style={styles.body}>책을 찾는 중…</Text>
+              </View>
+            )}
+            {book && (
+              <View style={styles.card}>
+                {book.thumbnail ? <Image source={{ uri: book.thumbnail }} style={styles.cover} /> : <View style={styles.cover} />}
+                <View style={{ flex: 1, gap: 3 }}>
+                  <Text style={styles.bookTitle} numberOfLines={2}>
+                    {book.title}
+                  </Text>
+                  <Text style={styles.bookSub} numberOfLines={2}>
+                    {[book.author, book.publisher, book.year].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+              </View>
+            )}
+            {book ? (
+              <View style={styles.row}>
+                <Pressable style={[styles.secondary, { flex: 1 }]} onPress={rescan}>
+                  <Text style={styles.secondaryText}>다시 찍기</Text>
+                </Pressable>
+                <Pressable style={[styles.primary, { flex: 2 }]} onPress={() => onFound(book)}>
+                  <Text style={styles.primaryText}>이 책으로 채우기</Text>
                 </Pressable>
               </View>
-            </>
-          )}
-        </View>
+            ) : (
+              <>
+                {!!message && <Text style={styles.warn}>{message}</Text>}
+                <Text style={styles.label}>바코드가 안 읽히면 숫자를 직접 입력</Text>
+                <View style={styles.row}>
+                  <TextInput
+                    inputAccessoryViewID={KEYBOARD_DONE_ID}
+                    style={styles.input}
+                    value={typed}
+                    onChangeText={setTyped}
+                    placeholder="978…"
+                    placeholderTextColor={COLORS.placeholder}
+                    keyboardType="number-pad"
+                    maxLength={17}
+                  />
+                  <Pressable
+                    style={styles.smallBtn}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      lastCode.current = '';
+                      lookup(typed);
+                    }}>
+                    <Text style={styles.primaryText}>찾기</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
+          </View>
+        </KeyboardAvoidingView>
         <KeyboardDone />
       </ModalSafeArea>
     </Modal>
