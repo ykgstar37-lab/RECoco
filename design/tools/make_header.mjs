@@ -145,9 +145,10 @@ function receipt(w) {
 /**
  * feed: 0(아직 안 나옴) ~ 1(다 나옴). shake: 떨림 위상(라디안), amp: 떨림 세기(0~1).
  * drop: 뜯긴 영수증이 떨어진 정도(0~1). puff: 볼 빵빵(0~1). mood: gag · spew · happy
+ * zoom: 입을 가운데 두고 당겨 보는 배율 (1 = 전체)
  * 앱(Printer.tsx)처럼 영수증이 통째로 아래로 밀려 나온다 → 끝(바코드)이 먼저, 제목이 마지막에 보인다
  */
-export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood = 'spew' } = {}) {
+export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood = 'spew', zoom = 1 } = {}) {
   const S = 1300; // 코코 폭
   const k = S / 400;
   const cx = W / 2;
@@ -155,8 +156,8 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
   const exitY = top + EXIT_Y * k;
   const rw = MOUTH_W * k * 0.94;
   const r = receipt(rw);
-  const dx = Math.sin(shake) * 10 * amp;
-  const rot = Math.sin(shake * 1.3) * 0.6 * amp;
+  const dx = Math.sin(shake) * 4 * amp;
+  const rot = Math.sin(shake * 1.3) * 0.25 * amp;
   const ry = exitY - r.h + feed * r.h + drop * drop * (H + 200);
   const tilt = drop * 6;
   const sx = 1 + puff * 0.05;
@@ -165,7 +166,7 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
   const lines = [0, 1, 2]
     .map((i) => {
       const a = (i - 1) * 0.5;
-      const len = 90 + Math.abs(Math.sin(shake + i)) * 30;
+      const len = 90 + Math.abs(Math.sin(shake * 0.5 + i)) * 16;
       return [-1, 1]
         .map((side) => {
           const x = cx + side * (S / 2 + 30);
@@ -181,6 +182,7 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
     <radialGradient id="bg" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#ff9150"/><stop offset="1" stop-color="#ff7a2f"/></radialGradient>
   </defs>
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
+  <g transform="translate(${cx} ${exitY}) scale(${zoom}) translate(${-cx} ${-exitY})">
   ${amp > 0.05 ? lines : ''}
   <g transform="translate(${cx - S / 2 + dx} ${top}) rotate(${rot} ${S / 2} ${300 * k}) translate(${(S * (1 - sx)) / 2} ${300 * k * (1 - sy)}) scale(${k * sx} ${k * sy})">${coco(mood)}</g>
   ${feed <= 0 ? '' : `<g clip-path="url(#below)" transform="rotate(${tilt} ${cx} ${exitY})">
@@ -190,6 +192,7 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
       ${r.svg}
     </g>
   </g>`}
+  </g>
 </svg>`;
 }
 

@@ -14,12 +14,24 @@ const PRINT = 6.9; // 다 나오는 시각
 const CALM = 0.35; // 떨림이 잦아드는 시간
 const TEAR = 8.4; // 뜯기는 시각
 const FALL = 1.0;
+const ZOOM = 1.45; // 영수증이 나올 때 입으로 당겨 보는 배율
+const ZOOM_IN = [GAG - 0.2, GAG + 1.4]; // 이 사이에 당기고
+const ZOOM_OUT = [PRINT - 1.9, PRINT - 0.1]; // 이 사이에 원래 크기로
 
 const clamp = (x) => Math.max(0, Math.min(1, x));
 const ease = (u) => (u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2);
 
+const zoomAt = (t) => {
+  const k = t < ZOOM_OUT[0] ? ease(clamp((t - ZOOM_IN[0]) / (ZOOM_IN[1] - ZOOM_IN[0]))) : 1 - ease(clamp((t - ZOOM_OUT[0]) / (ZOOM_OUT[1] - ZOOM_OUT[0])));
+  return 1 + (ZOOM - 1) * k;
+};
+
 function at(t) {
-  const shake = t * Math.PI * 2 * 11;
+  return { ...pose(t), zoom: zoomAt(t) };
+}
+
+function pose(t) {
+  const shake = t * Math.PI * 2 * 7;
   if (t < GAG) return { feed: 0, mood: 'gag', shake, amp: 1, puff: 0.6 + 0.4 * Math.sin(t * Math.PI * 2 * 3) };
   if (t < PRINT) {
     const u = (t - GAG) / (PRINT - GAG);
