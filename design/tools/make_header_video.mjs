@@ -1,11 +1,11 @@
 // 앱스토어 헤더 동영상 (3840×1646, 30fps, 11초, 반복 재생)
-// node make_header_video.mjs <out.mp4> [poster.png]
+// node make_header_video.mjs <out.mp4> [poster.png] [--story]  (--story: 인스타 스토리 1080×1920, 움직임은 같음)
 // 볼 빵빵 덜덜 → 입 벌려 영수증 뱉기 → 다 나오면 떨림이 멎음 → 영수증을 놓고 활짝 웃으며 위로 날아감 → 영수증이 가운데로 올라옴 → 처음으로
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import ffmpeg from 'ffmpeg-static';
 
-import { H, W, frame, render } from './make_header.mjs';
+import { HEADER, STORY, frame, render } from './make_header.mjs';
 
 const FPS = 30;
 const SECONDS = 11;
@@ -14,7 +14,6 @@ const PRINT = 6.9; // 다 나오는 시각
 const CALM = 0.35; // 떨림이 잦아드는 시간
 const TEAR = 7.9; // 영수증을 놓는 시각
 const RISE = [8.15, 9.2]; // 코코가 위로 떠올라 사라지는 동안
-const RISE_PX = 1300;
 const CENTER = [8.9, 9.9]; // 영수증이 가운데로 올라오는 동안 (그 뒤 끝까지 멈춤)
 const ZOOM = 1.45; // 영수증이 나올 때 입으로 당겨 보는 배율
 const ZOOM_IN = [GAG - 0.2, GAG + 1.4]; // 이 사이에 당기고
@@ -56,10 +55,14 @@ function pose(t) {
   };
 }
 
-const out = process.argv[2] ?? 'header.mp4';
-const poster = process.argv[3];
+const args = process.argv.slice(2).filter((a) => a !== '--story');
+const L = process.argv.includes('--story') ? STORY : HEADER;
+const { W, H } = L;
+const RISE_PX = L.rise;
+const out = args[0] ?? 'header.mp4';
+const poster = args[1];
 // 대표 그림은 마지막 장면 (영수증 한 장이 가운데에 다 보인다)
-if (poster) writeFileSync(poster, render(frame(at(SECONDS - 1 / FPS))));
+if (poster) writeFileSync(poster, render(frame(at(SECONDS - 1 / FPS), L)));
 
 const ff = spawn(ffmpeg, [
   '-y',
@@ -75,7 +78,7 @@ const ff = spawn(ffmpeg, [
 
 const total = FPS * SECONDS;
 for (let i = 0; i < total; i++) {
-  const png = render(frame(at(i / FPS)));
+  const png = render(frame(at(i / FPS), L));
   if (!ff.stdin.write(png)) await new Promise((r) => ff.stdin.once('drain', r));
   if (i % 30 === 0) console.log(`frame ${i}/${total}`);
 }

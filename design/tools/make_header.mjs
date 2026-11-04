@@ -18,6 +18,11 @@ const LOGO_RATIO = 37 / 146;
 export const W = 3840;
 export const H = 1646;
 
+/** 화면 크기와 코코 자리. S 코코 폭 · top 코코 머리 위치 · rise 날아갈 거리 · edge 가운데로 왔을 때 위아래 여백 · grow 그때 키워도 되는 배율 */
+export const HEADER = { W, H, S: 1300, top: 40, rise: 1300, edge: 80, grow: 1 };
+// 인스타 스토리 (9:16). 위아래 250px 쯤은 계정 이름·답장 칸에 가려서 코코와 영수증을 그 안쪽에 둔다
+export const STORY = { W: 1080, H: 1920, S: 900, top: 420, rise: 1400, edge: 290, grow: 1.25 };
+
 // ── 흰 코코 (components/Coco.tsx 의 white 톤 gag·spew·happy 얼굴을 그대로 옮김, viewBox 400×320)
 const BODY =
   'M40,256 C40,150 108,84 186,78 C196,58 206,40 222,40 C232,40 238,46 240,52 C250,46 262,50 264,60 C272,62 276,72 270,82 C330,98 360,160 360,256 C360,292 336,300 300,301 C250,303 150,303 100,301 C64,300 40,292 40,256 Z';
@@ -149,20 +154,20 @@ function receipt(w) {
  * center: 코코가 떠난 뒤 영수증이 화면 가운데로 올라온 정도(0~1)
  * 앱(Printer.tsx)처럼 영수증이 통째로 아래로 밀려 나온다 → 끝(바코드)이 먼저, 제목이 마지막에 보인다
  */
-export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood = 'spew', zoom = 1, lift = 0, center = 0 } = {}) {
-  const S = 1300; // 코코 폭
+export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood = 'spew', zoom = 1, lift = 0, center = 0 } = {}, L = HEADER) {
+  const { W, H, S, top } = L; // S 코코 폭
   const k = S / 400;
+  const u = S / 1300; // 헤더 크기를 1 로 본 배율 (떨림 폭·줄 굵기)
   const cx = W / 2;
-  const top = 40;
   const exitY = top + EXIT_Y * k;
   const rw = MOUTH_W * k * 0.94;
   const r = receipt(rw);
-  const dx = Math.sin(shake) * 4 * amp;
+  const dx = Math.sin(shake) * 4 * amp * u;
   const rot = Math.sin(shake * 1.3) * 0.25 * amp;
   const ry = exitY - r.h + feed * r.h + drop * drop * (H + 200);
   const tilt = drop * 6;
   // 코코가 떠난 뒤 영수증이 화면 한가운데로 올라온다 (다 보이게 살짝 줄여서)
-  const fit = Math.min(1, (H - 160) / r.h);
+  const fit = Math.min(L.grow, (H - 2 * L.edge) / r.h);
   const sc = 1 + (fit - 1) * center;
   const y = ry + ((H - r.h * fit) / 2 - ry) * center;
   const sx = 1 + puff * 0.05;
@@ -171,12 +176,12 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
   const lines = [0, 1, 2]
     .map((i) => {
       const a = (i - 1) * 0.5;
-      const len = 90 + Math.abs(Math.sin(shake * 0.5 + i)) * 16;
+      const len = (90 + Math.abs(Math.sin(shake * 0.5 + i)) * 16) * u;
       return [-1, 1]
         .map((side) => {
-          const x = cx + side * (S / 2 + 30);
-          const y = top + 560 + (i - 1) * 120;
-          return `<line x1="${x}" y1="${y}" x2="${x + side * len * Math.cos(a)}" y2="${y + len * Math.sin(a)}" stroke="#ffffff" stroke-width="18" stroke-linecap="round" opacity="${0.8 * amp}"/>`;
+          const x = cx + side * (S / 2 + 30 * u);
+          const y = top + (560 + (i - 1) * 120) * u;
+          return `<line x1="${x}" y1="${y}" x2="${x + side * len * Math.cos(a)}" y2="${y + len * Math.sin(a)}" stroke="#ffffff" stroke-width="${18 * u}" stroke-linecap="round" opacity="${0.8 * amp}"/>`;
         })
         .join('');
     })
@@ -192,7 +197,7 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
   <g transform="translate(${cx - S / 2 + dx} ${top - lift}) rotate(${rot} ${S / 2} ${300 * k}) translate(${(S * (1 - sx)) / 2} ${300 * k * (1 - sy)}) scale(${k * sx} ${k * sy})">${coco(mood)}</g>
   ${feed <= 0 ? '' : `<g ${center > 0 ? '' : 'clip-path="url(#below)"'}>
     <g transform="translate(${cx + dx * (1 - center)} ${y}) rotate(${tilt * (1 - center)}) scale(${sc}) translate(${-rw / 2} 0)">
-      <rect x="14" y="14" width="${rw}" height="${r.h}" fill="#7a2e00" opacity="0.18"/>
+      <rect x="${14 * u}" y="${14 * u}" width="${rw}" height="${r.h}" fill="#7a2e00" opacity="0.18"/>
       <rect width="${rw}" height="${r.h}" fill="#fffdf8"/>
       ${r.svg}
     </g>
