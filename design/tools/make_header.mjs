@@ -18,10 +18,11 @@ const LOGO_RATIO = 37 / 146;
 export const W = 3840;
 export const H = 1646;
 
-/** 화면 크기와 코코 자리. S 코코 폭 · top 코코 머리 위치 · rise 날아갈 거리 · edge 가운데로 왔을 때 위아래 여백 · grow 그때 키워도 되는 배율 */
-export const HEADER = { W, H, S: 1300, top: 40, rise: 1300, edge: 80, grow: 1 };
+/** 화면 크기와 코코 자리. S 코코 폭 · top 코코 머리 위치 · rise 날아갈 거리 · edge 가운데로 왔을 때 위아래 여백 · grow 그때 키워도 되는 배율
+ *  jitter 덜덜 떠는 세기(1 = 헤더) · date 영수증에 찍히는 날짜 */
+export const HEADER = { W, H, S: 1300, top: 40, rise: 1300, edge: 80, grow: 1, jitter: 1, date: '2026.11.04 14:32' };
 // 인스타 스토리 (9:16). 위아래 250px 쯤은 계정 이름·답장 칸에 가려서 코코와 영수증을 그 안쪽에 둔다
-export const STORY = { W: 1080, H: 1920, S: 900, top: 420, rise: 1400, edge: 290, grow: 1.25 };
+export const STORY = { W: 1080, H: 1920, S: 900, top: 420, rise: 1400, edge: 290, grow: 1.25, jitter: 0.45, date: '2026.11.05 12:00' };
 
 // ── 흰 코코 (components/Coco.tsx 의 white 톤 gag·spew·happy 얼굴을 그대로 옮김, viewBox 400×320)
 const BODY =
@@ -72,7 +73,7 @@ const RECEIPT = [
   { logo: true },
   { center: '─ 오늘의 기록 영수증 ─' },
   { gap: 0.4 },
-  { l: 'No.000001', r: '2026.11.04 14:32' },
+  { l: 'No.000001', r: 'DATE' },
   { l: '계산원: 코코' },
   { rule: true },
   { l: '품목', m: '수량', r: '금액', bold: true },
@@ -96,7 +97,7 @@ const RECEIPT = [
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 /** 영수증을 (0,0) 기준 폭 w 로 그린 svg 조각과 높이 */
-function receipt(w) {
+function receipt(w, date) {
   const fs = Math.round(w * 0.06);
   const lh = fs * 1.6;
   const pad = fs * 1.1;
@@ -141,7 +142,7 @@ function receipt(w) {
     if (row.center) text(w / 2, base, row.center, { ...o, anchor: 'middle' });
     if (row.l) text(pad, base, row.l, o);
     if (row.m) text(w * 0.66, base, row.m, { ...o, anchor: 'middle' });
-    if (row.r) text(w - pad, base, row.r, { ...o, anchor: 'end' });
+    if (row.r) text(w - pad, base, row.r === 'DATE' ? date : row.r, { ...o, anchor: 'end' });
   }
   y += pad;
   return { svg: out.join('\n'), h: y };
@@ -161,9 +162,9 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
   const cx = W / 2;
   const exitY = top + EXIT_Y * k;
   const rw = MOUTH_W * k * 0.94;
-  const r = receipt(rw);
-  const dx = Math.sin(shake) * 4 * amp * u;
-  const rot = Math.sin(shake * 1.3) * 0.25 * amp;
+  const r = receipt(rw, L.date);
+  const dx = Math.sin(shake) * 4 * amp * u * L.jitter;
+  const rot = Math.sin(shake * 1.3) * 0.25 * amp * L.jitter;
   const ry = exitY - r.h + feed * r.h + drop * drop * (H + 200);
   const tilt = drop * 6;
   // 코코가 떠난 뒤 영수증이 화면 한가운데로 올라온다 (다 보이게 살짝 줄여서)
