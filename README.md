@@ -8,7 +8,6 @@
 
 [![iOS](https://img.shields.io/badge/iOS-App_Store_심사_중-FF7A2F)](https://recoco.pages.dev)
 ![Android](https://img.shields.io/badge/Android-준비_중-9CA3AF)
-[![Support](https://img.shields.io/badge/Support-recoco.pages.dev-FFB18C)](https://recoco.pages.dev)
 ![기간](https://img.shields.io/badge/개발_기간-2026.09_~_2026.11-6B7280)
 [![License](https://img.shields.io/badge/License-All_rights_reserved-red)](LICENSE)
 
