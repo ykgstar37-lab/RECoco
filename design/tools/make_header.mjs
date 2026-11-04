@@ -145,10 +145,10 @@ function receipt(w) {
 /**
  * feed: 0(아직 안 나옴) ~ 1(다 나옴). shake: 떨림 위상(라디안), amp: 떨림 세기(0~1).
  * drop: 뜯긴 영수증이 떨어진 정도(0~1). puff: 볼 빵빵(0~1). mood: gag · spew · happy
- * zoom: 입을 가운데 두고 당겨 보는 배율 (1 = 전체)
+ * zoom: 입을 가운데 두고 당겨 보는 배율 (1 = 전체). lift: 코코가 위로 떠오른 거리(px)
  * 앱(Printer.tsx)처럼 영수증이 통째로 아래로 밀려 나온다 → 끝(바코드)이 먼저, 제목이 마지막에 보인다
  */
-export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood = 'spew', zoom = 1 } = {}) {
+export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood = 'spew', zoom = 1, lift = 0 } = {}) {
   const S = 1300; // 코코 폭
   const k = S / 400;
   const cx = W / 2;
@@ -184,7 +184,7 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
   <g transform="translate(${cx} ${exitY}) scale(${zoom}) translate(${-cx} ${-exitY})">
   ${amp > 0.05 ? lines : ''}
-  <g transform="translate(${cx - S / 2 + dx} ${top}) rotate(${rot} ${S / 2} ${300 * k}) translate(${(S * (1 - sx)) / 2} ${300 * k * (1 - sy)}) scale(${k * sx} ${k * sy})">${coco(mood)}</g>
+  <g transform="translate(${cx - S / 2 + dx} ${top - lift}) rotate(${rot} ${S / 2} ${300 * k}) translate(${(S * (1 - sx)) / 2} ${300 * k * (1 - sy)}) scale(${k * sx} ${k * sy})">${coco(mood)}</g>
   ${feed <= 0 ? '' : `<g clip-path="url(#below)" transform="rotate(${tilt} ${cx} ${exitY})">
     <rect x="${cx - rw / 2 + dx + 14}" y="${ry + 14}" width="${rw}" height="${r.h}" fill="#7a2e00" opacity="0.18"/>
     <g transform="translate(${cx - rw / 2 + dx} ${ry})">

@@ -1,6 +1,6 @@
 // 앱스토어 헤더 동영상 (3840×1646, 30fps, 10초, 끝과 처음이 이어지게)
 // node make_header_video.mjs <out.mp4> [poster.png]
-// 볼 빵빵 덜덜 → 입 벌려 영수증 뱉기 → 다 나오면 떨림이 멎음 → 영수증이 뜯겨 떨어지고 활짝 웃음 → 처음으로
+// 볼 빵빵 덜덜 → 입 벌려 영수증 뱉기 → 다 나오면 떨림이 멎음 → 영수증을 놓고 활짝 웃으며 위로 날아감 → 영수증만 남음 → 처음으로
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import ffmpeg from 'ffmpeg-static';
@@ -12,8 +12,9 @@ const SECONDS = 10;
 const GAG = 0.9; // 볼 빵빵하게 참는 시간
 const PRINT = 6.9; // 다 나오는 시각
 const CALM = 0.35; // 떨림이 잦아드는 시간
-const TEAR = 8.4; // 뜯기는 시각
-const FALL = 1.0;
+const TEAR = 7.9; // 영수증을 놓는 시각
+const RISE = [8.15, 9.2]; // 코코가 위로 떠올라 사라지는 동안
+const RISE_PX = 1300;
 const ZOOM = 1.45; // 영수증이 나올 때 입으로 당겨 보는 배율
 const ZOOM_IN = [GAG - 0.2, GAG + 1.4]; // 이 사이에 당기고
 const ZOOM_OUT = [PRINT - 1.9, PRINT - 0.1]; // 이 사이에 원래 크기로
@@ -40,8 +41,17 @@ function pose(t) {
     return { feed, mood: 'spew', shake, amp: 1 };
   }
   const amp = 1 - clamp((t - PRINT) / CALM);
-  // 입에 물고 있는 동안은 벌린 입 그대로, 뜯기면 활짝 웃는다
-  return { feed: 1, mood: t < TEAR ? 'spew' : 'happy', shake, amp, drop: ease(clamp((t - TEAR) / FALL)) };
+  // 입에 물고 있는 동안은 벌린 입 그대로, 놓으면 영수증은 살짝 내려앉고 코코는 웃으며 위로 사라진다
+  const u = clamp((t - RISE[0]) / (RISE[1] - RISE[0]));
+  const dip = Math.sin(clamp((t - TEAR) / (RISE[0] - TEAR)) * Math.PI) * 30; // 뜨기 전에 살짝 웅크림
+  return {
+    feed: 1,
+    mood: t < TEAR ? 'spew' : 'happy',
+    shake,
+    amp,
+    drop: 0.15 * ease(clamp((t - TEAR) / 0.4)),
+    lift: u * u * u * RISE_PX - dip,
+  };
 }
 
 const out = process.argv[2] ?? 'header.mp4';
