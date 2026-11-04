@@ -6,18 +6,13 @@
 읽은 책, 본 영화, 쓴 돈, 떠난 여행, 함께 찍은 네컷을 **진짜 영수증·티켓처럼 출력**해서
 세로로 길게 이어진 롤에 쌓아두는 기록 앱.
 
-**iOS 1.0.1 App Store 심사 중 · Android 준비 중** · [지원 페이지](https://recoco.pages.dev) · [포트폴리오 정리](https://yge-portfolio.vercel.app/projects/recoco)
+[![iOS](https://img.shields.io/badge/iOS-App_Store_심사_중-FF7A2F)](https://recoco.pages.dev)
+![Android](https://img.shields.io/badge/Android-준비_중-9CA3AF)
+[![Support](https://img.shields.io/badge/Support-recoco.pages.dev-FFB18C)](https://recoco.pages.dev)
+[![Portfolio](https://img.shields.io/badge/Portfolio-yge--portfolio.vercel.app-1A1A2E)](https://yge-portfolio.vercel.app/projects/recoco)
+![Stack](https://img.shields.io/badge/Expo_SDK_57-React_Native_0.86-3A2A22)
+![기간](https://img.shields.io/badge/개발_기간-2026.09_~_2026.11-6B7280)
 
-<p>
-  <img src="marketing/readme/01-home.jpg" width="32%" alt="홈">
-  <img src="marketing/readme/05-receipts.jpg" width="32%" alt="양식마다 다른 종이">
-  <img src="marketing/readme/04-write.jpg" width="32%" alt="제목만 치면 채워지는 폼">
-</p>
-<p>
-  <img src="marketing/readme/02-roll.jpg" width="32%" alt="이어 붙인 롤">
-  <img src="marketing/readme/09-cards.jpg" width="32%" alt="코코몬 카드·코코치">
-  <img src="marketing/readme/08-coco.jpg" width="32%" alt="코코 옷장">
-</p>
 
 ## 기능
 
@@ -65,7 +60,6 @@ marketing/
   Instagram/          인스타 스토리 동영상 (1080×1920)
   insta/              인스타 피드 게시물 틀
   store/              스토어 스크린샷 틀 (figma/ 에 규격별 SVG)
-  readme/             이 README 의 화면 그림
 ```
 
 메인은 한 화면을 꽉 채우는 주황(`#ff7a2f`) 배경 + 큰 흰 코코 + 주간 도장 달력. ＋를 누르면 카테고리 알약이 올라오고, 영수증 목록은 따로 올라오는 화면. 색은 `app/src/theme.ts` 의 `COLORS`.
