@@ -70,7 +70,9 @@ const ff = spawn(ffmpeg, [
   // 소리는 없지만 무음 트랙을 붙여 둔다 (앱 미리보기 영상처럼 오디오 트랙을 요구할 때 대비)
   '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
   '-shortest',
-  '-c:v', 'libx264', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-crf', '16', '-preset', 'slow',
+  // 스토리는 인스타가 올릴 때 한 번 더 압축하니 원본을 넉넉하게 (단순한 면이 많아 crf 만으론 2Mbps 대로 깎인다)
+  '-c:v', 'libx264', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-preset', 'slow', '-tune', 'animation',
+  ...(L === STORY ? ['-crf', '10', '-minrate', '8M', '-maxrate', '16M', '-bufsize', '16M'] : ['-crf', '16']),
   '-c:a', 'aac', '-b:a', '256k',
   '-s', `${W}x${H}`, '-r', String(FPS), '-movflags', '+faststart',
   out,
