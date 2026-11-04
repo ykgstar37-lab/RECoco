@@ -1,0 +1,55 @@
+All rights reserved.
+
+Copyright (c) 2026 Yoon Gyeongeun
+
+이 저장소의 소스 코드, 디자인 에셋, 문서는 저작권자의 자산입니다.
+학습과 참고를 위한 열람은 자유롭게 하셔도 됩니다.
+
+다만 저작권자의 사전 서면 동의 없이 다음을 할 수 없습니다.
+
+- 복제, 배포, 재배포, 공중송신
+- 2차적 저작물 작성 및 개작
+- 상업적 이용
+- 이 소프트웨어의 전부 또는 일부를 사용한 서비스 운영
+
+RECoco·레코코 이름과 로고, 마스코트 코코와 코코 옷, 코코몬 카드·코코치 틀 그림,
+앱 아이콘 등 브랜드 에셋(app/assets/, design/logo/, design/previews/, marketing/)은
+저작권자의 자산이며 이 열람 허용 범위에 포함되지 않습니다.
+
+글꼴(Pretendard, 나눔 글꼴, Space Mono)은 각 글꼴의 SIL Open Font License 를 따릅니다
+(app/assets/fonts/Pretendard-LICENSE.txt, 각 @expo-google-fonts 패키지).
+
+책 정보는 Kakao 검색 API, 영화 정보는 TMDB API 에서 가져오며 각 권리자의 자산입니다.
+This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+문의: yge0307@gmail.com
+
+---
+
+All rights reserved.
+
+Copyright (c) 2026 Yoon Gyeongeun
+
+The source code, design assets, and documentation in this repository are the
+property of the copyright holder. You are welcome to read and study them.
+
+Without prior written permission from the copyright holder, you may not:
+
+- copy, distribute, redistribute, or publicly transmit this work
+- create derivative works or adaptations
+- use it commercially
+- operate a service based on all or part of this software
+
+The RECoco name and logo, the Coco mascot and its outfits, the Cocomon card and
+Cocochi frame artwork, the app icon, and related brand assets (app/assets/,
+design/logo/, design/previews/, marketing/) are the property of the copyright
+holder and are not covered by the permission above.
+
+Fonts (Pretendard, Nanum fonts, Space Mono) are used under their respective
+SIL Open Font Licenses.
+
+Book data comes from the Kakao Search API and movie data from the TMDB API; they
+remain the property of their respective owners.
+This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+Contact: yge0307@gmail.com

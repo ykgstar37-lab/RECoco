@@ -12,6 +12,7 @@
 [![Portfolio](https://img.shields.io/badge/Portfolio-yge--portfolio.vercel.app-1A1A2E)](https://yge-portfolio.vercel.app/projects/recoco)
 ![Stack](https://img.shields.io/badge/Expo_SDK_57-React_Native_0.86-3A2A22)
 ![기간](https://img.shields.io/badge/개발_기간-2026.09_~_2026.11-6B7280)
+[![License](https://img.shields.io/badge/License-All_rights_reserved-red)](LICENSE)
 
 
 ## 기능
@@ -111,3 +112,15 @@ node make_header_video.mjs ../../marketing/Instagram/story.mp4 ../../marketing/I
 ```
 
 앱 이름을 바꾸면 `app/src/theme.ts` 의 `BRAND` 만 고치면 영수증 헤더와 네컷 로고까지 함께 바뀐다.
+
+## 라이선스
+
+[All rights reserved](LICENSE). 학습·참고 목적의 코드 열람은 자유롭지만, 복제·배포·상업적 이용은 허용하지 않는다. 코코 캐릭터·로고·카드 틀 그림 같은 브랜드 에셋은 열람 허용 범위에도 들지 않는다.
+
+책 정보는 Kakao, 영화 정보는 [TMDB](https://www.themoviedb.org) API 를 쓴다. This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+## 문의
+
+[recoco.pages.dev](https://recoco.pages.dev)
+<br>
+[yge0307@gmail.com](mailto:yge0307@gmail.com) · 앱 안 설정 → 버그 신고
