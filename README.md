@@ -1,7 +1,8 @@
-# RECoco - 레코코
+
+
 
 <a href="marketing/App%20Store/header/header.mp4"><img src="marketing/App%20Store/header/header.gif" alt="코코가 덜덜 떨며 레코코 영수증을 뱉는 헤더 동영상" width="100%"></a>
-
+# RECoco - 레코코
 읽은 책, 본 영화, 쓴 돈, 떠난 여행, 함께 찍은 네컷을 **진짜 영수증·티켓처럼 출력**해서
 세로로 길게 이어진 롤에 쌓아두는 기록 앱.
 
