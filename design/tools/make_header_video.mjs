@@ -1,6 +1,6 @@
-// 앱스토어 헤더 동영상 (3840×1646, 30fps, 10초, 끝과 처음이 이어지게)
+// 앱스토어 헤더 동영상 (3840×1646, 30fps, 11초, 반복 재생)
 // node make_header_video.mjs <out.mp4> [poster.png]
-// 볼 빵빵 덜덜 → 입 벌려 영수증 뱉기 → 다 나오면 떨림이 멎음 → 영수증을 놓고 활짝 웃으며 위로 날아감 → 영수증만 남음 → 처음으로
+// 볼 빵빵 덜덜 → 입 벌려 영수증 뱉기 → 다 나오면 떨림이 멎음 → 영수증을 놓고 활짝 웃으며 위로 날아감 → 영수증이 가운데로 올라옴 → 처음으로
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import ffmpeg from 'ffmpeg-static';
@@ -8,13 +8,14 @@ import ffmpeg from 'ffmpeg-static';
 import { H, W, frame, render } from './make_header.mjs';
 
 const FPS = 30;
-const SECONDS = 10;
+const SECONDS = 11;
 const GAG = 0.9; // 볼 빵빵하게 참는 시간
 const PRINT = 6.9; // 다 나오는 시각
 const CALM = 0.35; // 떨림이 잦아드는 시간
 const TEAR = 7.9; // 영수증을 놓는 시각
 const RISE = [8.15, 9.2]; // 코코가 위로 떠올라 사라지는 동안
 const RISE_PX = 1300;
+const CENTER = [8.9, 9.9]; // 영수증이 가운데로 올라오는 동안 (그 뒤 끝까지 멈춤)
 const ZOOM = 1.45; // 영수증이 나올 때 입으로 당겨 보는 배율
 const ZOOM_IN = [GAG - 0.2, GAG + 1.4]; // 이 사이에 당기고
 const ZOOM_OUT = [PRINT - 1.9, PRINT - 0.1]; // 이 사이에 원래 크기로
@@ -51,12 +52,14 @@ function pose(t) {
     amp,
     drop: 0.15 * ease(clamp((t - TEAR) / 0.4)),
     lift: u * u * u * RISE_PX - dip,
+    center: ease(clamp((t - CENTER[0]) / (CENTER[1] - CENTER[0]))),
   };
 }
 
 const out = process.argv[2] ?? 'header.mp4';
 const poster = process.argv[3];
-if (poster) writeFileSync(poster, render(frame({ feed: 1, mood: 'spew', shake: 0.6 })));
+// 대표 그림은 마지막 장면 (영수증 한 장이 가운데에 다 보인다)
+if (poster) writeFileSync(poster, render(frame(at(SECONDS - 1 / FPS))));
 
 const ff = spawn(ffmpeg, [
   '-y',

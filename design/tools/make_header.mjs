@@ -145,10 +145,11 @@ function receipt(w) {
 /**
  * feed: 0(아직 안 나옴) ~ 1(다 나옴). shake: 떨림 위상(라디안), amp: 떨림 세기(0~1).
  * drop: 뜯긴 영수증이 떨어진 정도(0~1). puff: 볼 빵빵(0~1). mood: gag · spew · happy
- * zoom: 입을 가운데 두고 당겨 보는 배율 (1 = 전체). lift: 코코가 위로 떠오른 거리(px)
+ * zoom: 입을 가운데 두고 당겨 보는 배율 (1 = 전체). lift: 코코가 위로 떠오른 거리(px).
+ * center: 코코가 떠난 뒤 영수증이 화면 가운데로 올라온 정도(0~1)
  * 앱(Printer.tsx)처럼 영수증이 통째로 아래로 밀려 나온다 → 끝(바코드)이 먼저, 제목이 마지막에 보인다
  */
-export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood = 'spew', zoom = 1, lift = 0 } = {}) {
+export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood = 'spew', zoom = 1, lift = 0, center = 0 } = {}) {
   const S = 1300; // 코코 폭
   const k = S / 400;
   const cx = W / 2;
@@ -160,6 +161,10 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
   const rot = Math.sin(shake * 1.3) * 0.25 * amp;
   const ry = exitY - r.h + feed * r.h + drop * drop * (H + 200);
   const tilt = drop * 6;
+  // 코코가 떠난 뒤 영수증이 화면 한가운데로 올라온다 (다 보이게 살짝 줄여서)
+  const fit = Math.min(1, (H - 160) / r.h);
+  const sc = 1 + (fit - 1) * center;
+  const y = ry + ((H - r.h * fit) / 2 - ry) * center;
   const sx = 1 + puff * 0.05;
   const sy = 1 - puff * 0.04;
   // 덜덜 떠는 표시: 코코 양옆 짧은 줄 세 개씩
@@ -185,9 +190,9 @@ export function frame({ feed = 1, shake = 0, amp = 1, drop = 0, puff = 0, mood =
   <g transform="translate(${cx} ${exitY}) scale(${zoom}) translate(${-cx} ${-exitY})">
   ${amp > 0.05 ? lines : ''}
   <g transform="translate(${cx - S / 2 + dx} ${top - lift}) rotate(${rot} ${S / 2} ${300 * k}) translate(${(S * (1 - sx)) / 2} ${300 * k * (1 - sy)}) scale(${k * sx} ${k * sy})">${coco(mood)}</g>
-  ${feed <= 0 ? '' : `<g clip-path="url(#below)" transform="rotate(${tilt} ${cx} ${exitY})">
-    <rect x="${cx - rw / 2 + dx + 14}" y="${ry + 14}" width="${rw}" height="${r.h}" fill="#7a2e00" opacity="0.18"/>
-    <g transform="translate(${cx - rw / 2 + dx} ${ry})">
+  ${feed <= 0 ? '' : `<g ${center > 0 ? '' : 'clip-path="url(#below)"'}>
+    <g transform="translate(${cx + dx * (1 - center)} ${y}) rotate(${tilt * (1 - center)}) scale(${sc}) translate(${-rw / 2} 0)">
+      <rect x="14" y="14" width="${rw}" height="${r.h}" fill="#7a2e00" opacity="0.18"/>
       <rect width="${rw}" height="${r.h}" fill="#fffdf8"/>
       ${r.svg}
     </g>
