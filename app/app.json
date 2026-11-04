@@ -25,7 +25,6 @@
       "package": "com.yoongyeongeun.recoco",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
@@ -41,6 +40,7 @@
         "expo-camera",
         {
           "cameraPermission": "책·탑승권·교환권 바코드와 포토부스 QR 코드를 읽기 위해 카메라를 사용해요.",
+          "microphonePermission": false,
           "barcodeScannerEnabled": true,
           "recordAudioAndroid": false
         }
@@ -48,7 +48,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "기록에 붙일 사진이나 결제 알림·예매 내역 캡처를 고르기 위해 사진 보관함에 접근해요."
+          "photosPermission": "기록에 붙일 사진이나 결제 알림·예매 내역 캡처를 고르기 위해 사진 보관함에 접근해요.",
+          "microphonePermission": false
         }
       ],
       "expo-sharing",
