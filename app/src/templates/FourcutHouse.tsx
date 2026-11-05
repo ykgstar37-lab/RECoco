@@ -10,9 +10,10 @@ import Svg, { Circle, ClipPath, Defs, Ellipse, G, Image, Line, Path, Rect, Text 
 import { coverRect } from '../lib/photoCrop';
 import { parseDate, seededRandom, withParticle } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
-import { BRAND, PAPER_FONTS as FONTS } from '../theme';
+import { PAPER_FONTS as FONTS } from '../theme';
 import { FourcutHouseColor, FourcutRecord, Photo } from '../types';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
+import { Wordmark } from './wordmark';
 
 const CW = 500; // 그림 폭 (집 + 지붕 처마·굴뚝이 삐져나올 자리)
 const PAD = 16;
@@ -224,7 +225,7 @@ function Shell({ g, id, connected }: { g: Geo; id: string; connected: boolean })
       {color.roof === 'stripe' && <CocoSitting x={X1 - 116} y={top + 8} w={124} />}
       {/* 명패 */}
       <Rect x={CX - 46} y={wallBot - 66} width={92} height={30} rx={15} fill="#fff" stroke={color.frame} strokeWidth={2.4} />
-      <T f="sansBold" x={CX} y={wallBot - 46} fontSize={14} fill={INK} textAnchor="middle" children={BRAND.en} />
+      <Wordmark cx={CX} cy={wallBot - 51} width={66} fill="#111111" />
       <PaperOverlay id={id} d={outline(g)} width={CW} height={g.height} wrinkle="none" surface="grain" />
     </G>
   );
