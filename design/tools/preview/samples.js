@@ -68,6 +68,7 @@ module.exports = () => {
       record: { ...fourBase, id: `fh-${c}`, design: 'house', houseColor: c, photos: c === 'red' ? [photo(1), photo(3)] : fourBase.photos },
       px: 500,
     })),
+    { name: '네컷하우스_3장', record: { ...fourBase, id: 'fh-three', design: 'house', houseColor: 'blue', photos: [photo(1), photo(2), photo(3), null] }, px: 500 },
     { name: '네컷하우스뒷_pink', record: { ...fourBase, id: 'fhb-pink', design: 'house', houseColor: 'pink' }, side: 'back', px: 500 },
     { name: '네컷하우스뒷_green', record: { ...fourBase, id: 'fhb-green', design: 'house', houseColor: 'green' }, side: 'back', px: 500 },
     { name: '네컷하우스_QR', record: { ...fourQr, id: 'fh-qr', design: 'house', houseColor: 'blue' }, px: 500 },
