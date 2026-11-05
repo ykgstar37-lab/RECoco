@@ -103,7 +103,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
         </ScrollView>
 
         <View style={styles.actions}>
-          <Action label="앨범에 저장" Icon={SaveIcon} disabled={busy} onPress={() => run(() => saveCard(cardRef), '앨범에 저장했어요')} />
+          <Action label="앨범에 저장" short="저장" Icon={SaveIcon} disabled={busy} onPress={() => run(() => saveCard(cardRef), '앨범에 저장했어요')} />
           <Action label="고치기" Icon={PencilIcon} disabled={busy} onPress={() => setEditing(true)} />
           <Action label="버리기" Icon={TrashIcon} disabled={busy} danger onPress={() => setConfirmDelete(true)} />
         </View>
@@ -176,15 +176,18 @@ function MenuItem({ label, icon, onPress }: { label: string; icon: React.ReactNo
   );
 }
 
-/** 아래 버튼 — 글씨 대신 아이콘 (이름은 읽어 주기용으로 남긴다) */
+/** 아래 버튼 — 동그라미 아이콘 + 아래 짧은 이름 */
 function Action({
   label,
+  short,
   Icon,
   onPress,
   danger,
   disabled,
 }: {
   label: string;
+  /** 동그라미 아래 이름 (없으면 label) */
+  short?: string;
   Icon: (p: { color: string; size?: number }) => React.JSX.Element;
   onPress: () => void;
   danger?: boolean;
@@ -196,8 +199,11 @@ function Action({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.action, danger && styles.actionDanger, (pressed || disabled) && { opacity: 0.7 }]}>
-      <Icon color={danger ? '#fff' : COLORS.orange} size={24} />
+      style={({ pressed }) => [styles.action, (pressed || disabled) && { opacity: 0.7 }]}>
+      <View style={[styles.actionCircle, danger && styles.actionDanger]}>
+        <Icon color={danger ? '#fff' : COLORS.orange} size={24} />
+      </View>
+      <Text style={styles.actionText}>{short ?? label}</Text>
     </Pressable>
   );
 }
@@ -228,9 +234,11 @@ const styles = StyleSheet.create({
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12 },
   menuIcon: { width: 22, alignItems: 'center' },
   menuText: { color: COLORS.ink, fontSize: 15, fontFamily: FONTS.sansBold },
-  actions: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
-  action: { flex: 1, backgroundColor: '#fff', borderRadius: 16, paddingVertical: 14, alignItems: 'center' },
+  actions: { flexDirection: 'row', justifyContent: 'space-evenly', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
+  action: { alignItems: 'center', gap: 6, minWidth: 64 },
+  actionCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   actionDanger: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  actionText: { color: '#fff', fontSize: 12, fontFamily: FONTS.sansBold },
   toast: {
     position: 'absolute',
     alignSelf: 'center',
