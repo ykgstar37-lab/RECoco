@@ -216,7 +216,24 @@ export function HomeScreen() {
   };
 
   const handleEdit = useCallback((next: RecoRecord) => update(records.map((r) => (r.id === next.id ? next : r))), [records, update]);
-  const handleDelete = useCallback((record: RecoRecord) => update(records.filter((r) => r.id !== record.id)), [records, update]);
+  // 지운 자리를 기억해 두었다가 '되돌리기'면 그 자리에 다시 끼운다
+  const deletedAt = useRef(0);
+  const handleDelete = useCallback(
+    (record: RecoRecord) => {
+      deletedAt.current = Math.max(0, records.findIndex((r) => r.id === record.id));
+      update(records.filter((r) => r.id !== record.id));
+    },
+    [records, update],
+  );
+  const handleRestore = useCallback(
+    (record: RecoRecord) => {
+      if (records.some((r) => r.id === record.id)) return;
+      const next = [...records];
+      next.splice(Math.min(deletedAt.current, next.length), 0, record);
+      update(next);
+    },
+    [records, update],
+  );
 
   // 코코가 잠깐 한마디 하고 원래 대사로 돌아온다
   const say = (text: string, ms = 1800) => {
@@ -430,6 +447,7 @@ export function HomeScreen() {
         }}
         onSave={handleEdit}
         onDelete={handleDelete}
+        onRestore={handleRestore}
       />
       <Closet
         visible={closetOpen}

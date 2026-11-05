@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { Easing, FadeIn, LinearTransition, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, FadeInUp, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -28,14 +28,21 @@ interface Props {
   onAdd: (kind: RecordKind | null) => void;
   onSave: (record: RecoRecord) => void;
   onDelete: (record: RecoRecord) => void;
+  /** 삭제 직후 '되돌리기' */
+  onRestore: (record: RecoRecord) => void;
 }
+
+/** 삭제했어요 · 되돌리기 알림이 떠 있는 시간 */
+const UNDO_MS = 5000;
 
 /** 시트가 다 올라오자마자 그리는 영수증 수 (화면에 보이는 만큼) */
 const FIRST_BATCH = 4;
 
 /** 모아둔 영수증을 세로로 길게 이어서 보는 화면 */
-export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd, onSave, onDelete }: Props) {
+export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd, onSave, onDelete, onRestore }: Props) {
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [undo, setUndo] = useState<RecoRecord | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [kind, setKind] = useState<RecordKind | null>(null);
   const [tag, setTag] = useState<string | null>(null); // 일상 소분류
   const { owned } = useShop();
@@ -55,6 +62,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
     if (visible) return;
     setKind(null);
     setTag(null);
+    setUndo(null);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [visible]);
 
@@ -122,6 +130,19 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
   }));
   const detail = records.find((r) => r.id === detailId) ?? null;
   const open = (record: RecoRecord) => setDetailId(record.id);
+  const remove = (record: RecoRecord) => {
+    setDetailId(null);
+    onDelete(record);
+    setUndo(record);
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    undoTimer.current = setTimeout(() => setUndo(null), UNDO_MS);
+  };
+  const restore = () => {
+    if (!undo) return;
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    onRestore(undo);
+    setUndo(null);
+  };
   const { width: screenW } = useWindowDimensions();
   const paperW = Math.min(screenW - 44, 440);
   // 날짜 → 카테고리 순서로 거른다 (둘 다 걸 수 있음)
@@ -225,7 +246,7 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
                 <Animated.View
                   key={record.id}
                   entering={FadeIn.duration(140)}
-                  layout={LinearTransition.springify().damping(18)}
+                  layout={LinearTransition.duration(200).easing(Easing.out(Easing.quad))}
                   style={[styles.item, connected && { marginTop: -overlap }]}>
                   {connected ? (
                     // 이음매 위에 올려둔 작은 절취선 라벨
@@ -270,17 +291,45 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
           record={detail}
           onClose={() => setDetailId(null)}
           onSave={onSave}
-          onDelete={(r) => {
-            setDetailId(null);
-            onDelete(r);
-          }}
+          onDelete={remove}
         />
+        {undo && (
+          <Animated.View
+            entering={FadeInUp.duration(180)}
+            exiting={FadeOut.duration(160)}
+            style={[styles.undo, { bottom: insets.bottom + 28 }]}>
+            <Text style={styles.undoText}>삭제했어요</Text>
+            <Pressable onPress={restore} hitSlop={10} accessibilityRole="button">
+              <Text style={styles.undoBtn}>되돌리기</Text>
+            </Pressable>
+          </Animated.View>
+        )}
       </GestureHandlerRootView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  undo: {
+    position: 'absolute',
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: COLORS.ink,
+    paddingLeft: 20,
+    paddingRight: 18,
+    paddingVertical: 12,
+    borderRadius: 999,
+    zIndex: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  undoText: { color: '#fff', fontSize: 14, fontFamily: FONTS.sansBold },
+  undoBtn: { color: '#ffa36b', fontSize: 14, fontFamily: FONTS.sansHeavy },
   tagsScroll: { flexGrow: 0, flexShrink: 0 },
   tags: { paddingHorizontal: 18, gap: 6, paddingBottom: 10 },
   tag: {

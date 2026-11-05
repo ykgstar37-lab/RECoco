@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -7,7 +7,6 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { seededRandom } from '../lib/format';
 import { bump } from '../lib/haptics';
 import { FlippableRecord, RecordBack, RecordPaper, sizeOf } from '../templates';
-import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
 
 interface Props {
@@ -48,7 +47,6 @@ function FlipCardBase({ record, rollWidth, connected = false, onLongPress }: Pro
     transform: [{ perspective: 1200 }, { rotateY: `${interpolate(flip.value, [0, 1], [180, 360])}deg` }],
     opacity: flip.value >= 0.5 ? 1 : 0,
   }));
-  const hint = useAnimatedStyle(() => ({ opacity: interpolate(flip.value, [0, 0.2], [1, 0], 'clamp') }));
 
   return (
     <View style={{ alignItems: 'center', paddingBottom: connected ? 0 : 26 }}>
@@ -64,9 +62,6 @@ function FlipCardBase({ record, rollWidth, connected = false, onLongPress }: Pro
           </Animated.View>
         </Animated.View>
       </GestureDetector>
-      <Animated.View pointerEvents="none" style={[styles.hint, hint]}>
-        <Text style={styles.hintText}>↻ 탭해서 뒤집기</Text>
-      </Animated.View>
     </View>
   );
 }
@@ -75,13 +70,4 @@ export const FlipCard = memo(FlipCardBase);
 
 const styles = StyleSheet.create({
   face: { backfaceVisibility: 'hidden' },
-  hint: {
-    position: 'absolute',
-    bottom: 0,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: COLORS.orange,
-  },
-  hintText: { color: '#fff', fontSize: 11, fontFamily: FONTS.sansBold },
 });

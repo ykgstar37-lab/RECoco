@@ -127,7 +127,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
         {confirmDelete && (
           <Animated.View entering={FadeInUp.duration(160)} exiting={FadeOut.duration(100)} style={styles.confirm}>
             <Text style={styles.confirmTitle}>이 영수증을 버릴까요?</Text>
-            <Text style={styles.confirmSub}>버리면 되돌릴 수 없어요.</Text>
+            <Text style={styles.confirmSub}>버린 뒤 잠깐은 되돌릴 수 있어요.</Text>
             <View style={styles.confirmRow}>
               <Pressable style={[styles.confirmBtn, styles.confirmCancel]} onPress={() => setConfirmDelete(false)}>
                 <Text style={styles.confirmCancelText}>그냥 둘래요</Text>
