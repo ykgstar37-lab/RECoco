@@ -141,7 +141,7 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
 export function sizeOf(record: RecoRecord, rollWidth: number, connected = false) {
   const l = layoutOf(record);
   const tallStrip = connected && record.kind === 'fourcut' && l.displayRatio <= 0.6;
-  const width = rollWidth * (tallStrip ? 0.5 : l.displayRatio);
+  const width = rollWidth * (tallStrip ? 0.58 : l.displayRatio);
   const scale = width / l.width;
   return {
     width,

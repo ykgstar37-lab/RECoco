@@ -64,7 +64,7 @@ type Geo = ReturnType<typeof geometry>;
 
 export function layoutFourcutHouse(r: FourcutRecord): TemplateLayout {
   const { height } = geometry(r);
-  // 0.6 이하라 롤에 이어 붙일 때는 1×4 띠처럼 반으로 줄어든다
+  // 0.6 이하라 롤에 이어 붙일 때는 1×4 띠처럼 좁게(0.58) 줄어든다
   return { width: CW + PAD * 2, height: height + PAD * 2 + 14, foldAt: 0, displayRatio: 0.6, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
