@@ -6,6 +6,7 @@ import { coverRect } from '../lib/photoCrop';
 import { parseDate, seededRandom, withParticle } from '../lib/format';
 import { fitLine, fitLines } from '../lib/text';
 import { BRAND, PAPER_FONTS as FONTS } from '../theme';
+import { Wordmark } from './wordmark';
 import { FourcutFrame, FourcutLayout, FourcutRecord, PaperTheme, Photo } from '../types';
 import { GridLines, PaperOverlay, PaperShadow, TemplateLayout, gridColorOf } from './shared';
 
@@ -167,6 +168,8 @@ export function FourcutFront({ record: r, width, connected = false }: { record: 
   const card = cardPath(w, h, connected ? 0 : 8);
   const clip = `fc-clip-${r.id}`;
   const frame = FRAMES[r.frame] ?? FRAMES.white;
+  // RECoco 글자 로고는 검정 (검정 프레임에서만 흰색)
+  const markInk = r.frame === 'black' ? '#ffffff' : '#111111';
   const d = parseDate(r.date);
   const dateText = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
   const b = spec.brand;
@@ -194,12 +197,12 @@ export function FourcutFront({ record: r, width, connected = false }: { record: 
             ))}
             {b.vertical ? (
               <G transform={`translate(${b.x} ${b.y}) rotate(90)`}>
-                <T f="code" x={0} y={-2} fontSize={b.size} fill={frame.ink} textAnchor="middle" letterSpacing={3} children={BRAND.en} />
+                <Wordmark cx={0} cy={-2 - b.size * 0.36} width={b.size * 4} fill={markInk} />
                 <T f="mono" x={0} y={24} fontSize={b.dateSize} fill={frame.ink} textAnchor="middle" letterSpacing={3} opacity={0.75} children={dateText} />
               </G>
             ) : (
               <G>
-                <T f="code" x={b.x} y={b.y} fontSize={b.size} fill={frame.ink} textAnchor="middle" letterSpacing={2} children={BRAND.en} />
+                <Wordmark cx={b.x} cy={b.y - b.size * 0.36} width={b.size * 4} fill={markInk} />
                 <T f="mono" x={b.x} y={b.dateY} fontSize={b.dateSize} fill={frame.ink} textAnchor="middle" letterSpacing={3} opacity={0.75} children={`FOUR CUTS · ${dateText}`} />
               </G>
             )}
