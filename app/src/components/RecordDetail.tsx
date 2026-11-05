@@ -6,12 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { bump } from '../lib/haptics';
 import { canCapture, saveCard, shareCard } from '../lib/share';
 import { KIND_LABEL, RecordBack, RecordPaper, isFlippable, sizeOf } from '../templates';
-import { BRAND, COLORS, FONTS } from '../theme';
+import { COLORS, FONTS } from '../theme';
 import { RecoRecord } from '../types';
-import { CocoArt } from './Coco';
 import { LoadingOverlay } from './Loading';
 import { DotsIcon, PencilIcon, SaveIcon, ShareIcon, TrashIcon } from './MenuIcons';
 import { ModalSafeArea } from './ModalSafeArea';
+import { RecocoWordmark } from './RecocoWordmark';
 import { RecordForm } from './RecordForm';
 
 interface Props {
@@ -95,8 +95,7 @@ export function RecordDetail({ record, onClose, onSave, onDelete }: Props) {
                 {flippable && back ? <RecordBack record={record} width={width} /> : <RecordPaper record={record} width={width} />}
               </Animated.View>
               <View style={styles.mark}>
-                <CocoArt size={26} tone="white" id="detail-mark" />
-                <Text style={styles.markText}>{BRAND.ko}</Text>
+                <RecocoWordmark height={15} />
               </View>
             </View>
           </Pressable>
@@ -216,8 +215,7 @@ const styles = StyleSheet.create({
   topTitle: { color: '#fff', fontSize: 16, fontFamily: FONTS.sansBold },
   scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
   card: { backgroundColor: COLORS.orange, alignItems: 'center', paddingHorizontal: 12, paddingTop: 20, paddingBottom: 16 },
-  mark: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
-  markText: { color: '#fff', fontSize: 13, fontFamily: FONTS.sansHeavy },
+  mark: { alignItems: 'center', marginTop: 12 },
   menu: {
     position: 'absolute',
     right: 16,

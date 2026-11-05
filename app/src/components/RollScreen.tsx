@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { Easing, FadeIn, FadeInUp, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, FadeInDown, FadeInUp, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -34,6 +34,14 @@ interface Props {
 
 /** 삭제했어요 · 되돌리기 알림이 떠 있는 시간 */
 const UNDO_MS = 5000;
+
+/** 영수증이 살짝 아래에서 통 올라오며 나타난다 (위에서부터 조금씩 늦게) */
+const rise = (i: number) =>
+  FadeInDown.delay(Math.min(i, 5) * 45)
+    .springify()
+    .damping(15)
+    .stiffness(170)
+    .withInitialValues({ opacity: 0, transform: [{ translateY: 18 }] });
 
 /** 시트가 다 올라오자마자 그리는 영수증 수 (화면에 보이는 만큼) */
 const FIRST_BATCH = 4;
@@ -244,8 +252,9 @@ export function RollScreen({ visible, records, date, onClearDate, onClose, onAdd
               const dateText = record.date.replace(/-/g, '.');
               return (
                 <Animated.View
-                  key={record.id}
-                  entering={FadeIn.duration(140)}
+                  // 카테고리·소분류가 바뀌면 새로 그린다 (옛 자리에서 미끄러지면 장 사이가 잠깐 벌어져 보였다)
+                  key={`${kind}-${tag}-${record.id}`}
+                  entering={rise(i)}
                   layout={LinearTransition.duration(200).easing(Easing.out(Easing.quad))}
                   style={[styles.item, connected && { marginTop: -overlap }]}>
                   {connected ? (
