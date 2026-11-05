@@ -141,7 +141,9 @@ export function layoutOf(record: RecoRecord): TemplateLayout {
 export function sizeOf(record: RecoRecord, rollWidth: number, connected = false) {
   const l = layoutOf(record);
   const tallStrip = connected && record.kind === 'fourcut' && l.displayRatio <= 0.6;
-  const width = rollWidth * (tallStrip ? 0.62 : l.displayRatio);
+  // 하우스네컷은 지붕·벽이 있어 같은 폭이면 띠가 가늘고 키도 작다 → 1×4 띠와 키가 비슷해지게 조금 넓게
+  const strip = record.kind === 'fourcut' && record.design === 'house' ? 0.6 : 0.5;
+  const width = rollWidth * (tallStrip ? strip : l.displayRatio);
   const scale = width / l.width;
   return {
     width,
