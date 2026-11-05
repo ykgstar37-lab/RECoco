@@ -14,19 +14,17 @@ import { BRAND, PAPER_FONTS as FONTS } from '../theme';
 import { FourcutHouseColor, FourcutRecord, Photo } from '../types';
 import { PaperOverlay, PaperShadow, TemplateLayout } from './shared';
 
-// 롤에서 1×4 띠와 같은 폭으로 놓여도 사진이 작지 않게, 벽은 좁게·창틀은 넓게 (벽 양옆 여백 20)
-const CW = 360; // 그림 폭 (집 + 지붕 처마·굴뚝이 삐져나올 자리)
+const CW = 500; // 그림 폭 (집 + 지붕 처마·굴뚝이 삐져나올 자리)
 const PAD = 16;
-const X0 = 20; // 벽 왼쪽
-const X1 = 340; // 벽 오른쪽
+const X0 = 40; // 벽 왼쪽
+const X1 = 460; // 벽 오른쪽
 const CX = (X0 + X1) / 2;
-const FW = 280; // 창틀 폭
+const FW = 260; // 창틀 폭
 const FX = CX - FW / 2;
 const FPAD = 14; // 창틀 두께
 const FR = 18; // 창틀 모서리
+const STRIP = 726; // 사진 띠 높이
 const GAP = 6; // 사진 사이 줄 (창틀 색)
-// 사진 한 칸 비율은 예전(창틀 260·띠 726)과 같게 — 이미 잘라 둔 사진이 그대로 맞는다
-const STRIP = Math.round(((726 - GAP * 3) / (260 - FPAD * 2)) * (FW - FPAD * 2) + GAP * 3); // 사진 띠 높이
 const INK = '#2b2622';
 
 type Roof = 'stripe' | 'grid' | 'dots' | 'chimney';
@@ -44,12 +42,11 @@ export const FOURCUT_HOUSE_COLOR_IDS = Object.keys(FOURCUT_HOUSE_COLORS) as Four
 export const houseColorOf = (r: FourcutRecord): FourcutHouseColor => (r.houseColor && FOURCUT_HOUSE_COLORS[r.houseColor] ? r.houseColor : 'pink');
 
 /** 지붕마다 머리 위 여백(코코·뾰족한 꼭대기·연기)과 지붕 높이가 다르다 */
-// 벽이 좁아진 만큼 지붕 높이도 줄여 기울기를 예전과 비슷하게
 const ROOF_SIZE: Record<Roof, { top: number; h: number }> = {
-  stripe: { top: 116, h: 140 },
-  grid: { top: 20, h: 230 },
-  dots: { top: 20, h: 172 },
-  chimney: { top: 100, h: 164 },
+  stripe: { top: 116, h: 170 },
+  grid: { top: 20, h: 280 },
+  dots: { top: 20, h: 210 },
+  chimney: { top: 100, h: 200 },
 };
 
 function geometry(r: FourcutRecord) {
@@ -67,7 +64,7 @@ type Geo = ReturnType<typeof geometry>;
 
 export function layoutFourcutHouse(r: FourcutRecord): TemplateLayout {
   const { height } = geometry(r);
-  // 0.6 이하라 롤에 이어 붙일 때는 1×4 띠와 같은 폭(반)으로 줄어든다
+  // 0.6 이하라 롤에 이어 붙일 때는 1×4 띠처럼 반으로 줄어든다
   return { width: CW + PAD * 2, height: height + PAD * 2 + 14, foldAt: 0, displayRatio: 0.6, inset: { top: PAD, bottom: PAD + 14 } };
 }
 
@@ -224,7 +221,7 @@ function Shell({ g, id, connected }: { g: Geo; id: string; connected: boolean })
       {!connected && <PaperShadow d={outline(g)} strength={1.2} />}
       <Rect x={X0} y={wallTop - 1} width={X1 - X0} height={wallBot - wallTop + 1} fill={color.wall} />
       <RoofArt g={g} id={id} />
-      {color.roof === 'stripe' && <CocoSitting x={X1 - 92} y={top + 8} w={104} />}
+      {color.roof === 'stripe' && <CocoSitting x={X1 - 116} y={top + 8} w={124} />}
       {/* 명패 */}
       <Rect x={CX - 46} y={wallBot - 66} width={92} height={30} rx={15} fill="#fff" stroke={color.frame} strokeWidth={2.4} />
       <T f="sansBold" x={CX} y={wallBot - 46} fontSize={14} fill={INK} textAnchor="middle" children={BRAND.en} />
@@ -324,8 +321,8 @@ export function FourcutHouseBack({ record: r, width }: Props) {
   const g = geometry(r);
   const id = `fhouse-back-${r.id}`;
   const ink = g.color.frame;
-  const left = X0 + 26;
-  const right = X1 - 26;
+  const left = X0 + 44;
+  const right = X1 - 44;
   const inner = right - left;
 
   const d = parseDate(r.date);

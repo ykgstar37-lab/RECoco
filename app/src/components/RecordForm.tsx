@@ -432,6 +432,15 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
     ]);
   };
   /**
+   * 하우스네컷: 장수가 바뀌면 창 비율이 바뀌니, 새로 넣은 사진과 함께 이미 넣은 사진도 새 비율로 다시 자른다
+   * (이미 맞는 사진은 건너뛴다 — askCropMany 가 fitsAspect 로 거른다). 새로 고른 사진부터 먼저
+   */
+  const recropHouse = (photos: (Photo | null)[], picked: number[] = []) => {
+    const filled = photos.map((p, i) => (p ? i : -1)).filter((i) => i >= 0);
+    const order = [...picked.filter((i) => photos[i]), ...filled.filter((i) => !picked.includes(i))];
+    askCropMany(fourcut, photos, order, (i, p) => setFourcut((f) => ({ ...f, photos: f.photos.map((x, j) => (j === i ? p : x)) })));
+  };
+  /**
    * 하우스네컷: 네컷 완성본 한 장을 네 창에 한 컷씩 나눠 넣는다.
    * 같은 사진을 네 번 자르는데, 위에서부터 1/4씩 잘라 둔 자리에서 시작해 조금만 맞추면 되게 한다
    */
@@ -1313,9 +1322,15 @@ export function RecordForm({ visible, records = [], initialKind, sharedPhoto, ed
                     <Label text="사진 (칸 순서대로 들어가요)" />
                     <PhotoSlots
                       photos={fourcut.photos}
-                      onChange={(photos) => setFourcut({ ...fourcut, photos })}
+                      onChange={(photos) => {
+                        setFourcut({ ...fourcut, photos });
+                        // 하우스네컷은 장수만큼 창을 나눠서, 사진을 빼면 남은 사진 칸 비율도 바뀐다 → 다시 자르기
+                        if (fourcut.design === 'house' && photos.filter(Boolean).length < fourcut.photos.filter(Boolean).length) recropHouse(photos);
+                      }}
                       onPicked={(photos, indices) =>
-                        askCropMany(fourcut, photos, indices, (i, p) => setFourcut((f) => ({ ...f, photos: f.photos.map((x, j) => (j === i ? p : x)) })))
+                        fourcut.design === 'house'
+                          ? recropHouse(photos, indices)
+                          : askCropMany(fourcut, photos, indices, (i, p) => setFourcut((f) => ({ ...f, photos: f.photos.map((x, j) => (j === i ? p : x)) })))
                       }
                       onCrop={(i) => askCropMany(fourcut, fourcut.photos, [i], (k, p) => setFourcut((f) => ({ ...f, photos: f.photos.map((x, j) => (j === k ? p : x)) })), true)}
                     />
