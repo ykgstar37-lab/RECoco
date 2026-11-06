@@ -6,7 +6,7 @@
 읽은 책, 본 영화, 쓴 돈, 떠난 여행, 함께 찍은 네컷을 **진짜 영수증·티켓처럼 출력**해서
 세로로 길게 이어진 롤에 쌓아두는 기록 앱.
 
-[![iOS](https://img.shields.io/badge/iOS-App_Store_심사_중-FF7A2F)](https://recoco.pages.dev)
+[![iOS](https://img.shields.io/badge/iOS-App_Store_출시-FF7A2F?logo=apple&logoColor=white)](https://apps.apple.com/app/recoco/id6821948676)
 ![Android](https://img.shields.io/badge/Android-준비_중-9CA3AF)
 ![기간](https://img.shields.io/badge/개발_기간-2026.09_~_2026.11-6B7280)
 [![License](https://img.shields.io/badge/License-All_rights_reserved-red)](LICENSE)
@@ -118,6 +118,6 @@ node make_header_video.mjs ../../marketing/Instagram/story.mp4 ../../marketing/I
 
 ## 문의
 
-[recoco.pages.dev](https://recoco.pages.dev)
+[App Store](https://apps.apple.com/app/recoco/id6821948676) · [recoco.pages.dev](https://recoco.pages.dev)
 <br>
 [yge0307@gmail.com](mailto:yge0307@gmail.com) · 앱 안 설정 → 버그 신고
